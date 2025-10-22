@@ -12,6 +12,7 @@ load_dotenv()
 from modules.api import *
 from modules.curl import *
 from modules.database import db
+from modules.auto_refresh import AutoRefresh
 import modules.monitoring as monitoring
 
 print("🔍 Chargement des cinémas...")
@@ -169,8 +170,8 @@ print("=" * 60)
 print("🎬 Chargement des séances de cinéma avec base de données")
 print("=" * 60)
 
-# Nettoyer les anciennes séances de la BDD (plus de 1 jour)
-deleted = db.delete_old_seances(days_to_keep=1)
+# Nettoyer les anciennes séances de la BDD (plus de 60 jours = 2 mois)
+deleted = db.delete_old_seances(days_to_keep=60)
 if deleted > 0:
     print(f"🗑️  {deleted} anciennes séances supprimées de la BDD")
 
@@ -178,14 +179,21 @@ stats = db.get_stats()
 print(f"📊 BDD: {stats['cinemas']} cinémas, {stats['films']} films, {stats['seances']} séances sur {stats['dates']} dates")
 print()
 
-# Chargement de la vue semaine au démarrage (pour préchauffer la BDD)
-print("📅 Préchargement de la semaine actuelle...")
-showtimes_week, week_dates_default = getShowtimesWeek(0)
-print(f"✓ {len(showtimes_week)} films trouvés pour la semaine!")
+# Chargement initial (2 premiers mois au démarrage)
+print("📅 Préchargement des 2 prochains mois (60 jours)...")
+print("⏳ Cela peut prendre quelques minutes lors du premier démarrage...")
+
+# Précharger les 8 prochaines semaines
+for week in range(8):
+    try:
+        showtimes_week, _ = getShowtimesWeek(week)
+        print(f"✓ Semaine +{week}: {len(showtimes_week)} films chargés")
+    except Exception as e:
+        print(f"⚠️  Erreur semaine +{week}: {e}")
 
 # Afficher les stats finales de la BDD
 stats = db.get_stats()
-print(f"✓ BDD: {stats['seances']} séances sur {stats['dates']} dates")
+print(f"✓ BDD finale: {stats['seances']} séances sur {stats['dates']} dates")
 print("=" * 60)
 print()
 
@@ -248,6 +256,10 @@ def home():
     _html_cache[html_cache_key] = html_response
     
     return html_response
+
+# Démarrer le système de rafraîchissement automatique quotidien à 5h
+auto_refresh = AutoRefresh(theaters, refresh_hour=5)
+auto_refresh.start()
 
 if __name__ == '__main__':
     app.run(host=getenv("HOST"), port=getenv("PORT"))

@@ -1,5 +1,10 @@
 .env
 
+# Base de données
+*.db
+*.db-journal
+data/
+
 # OS
 .DS_Store
 
@@ -10,3 +15,9 @@
 # Python
 __pycache__/
 .venv
+
+# Fichiers de test temporaires
+check_*.py
+test_*.py
+debug_*.py
+inspect_*.py

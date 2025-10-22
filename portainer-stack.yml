@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  cinema-brest:
+    image: balaiduckman2/cinema-brest:latest
+    container_name: cinema-brest
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - cinema-data:/app/data
+    environment:
+      - HOST=0.0.0.0
+      - PORT=5000
+      - TIMEZONE=Europe/Paris
+      # ⚠️ IMPORTANT : Remplacez par votre clé API Jawg Maps
+      # Obtenez-la gratuitement sur https://www.jawg.io/
+      - JAWG_API_KEY=VOTRE_CLE_API_ICI
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  cinema-data:
+    driver: local

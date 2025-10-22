@@ -1,11 +1,18 @@
 import time
 import logging
-import psycopg2
 from os import getenv
 from dotenv import load_dotenv
 from typing import Optional, Any
-from psycopg2 import OperationalError
 from ua_parser import parse_os, parse_user_agent
+
+# Import optionnel de psycopg2 (uniquement si PostgreSQL est utilisé)
+try:
+    import psycopg2
+    from psycopg2 import OperationalError
+    PSYCOPG2_AVAILABLE = True
+except ImportError:
+    PSYCOPG2_AVAILABLE = False
+    OperationalError = Exception  # Fallback pour éviter les erreurs
 
 load_dotenv()
 
@@ -131,7 +138,12 @@ class DatabaseConnector:
             self.conn.close()
             self.logger.info("Database connection closed")
 
-isInit = getenv("monitoring_enabled").lower() == "true"
+isInit = getenv("monitoring_enabled", "false").lower() == "true"
+
+# Ne pas initialiser si psycopg2 n'est pas disponible
+if isInit and not PSYCOPG2_AVAILABLE:
+    logging.warning("Monitoring désactivé : psycopg2 n'est pas installé")
+    isInit = False
 
 if isInit:
     db = DatabaseConnector(

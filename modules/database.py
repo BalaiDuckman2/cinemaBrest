@@ -6,9 +6,18 @@ import sqlite3
 from datetime import datetime, timedelta
 from typing import List, Optional, Tuple
 import json
+import os
 
 class CinemaDatabase:
-    def __init__(self, db_path: str = "cinema.db"):
+    def __init__(self, db_path: str = None):
+        # Par défaut, stocker dans ./data/ pour Docker, sinon dans le répertoire courant
+        if db_path is None:
+            data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
+            if os.path.exists(data_dir):
+                db_path = os.path.join(data_dir, 'cinema.db')
+            else:
+                db_path = "cinema.db"
+        
         self.db_path = db_path
         self.init_database()
     
@@ -257,8 +266,8 @@ class CinemaDatabase:
         age = datetime.now() - last_update
         return age > timedelta(hours=max_age_hours)
     
-    def delete_old_seances(self, days_to_keep: int = 1):
-        """Supprime les séances de plus de N jours"""
+    def delete_old_seances(self, days_to_keep: int = 60):
+        """Supprime les séances de plus de N jours (défaut: 60 jours = 2 mois)"""
         conn = self.get_connection()
         cursor = conn.cursor()
         

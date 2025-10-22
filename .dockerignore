@@ -1,0 +1,56 @@
+# Fichiers Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Environnements virtuels
+venv/
+env/
+ENV/
+
+# Base de données (sera dans le volume Docker)
+*.db
+*.db-journal
+
+# Fichiers IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Fichiers de test temporaires
+check_*.py
+test_*.py
+debug_*.py
+inspect_*.py
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation (pas nécessaire dans l'image)
+*.md
+!README.md
+
+# Scripts de déploiement
+*.ps1
+deploy-to-nas.ps1
+test-docker.ps1
+publish-docker.ps1
+
+# Fichiers Docker locaux
+docker-compose.yml
+portainer-stack.yml
+
+# Fichier d'exemple
+.env.example
