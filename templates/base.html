@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta property="og:title" content="CinéBrest">
+    <meta property="og:image" content="https://cinema.mathiasd.fr/static/images/banner.png">
+    <meta property="og:url" content="https://cinema.mathiasd.fr/">
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="theme-color" content="#444cf7"/>
+    <meta property="og:description" content="Retrouvez toutes les séances des cinémas brestois sur une seule page, toujours à jour">
+    <meta name="description" content="Retrouvez toutes les séances des cinémas brestois sur une seule page, toujours à jour">
+
+    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+    <link rel="shortcut icon" type="image/png" href="static/images/favicon.png"/>
+    <title>CinéBrest</title>
+    {% block head %} {% endblock %}
+</head>
+
+<header id="headerTop">
+    <div class="divHeader">
+        <h1 class="textLogo_header">CinéBrest</h1>
+        <p>Quand ça va pas, y aura toujours le cinéma</p>
+    </div>
+</header>
+<body>
+    {% block body %} {% endblock %}
+</body>
+
+<footer>
+    <div class="container_footer">
+        <p><a href="https://www.solenederniaux.fr/">Fait avec amour par Solène Derniaux</a><br><a href="https://mathiasd.fr">Adapté pour Brest par MathiasDPX</a></p>
+        <p>©Tous droits réservés<br><a href="https://github.com/MathiasDPX/grainParisArt/tree/brest">Disponible sur GitHub</a></p>
+    </div>
+</footer>
+</html>

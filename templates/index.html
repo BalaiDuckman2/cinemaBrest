@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block head %}
+
+{% endblock %}
+
+{% block body %}
+
+<a href="#headerTop">
+    <div class="goTop">
+        <p>🍿</p>
+    </div>
+</a>
+
+<img src="../static/images/background.svg" class="background_svg">
+
+<div class="planning">
+    <div class="container_titrePlanning">
+        <div class="contenu_edt">
+            <h2 class="txt_edt">Emploi du temps</h2>
+            
+            <!-- Navigation entre semaines -->
+            <div class="week-navigation">
+                <a href="{{ url_for('home', week=week_offset-1, age=min_age) }}" class="week-nav-btn">
+                    ← Semaine précédente
+                </a>
+                <div class="week-period">
+                    📅 {{ week_period }}
+                </div>
+                <a href="{{ url_for('home', week=week_offset+1, age=min_age) }}" class="week-nav-btn">
+                    Semaine suivante →
+                </a>
+            </div>
+        </div>
+        <div class="line"></div>
+        
+        <!-- Filtre par âge des films -->
+        <div style="padding: 15px 20px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; margin: 10px 0;">
+            <h3 style="color: white; margin-bottom: 10px; font-size: 1.1em;">🎞️ Filtre films classiques</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <a href="{{ url_for('home', week=week_offset) }}" 
+                   style="padding: 8px 15px; background: {% if min_age == 0 %}#e74c3c{% else %}rgba(255,255,255,0.1){% endif %}; color: white; text-decoration: none; border-radius: 5px; transition: all 0.3s;">
+                    Tous les films
+                </a>
+                <a href="{{ url_for('home', age=1, week=week_offset) }}" 
+                   style="padding: 8px 15px; background: {% if min_age == 1 %}#e74c3c{% else %}rgba(255,255,255,0.1){% endif %}; color: white; text-decoration: none; border-radius: 5px; transition: all 0.3s;">
+                    +1 an 🎦
+                </a>
+                <a href="{{ url_for('home', age=5, week=week_offset) }}" 
+                   style="padding: 8px 15px; background: {% if min_age == 5 %}#e74c3c{% else %}rgba(255,255,255,0.1){% endif %}; color: white; text-decoration: none; border-radius: 5px; transition: all 0.3s;">
+                    +5 ans 📼
+                </a>
+                <a href="{{ url_for('home', age=10, week=week_offset) }}" 
+                   style="padding: 8px 15px; background: {% if min_age == 10 %}#e74c3c{% else %}rgba(255,255,255,0.1){% endif %}; color: white; text-decoration: none; border-radius: 5px; transition: all 0.3s;">
+                    +10 ans 🎬
+                </a>
+                <a href="{{ url_for('home', age=20, week=week_offset) }}" 
+                   style="padding: 8px 15px; background: {% if min_age == 20 %}#e74c3c{% else %}rgba(255,255,255,0.1){% endif %}; color: white; text-decoration: none; border-radius: 5px; transition: all 0.3s;">
+                    +20 ans 🎥
+                </a>
+                <a href="{{ url_for('home', age=30, week=week_offset) }}" 
+                   style="padding: 8px 15px; background: {% if min_age == 30 %}#e74c3c{% else %}rgba(255,255,255,0.1){% endif %}; color: white; text-decoration: none; border-radius: 5px; transition: all 0.3s;">
+                    +30 ans 🎞️
+                </a>
+                <a href="{{ url_for('home', age=50, week=week_offset) }}" 
+                   style="padding: 8px 15px; background: {% if min_age == 50 %}#e74c3c{% else %}rgba(255,255,255,0.1){% endif %}; color: white; text-decoration: none; border-radius: 5px; transition: all 0.3s;">
+                    +50 ans 🏛️
+                </a>
+            </div>
+        </div>
+    </div>
+    {% for film in films %}
+    <div class="container_infoFilm">
+        <img src={{ film.affiche }} class="affiche" />
+        <div class="infoFilm">
+            <div class="blur-background"></div>
+            <div>
+                <h3 class="titreFilm">
+                    <a href="{{ film.url }}">{{film.title}}</a>
+                    {% if film.releaseYear %}
+                    <span style="font-size: 0.8em; color: #aaa; font-weight: normal;">({{ film.releaseYear }}{% if film.filmAge %} - il y a {{ film.filmAge }} ans{% endif %})</span>
+                    {% endif %}
+                </h3>
+                {% if film.releaseYear %}
+                <div style="display: inline-block; background: rgba(231, 76, 60, 0.8); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.85em; margin-bottom: 10px; font-weight: 500;">
+                    📅 Sortie : {{ film.releaseYear }}
+                </div>
+                {% endif %}
+                <div class="info-content">
+                    <p class="realisateur">Réalisateur : {{film.director}}</p>
+                    <p class="casting">Casting : {{ film.casting }}</p>
+                    <p class="genre">Genre : {{ film.genres }}</p>
+                    <p class="duree">Durée : {{film.duree}}</p>
+                </div>
+                <div class="synopsis_container">
+                    <p class="synopsis">
+                        {{film.synopsis}}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="height: 10px;"></div>
+    
+    <!-- Affichage en tableau de la semaine -->
+    <div style="overflow-x: auto; margin-bottom: 20px;">
+        <table style="width: 100%; border-collapse: collapse; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden;">
+            <thead>
+                <tr style="background: rgba(255,255,255,0.1);">
+                    <th style="padding: 12px; text-align: left; color: white; font-weight: bold; border-right: 1px solid rgba(255,255,255,0.1);">Cinéma</th>
+                    {% for date in dates %}
+                    <th style="padding: 12px; text-align: center; color: white; font-size: 0.9em; border-right: 1px solid rgba(255,255,255,0.05);">
+                        <div>{{date.jour}}</div>
+                        <div style="font-size: 1.2em; font-weight: bold;">{{date.chiffre}}</div>
+                        <div style="font-size: 0.8em; opacity: 0.7;">{{date.mois}}</div>
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for cinema_name, days_data in film.seances_table.items() %}
+                <tr style="border-top: 1px solid rgba(255,255,255,0.1);">
+                    <td style="padding: 12px; color: white; font-weight: bold; border-right: 1px solid rgba(255,255,255,0.1); white-space: nowrap;">
+                        {{cinema_name}}
+                    </td>
+                    {% for date in dates %}
+                    <td style="padding: 8px; text-align: center; border-right: 1px solid rgba(255,255,255,0.05);">
+                        {% if date.index in days_data %}
+                        <div style="display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;">
+                            {% for time in days_data[date.index] %}
+                            <span style="background: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; white-space: nowrap;">{{time}}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <span style="color: #666;">-</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="responsive-div"></div>
+    {% endfor %}
+
+</div>
+
+{% endblock %}
