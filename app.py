@@ -42,47 +42,6 @@ def translate_day(weekday: int) -> str:
     days = ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"]
     return days[weekday] if 0 <= weekday < len(days) else "???"
 
-
-def getShowtimes(date):
-    showtimes: list[Showtime] = []
-
-    for theater in theaters:
-        showtimes.extend(theater.getShowtimes(date))
-
-    data = {}
-
-    for showtime in showtimes:
-        movie = showtime.movie
-        theater = showtime.theater
-
-        if showtime.movie.title not in data.keys():
-            data[movie.title] = {
-                "title": movie.title,
-                "duree": movie.runtime,
-                "genres": ", ".join(movie.genres),
-                "casting": ", ".join(movie.cast),
-                "realisateur": movie.director,
-                "synopsis": html.unescape(movie.synopsis),
-                "affiche": movie.affiche,
-                "director": movie.director,
-                "wantToSee": movie.wantToSee,
-                "url": f"https://www.allocine.fr/film/fichefilm_gen_cfilm={movie.id}.html",
-                "releaseYear": movie.releaseYear,
-                "filmAge": movie.filmAge,
-                "seances": {}
-            }
-
-        if theater.name not in data[movie.title]["seances"].keys():
-            data[movie.title]["seances"][theater.name] = []
-
-        data[movie.title]["seances"][theater.name].append(showtime.startsAt.strftime("%H:%M"))
-
-    data = data.values()
-
-    data = sorted(data, key=lambda x: x["wantToSee"], reverse=True)
-
-    return data
-
 # Cache mémoire pour les semaines complètes (ultra-rapide)
 _week_cache = {}
 
@@ -144,6 +103,14 @@ def getShowtimesWeek(week_offset=0):
         data[movie.title]["seances_table"][theater.name][day_index].append(
             showtime.startsAt.strftime("%H:%M")
         )
+
+    # Calculer le nombre total de séances pour chaque film
+    for movie_data in data.values():
+        total_showtimes = 0
+        for cinema_data in movie_data["seances_table"].values():
+            for day_times in cinema_data.values():
+                total_showtimes += len(day_times)
+        movie_data["total_showtimes"] = total_showtimes
 
     data = data.values()
     data = sorted(data, key=lambda x: x["wantToSee"], reverse=True)

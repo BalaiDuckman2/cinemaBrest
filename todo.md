@@ -1,15 +1,23 @@
 # TODO - CinéBrest
 
-
+## ✅ Fait
+- ✅ Préchargement 2 mois de données
+- ✅ Auto-refresh quotidien à 5h
+- ✅ Cache intelligent avec BDD SQLite
+- ✅ Déploiement Docker
+- ✅ **Recherche de films en temps réel** (filtre titre/acteur/réalisateur/genre/synopsis)
+- ✅ **Tri des films** (popularité, alphabétique, année, nb séances)
 
 ## 🔧 En cours
 - version mobile (affichage)
 - precharger oplus
-- trier
 
 ## 🎯 Fonctionnalités Utilisateur Prioritaires
 
-
+### 🔍 Recherche (✅ FAIT)
+- [x] Barre de recherche temps réel
+- [x] Recherche par titre/acteur/réalisateur/genre/synopsis
+- [x] Compteur de résultats
 
 ### 🔍 2. Filtres avancés
 - [ ] Filtre par genre (Action, Comédie, Horreur...)

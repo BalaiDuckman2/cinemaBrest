@@ -1,7 +1,11 @@
 {% extends 'base.html' %}
 
 {% block head %}
-
+<style>
+#filmsContainer {
+    transition: opacity 0.2s ease-in-out;
+}
+</style>
 {% endblock %}
 
 {% block body %}
@@ -68,42 +72,89 @@
                 </a>
             </div>
         </div>
-    </div>
-    {% for film in films %}
-    <div class="container_infoFilm">
-        <img src={{ film.affiche }} class="affiche" />
-        <div class="infoFilm">
-            <div class="blur-background"></div>
-            <div>
-                <h3 class="titreFilm">
-                    <a href="{{ film.url }}">{{film.title}}</a>
-                    {% if film.releaseYear %}
-                    <span style="font-size: 0.8em; color: #aaa; font-weight: normal;">({{ film.releaseYear }}{% if film.filmAge %} - il y a {{ film.filmAge }} ans{% endif %})</span>
-                    {% endif %}
-                </h3>
-                {% if film.releaseYear %}
-                <div style="display: inline-block; background: rgba(231, 76, 60, 0.8); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.85em; margin-bottom: 10px; font-weight: 500;">
-                    📅 Sortie : {{ film.releaseYear }}
-                </div>
-                {% endif %}
-                <div class="info-content">
-                    <p class="realisateur">Réalisateur : {{film.director}}</p>
-                    <p class="casting">Casting : {{ film.casting }}</p>
-                    <p class="genre">Genre : {{ film.genres }}</p>
-                    <p class="duree">Durée : {{film.duree}}</p>
-                </div>
-                <div class="synopsis_container">
-                    <p class="synopsis">
-                        {{film.synopsis}}
-                    </p>
-                </div>
+        
+        <!-- Barre de recherche -->
+        <div style="padding: 15px 20px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; margin: 10px 0;">
+            <h3 style="color: white; margin-bottom: 10px; font-size: 1.1em;">🔍 Rechercher un film</h3>
+            <input type="text" 
+                   id="searchInput" 
+                   placeholder="Tapez un titre, acteur, réalisateur, genre..."
+                   style="width: 100%; padding: 12px 20px; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.3); color: white; font-size: 1em; outline: none; transition: all 0.3s;"
+                   onkeyup="searchFilms()"
+                   onfocus="this.style.borderColor='#e74c3c'"
+                   onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+            <p id="searchResults" style="color: #aaa; margin-top: 8px; font-size: 0.9em;"></p>
+        </div>
+        
+        <!-- Options de tri -->
+        <div style="padding: 15px 20px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; margin: 10px 0;">
+            <h3 style="color: white; margin-bottom: 10px; font-size: 1.1em;">📊 Trier par</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <button onclick="sortFilms('popularity')" id="sort-popularity"
+                        style="padding: 8px 15px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; transition: all 0.3s; font-size: 0.95em;">
+                    ⭐ Popularité
+                </button>
+                <button onclick="sortFilms('alphabetical')" id="sort-alphabetical"
+                        style="padding: 8px 15px; background: rgba(255,255,255,0.1); color: white; border: none; border-radius: 5px; cursor: pointer; transition: all 0.3s; font-size: 0.95em;">
+                    🔤 A → Z
+                </button>
+                <button onclick="sortFilms('year-desc')" id="sort-year-desc"
+                        style="padding: 8px 15px; background: rgba(255,255,255,0.1); color: white; border: none; border-radius: 5px; cursor: pointer; transition: all 0.3s; font-size: 0.95em;">
+                    📅 Plus récent
+                </button>
+                <button onclick="sortFilms('year-asc')" id="sort-year-asc"
+                        style="padding: 8px 15px; background: rgba(255,255,255,0.1); color: white; border: none; border-radius: 5px; cursor: pointer; transition: all 0.3s; font-size: 0.95em;">
+                    🎞️ Plus ancien
+                </button>
+                <button onclick="sortFilms('showtimes')" id="sort-showtimes"
+                        style="padding: 8px 15px; background: rgba(255,255,255,0.1); color: white; border: none; border-radius: 5px; cursor: pointer; transition: all 0.3s; font-size: 0.95em;">
+                    🎬 Nb séances
+                </button>
             </div>
         </div>
     </div>
+    <div id="filmsContainer">
+    {% for film in films %}
+    <div class="film-item" 
+         data-title="{{ film.title }}" 
+         data-year="{{ film.releaseYear or 0 }}"
+         data-popularity="{{ film.wantToSee or 0 }}"
+         data-showtimes="{{ film.total_showtimes or 0 }}">
+        
+        <div class="container_infoFilm">
+            <img src={{ film.affiche }} class="affiche" />
+            <div class="infoFilm">
+                <div class="blur-background"></div>
+                <div>
+                    <h3 class="titreFilm">
+                        <a href="{{ film.url }}">{{film.title}}</a>
+                        {% if film.releaseYear %}
+                        <span style="font-size: 0.8em; color: #aaa; font-weight: normal;">({{ film.releaseYear }}{% if film.filmAge %} - il y a {{ film.filmAge }} ans{% endif %})</span>
+                        {% endif %}
+                    </h3>
+                    {% if film.releaseYear %}
+                    <div style="display: inline-block; background: rgba(231, 76, 60, 0.8); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.85em; margin-bottom: 10px; font-weight: 500;">
+                        📅 Sortie : {{ film.releaseYear }}
+                    </div>
+                    {% endif %}
+                    <div class="info-content">
+                        <p class="realisateur">Réalisateur : {{film.director}}</p>
+                        <p class="casting">Casting : {{ film.casting }}</p>
+                        <p class="genre">Genre : {{ film.genres }}</p>
+                        <p class="duree">Durée : {{film.duree}}</p>
+                    </div>
+                    <div class="synopsis_container">
+                        <p class="synopsis">
+                            {{film.synopsis}}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <div style="height: 10px;"></div>
-    
-    <!-- Affichage en tableau de la semaine -->
+        <div style="height: 10px;"></div>
+        
+        <!-- Affichage en tableau de la semaine -->
     <div style="overflow-x: auto; margin-bottom: 20px;">
         <table style="width: 100%; border-collapse: collapse; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden;">
             <thead>
@@ -144,8 +195,104 @@
     </div>
     
     <div class="responsive-div"></div>
+    </div>
     {% endfor %}
+    </div>
 
 </div>
+
+<script>
+// Fonction de recherche de films en temps réel
+function searchFilms() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase().trim();
+    const filmItems = document.querySelectorAll('.film-item');
+    const resultsText = document.getElementById('searchResults');
+    
+    let visibleCount = 0;
+    
+    filmItems.forEach(filmItem => {
+        // Récupérer tout le texte du film (titre, casting, réalisateur, genre, synopsis)
+        const filmText = filmItem.textContent.toLowerCase();
+        
+        if (filter === '' || filmText.includes(filter)) {
+            filmItem.style.display = '';
+            visibleCount++;
+        } else {
+            filmItem.style.display = 'none';
+        }
+    });
+    
+    // Afficher le nombre de résultats
+    if (filter === '') {
+        resultsText.textContent = '';
+    } else {
+        resultsText.textContent = `${visibleCount} film(s) trouvé(s)`;
+        resultsText.style.color = visibleCount > 0 ? '#4caf50' : '#f44336';
+    }
+}
+
+// Variable pour mémoriser le tri actuel
+let currentSort = 'popularity';
+
+// Fonction de tri des films
+function sortFilms(sortType) {
+    const container = document.getElementById('filmsContainer');
+    const films = Array.from(container.querySelectorAll('.film-item'));
+    
+    // Mettre à jour l'apparence des boutons
+    document.querySelectorAll('[id^="sort-"]').forEach(btn => {
+        btn.style.background = 'rgba(255,255,255,0.1)';
+    });
+    document.getElementById(`sort-${sortType}`).style.background = '#e74c3c';
+    
+    currentSort = sortType;
+    
+    // Trier les films selon le type
+    films.sort((a, b) => {
+        switch(sortType) {
+            case 'popularity':
+                // Popularité décroissante (par défaut)
+                return parseInt(b.dataset.popularity) - parseInt(a.dataset.popularity);
+            
+            case 'alphabetical':
+                // Ordre alphabétique A→Z
+                return a.dataset.title.localeCompare(b.dataset.title);
+            
+            case 'year-desc':
+                // Année décroissante (plus récent d'abord)
+                return parseInt(b.dataset.year) - parseInt(a.dataset.year);
+            
+            case 'year-asc':
+                // Année croissante (plus ancien d'abord)
+                return parseInt(a.dataset.year) - parseInt(b.dataset.year);
+            
+            case 'showtimes':
+                // Nombre de séances décroissant
+                return parseInt(b.dataset.showtimes) - parseInt(a.dataset.showtimes);
+            
+            default:
+                return 0;
+        }
+    });
+    
+    // Réorganiser le DOM
+    films.forEach(film => container.appendChild(film));
+    
+    // Animation subtile
+    container.style.opacity = '0.7';
+    setTimeout(() => {
+        container.style.opacity = '1';
+    }, 150);
+}
+
+// Réinitialiser la recherche au chargement de la page
+window.addEventListener('load', () => {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.value = '';
+    }
+});
+</script>
 
 {% endblock %}

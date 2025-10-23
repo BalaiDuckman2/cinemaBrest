@@ -21,3 +21,11 @@ check_*.py
 test_*.py
 debug_*.py
 inspect_*.py
+
+# Documentation de logs obsolètes
+AMELIORATIONS_*.md
+CORRECTION_*.md
+NETTOYAGE_*.md
+NOUVEAU_*.md
+RECAPITULATIF_*.md
+*_SUMMARY.md
