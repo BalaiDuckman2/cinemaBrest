@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block body %}
 
@@ -12,90 +12,65 @@
 <div class="container mx-auto px-4 py-8 max-w-7xl">
     
     <!-- Navigation entre semaines -->
-    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 mb-6 flex items-center justify-between gap-6">
-        <button onclick="changeWeek(-1)" class="flex items-center gap-2 px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-white font-medium transition-all duration-200 hover:-translate-x-1">
-            ← Semaine précédente
-        </button>
-        <div id="weekPeriod" class="flex-1 text-center text-xl font-semibold text-white/95 tracking-wide">
-            📅 {{ week_period }}
+    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 mb-6">
+        <div class="flex items-center justify-center gap-4">
+            <button onclick="changeWeek(-1)" class="px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-white font-medium transition-all duration-200 hover:-translate-x-1">
+                ← Précédent
+            </button>
+            <div id="weekPeriod" class="px-8 py-2.5 bg-indigo-600/20 border border-indigo-500/30 rounded-xl text-white font-semibold">
+                📅 {{ week_period }}
+            </div>
+            <button onclick="changeWeek(1)" class="px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-white font-medium transition-all duration-200 hover:translate-x-1">
+                Suivant →
+            </button>
         </div>
-        <button onclick="changeWeek(1)" class="flex items-center gap-2 px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-white font-medium transition-all duration-200 hover:translate-x-1">
-            Semaine suivante →
-        </button>
     </div>
 
-    <!-- Filtres et Recherche -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        
-        <!-- Recherche et Tri (2/3) -->
-        <div class="lg:col-span-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 space-y-6">
-            
+    <!-- Filtres -->
+    <div class="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20 rounded-2xl p-6 mb-6 shadow-xl">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Tri -->
+            <div>
+                <label for="sortSelect" class="block text-white/90 text-sm font-semibold mb-2">📊 Trier par</label>
+                <select id="sortSelect" onchange="sortFilms(this.value)" class="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition cursor-pointer hover:bg-white/15">
+                    <option value="popularity" selected>⭐ Popularité</option>
+                    <option value="alphabetical">🔤 Alphabétique (A→Z)</option>
+                    <option value="year-desc">📅 Plus récent</option>
+                    <option value="year-asc">📅 Plus ancien</option>
+                    <option value="showtimes">🎬 Nombre de séances</option>
+                </select>
+            </div>
+
+            <!-- Films Classiques -->
+            <div>
+                <label for="ageSelect" class="block text-white/90 text-sm font-semibold mb-2">📅 Films classiques</label>
+                <select id="ageSelect" onchange="changeAgeFilter(parseInt(this.value))" class="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition cursor-pointer hover:bg-white/15">
+                    <option value="0" {% if min_age == 0 %}selected{% endif %}>Tous les films</option>
+                    <option value="1" {% if min_age == 1 %}selected{% endif %}>+ 1 an</option>
+                    <option value="5" {% if min_age == 5 %}selected{% endif %}>+ 5 ans</option>
+                    <option value="30" {% if min_age == 30 %}selected{% endif %}>+ 30 ans</option>
+                </select>
+            </div>
+
             <!-- Recherche -->
             <div>
-                <label class="flex items-center gap-2 text-white/90 font-medium mb-3">
-                    <span>🔍</span> Recherche
-                </label>
+                <label for="searchInput" class="block text-white/90 text-sm font-semibold mb-2">🔍 Recherche</label>
                 <input type="text" 
                        id="searchInput" 
                        oninput="searchFilms()" 
-                       placeholder="Rechercher un film, acteur, réalisateur..." 
-                       class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                <p id="searchResults" class="mt-2 text-sm text-white/50"></p>
-            </div>
-
-            <!-- Tri -->
-            <div>
-                <label class="flex items-center gap-2 text-white/90 font-medium mb-3">
-                    <span>📊</span> Trier par
-                </label>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    <button id="sort-popularity" onclick="sortFilms('popularity')" class="sort-btn px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/80 font-medium transition-all duration-200 hover:border-white/20">
-                        ⭐ Popularité
-                    </button>
-                    <button id="sort-alphabetical" onclick="sortFilms('alphabetical')" class="sort-btn px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/80 font-medium transition-all duration-200 hover:border-white/20">
-                        🔤 A→Z
-                    </button>
-                    <button id="sort-year-desc" onclick="sortFilms('year-desc')" class="sort-btn px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/80 font-medium transition-all duration-200 hover:border-white/20">
-                        📅 Récent
-                    </button>
-                    <button id="sort-year-asc" onclick="sortFilms('year-asc')" class="sort-btn px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/80 font-medium transition-all duration-200 hover:border-white/20">
-                        📅 Ancien
-                    </button>
-                    <button id="sort-showtimes" onclick="sortFilms('showtimes')" class="sort-btn px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/80 font-medium transition-all duration-200 hover:border-white/20 col-span-2 md:col-span-1">
-                        🎬 Séances
-                    </button>
-                </div>
+                       placeholder="Rechercher un film..." 
+                       class="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white font-medium placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition hover:bg-white/15">
             </div>
         </div>
-
-        <!-- Filtre Films Classiques (1/3) -->
-        <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
-            <label class="flex items-center gap-2 text-white/90 font-medium mb-4">
-                <span>📅</span> Films classiques
-            </label>
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="changeAgeFilter(0)" class="age-filter px-4 py-3 {% if min_age == 0 %}bg-white text-gray-900 border-white{% else %}bg-white/5 hover:bg-white/10 border-white/10 text-white/80{% endif %} border rounded-xl font-medium transition-all duration-200 hover:border-white/20">
-                    Tous
-                </button>
-                <button onclick="changeAgeFilter(1)" class="age-filter px-4 py-3 {% if min_age == 1 %}bg-white text-gray-900 border-white{% else %}bg-white/5 hover:bg-white/10 border-white/10 text-white/80{% endif %} border rounded-xl font-medium transition-all duration-200 hover:border-white/20">
-                    +1 an
-                </button>
-                <button onclick="changeAgeFilter(5)" class="age-filter px-4 py-3 {% if min_age == 5 %}bg-white text-gray-900 border-white{% else %}bg-white/5 hover:bg-white/10 border-white/10 text-white/80{% endif %} border rounded-xl font-medium transition-all duration-200 hover:border-white/20">
-                    +5 ans
-                </button>
-                <button onclick="changeAgeFilter(30)" class="age-filter px-4 py-3 {% if min_age == 30 %}bg-white text-gray-900 border-white{% else %}bg-white/5 hover:bg-white/10 border-white/10 text-white/80{% endif %} border rounded-xl font-medium transition-all duration-200 hover:border-white/20">
-                    +30 ans
-                </button>
-            </div>
-        </div>
+        
+        <!-- Résultats de recherche -->
+        <p id="searchResults" class="text-sm text-white/70 mt-3 font-medium"></p>
     </div>
 
     <!-- Filtre par Cinéma -->
-    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 mb-8">
-        <label class="flex items-center gap-2 text-white/90 font-medium mb-4">
-            <span>🎭</span> Filtrer par cinéma
-        </label>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 mb-8">
+        <label class="block text-white/90 text-sm font-semibold mb-4">🎭 Filtrer par cinéma</label>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             <label class="cinema-checkbox-label flex items-center gap-3 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
                 <input type="checkbox" value="Les Studios" checked onchange="filterByCinema()" class="w-5 h-5 rounded accent-indigo-500">
                 <span class="cinema-name text-white/90 font-medium text-sm">Les Studios</span>
@@ -205,6 +180,25 @@
 
 </div>
 
+<style>
+/* Styles pour les select dropdowns */
+select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+select option {
+    background-color: #1f2937;
+    color: white;
+}
+</style>
+
 <script>
 // Fonction pour remonter en haut avec défilement smooth
 function scrollToTop() {
@@ -232,14 +226,6 @@ async function changeAgeFilter(minAge) {
     try {
         const container = document.getElementById('filmsContainer');
         container.style.opacity = '0.5';
-        
-        // Mettre à jour l'apparence des boutons
-        document.querySelectorAll('.age-filter').forEach(btn => {
-            btn.classList.remove('bg-white', 'text-gray-900', 'border-white');
-            btn.classList.add('bg-white/5', 'text-white/80', 'border-white/10');
-        });
-        event.target.classList.remove('bg-white/5', 'text-white/80', 'border-white/10');
-        event.target.classList.add('bg-white', 'text-gray-900', 'border-white');
         
         // Récupérer les données via l'API
         const response = await fetch(`/api/films?week=${currentWeekOffset}&age=${currentMinAge}`);
@@ -430,13 +416,8 @@ function sortFilms(sortType) {
     
     localStorage.setItem('sortType', sortType);
     
-    document.querySelectorAll('.sort-btn').forEach(btn => {
-        btn.classList.remove('bg-indigo-600', 'border-indigo-500');
-        btn.classList.add('bg-white/5', 'border-white/10');
-    });
-    const activeBtn = document.getElementById(`sort-${sortType}`);
-    activeBtn.classList.remove('bg-white/5', 'border-white/10');
-    activeBtn.classList.add('bg-indigo-600', 'border-indigo-500');
+    // Mettre à jour la valeur du select
+    document.getElementById('sortSelect').value = sortType;
     
     currentSort = sortType;
     

@@ -1,14 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CinéBrest">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+    
+    <!-- Icons -->
+    <link rel="shortcut icon" type="image/png" href="/static/images/favicon.png"/>
+    <link rel="apple-touch-icon" href="/static/images/icon-192.png">
 
     <meta property="og:title" content="CinéBrest">
     <meta property="og:image" content="https://cinema.mathiasd.fr/static/images/banner.png">
     <meta property="og:url" content="https://cinema.mathiasd.fr/">
     <meta name="twitter:card" content="summary_large_image"/>
-    <meta name="theme-color" content="#444cf7"/>
+    <meta name="theme-color" content="#6366f1"/>
     <meta property="og:description" content="Retrouvez toutes les séances des cinémas brestois sur une seule page, toujours à jour">
     <meta name="description" content="Retrouvez toutes les séances des cinémas brestois sur une seule page, toujours à jour">
 
@@ -19,7 +32,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""></script>
-    <link rel="shortcut icon" type="image/png" href="static/images/favicon.png"/>
     <title>CinéBrest</title>
     <script>
         tailwind.config = {
@@ -48,6 +60,15 @@
                     <p class="text-sm text-gray-400 hidden md:block">Toutes vos séances en un coup d'œil</p>
                 </div>
             </div>
+            
+            <!-- Bouton Installation PWA -->
+            <button id="installButton" class="hidden px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white font-medium transition-all duration-200 flex items-center gap-2 shadow-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                <span class="hidden md:inline">Installer l'app</span>
+            </button>
+            
             <div class="text-right hidden md:block">
                 <p class="text-sm text-gray-400 italic">Quand ça va pas, y aura toujours le cinéma</p>
             </div>
@@ -56,6 +77,57 @@
 </header>
 
     {% block body %} {% endblock %}
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker enregistré:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('❌ Erreur Service Worker:', error);
+                    });
+            });
+        }
+
+        // Gestion de l'installation PWA
+        let deferredPrompt;
+        const installButton = document.getElementById('installButton');
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Afficher le bouton d'installation
+            installButton.classList.remove('hidden');
+            console.log('📱 PWA peut être installée');
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (!deferredPrompt) {
+                return;
+            }
+            
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                console.log('✅ PWA installée');
+            } else {
+                console.log('❌ Installation annulée');
+            }
+            
+            deferredPrompt = null;
+            installButton.classList.add('hidden');
+        });
+
+        // Cacher le bouton si déjà installé
+        window.addEventListener('appinstalled', () => {
+            installButton.classList.add('hidden');
+            console.log('✅ PWA installée avec succès');
+        });
+    </script>
 </body>
 
 <footer class="bg-gray-900 border-t border-gray-800 text-white py-8 mt-16">

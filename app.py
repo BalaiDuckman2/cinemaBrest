@@ -198,6 +198,16 @@ _html_cache = {}
 def healthcheck():
     return 'ok'
 
+@app.route('/manifest.json')
+def manifest():
+    """Servir le manifest PWA"""
+    return app.send_static_file('manifest.json')
+
+@app.route('/sw.js')
+def service_worker():
+    """Servir le Service Worker"""
+    return app.send_static_file('sw.js')
+
 @app.route('/api/films')
 def api_films():
     """API pour récupérer les films d'une semaine en JSON (pour chargement dynamique)"""
