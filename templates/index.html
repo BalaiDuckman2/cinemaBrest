@@ -182,6 +182,9 @@
                 text-align: center;
                 font-weight: 500;
                 font-size: 0.9em;
+                cursor: pointer;
+                display: block;
+                width: 100%;
             }
             
             .age-filter:hover {
@@ -203,6 +206,59 @@
                 min-height: 18px;
             }
             
+            /* Filtre cinéma */
+            .cinema-filter-section {
+                background: rgba(255,255,255,0.03);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 16px;
+                padding: 20px;
+                margin-bottom: 15px;
+            }
+            
+            .cinema-checkbox-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 10px;
+                margin-top: 12px;
+            }
+            
+            .cinema-checkbox-label {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 14px;
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                user-select: none;
+            }
+            
+            .cinema-checkbox-label:hover {
+                background: rgba(255,255,255,0.08);
+                border-color: rgba(255,255,255,0.15);
+            }
+            
+            .cinema-checkbox-label input[type="checkbox"] {
+                width: 18px;
+                height: 18px;
+                cursor: pointer;
+                accent-color: white;
+            }
+            
+            .cinema-checkbox-label.active {
+                background: rgba(255,255,255,0.15);
+                border-color: rgba(255,255,255,0.3);
+            }
+            
+            .cinema-name {
+                color: rgba(255,255,255,0.9);
+                font-size: 0.9em;
+                font-weight: 500;
+            }
+            
             @media (max-width: 968px) {
                 .filter-section {
                     grid-template-columns: 1fr;
@@ -210,20 +266,52 @@
                 .sort-grid {
                     grid-template-columns: repeat(2, 1fr);
                 }
+                .cinema-checkbox-grid {
+                    grid-template-columns: 1fr;
+                }
             }
         </style>
         
         <!-- Navigation entre semaines (intégrée) -->
         <div class="week-nav-integrated">
-            <a href="{{ url_for('home', week=week_offset-1, age=min_age) }}" class="week-nav-btn">
+            <button onclick="changeWeek(-1)" class="week-nav-btn">
                 ← Semaine précédente
-            </a>
-            <div class="week-period">
+            </button>
+            <div class="week-period" id="weekPeriod">
                 📅 {{ week_period }}
             </div>
-            <a href="{{ url_for('home', week=week_offset+1, age=min_age) }}" class="week-nav-btn">
+            <button onclick="changeWeek(1)" class="week-nav-btn">
                 Semaine suivante →
-            </a>
+            </button>
+        </div>
+        
+        <!-- Filtre par cinéma -->
+        <div class="cinema-filter-section">
+            <div class="section-label">
+                <span>🎭</span> Filtrer par cinéma
+            </div>
+            <div class="cinema-checkbox-grid">
+                <label class="cinema-checkbox-label active">
+                    <input type="checkbox" value="Les Studios" checked onchange="filterByCinema()">
+                    <span class="cinema-name">Les Studios</span>
+                </label>
+                <label class="cinema-checkbox-label active">
+                    <input type="checkbox" value="CGR Brest Le Celtic" checked onchange="filterByCinema()">
+                    <span class="cinema-name">CGR Brest Le Celtic</span>
+                </label>
+                <label class="cinema-checkbox-label active">
+                    <input type="checkbox" value="Multiplexe Liberté" checked onchange="filterByCinema()">
+                    <span class="cinema-name">Multiplexe Liberté</span>
+                </label>
+                <label class="cinema-checkbox-label active">
+                    <input type="checkbox" value="Pathé Capucins" checked onchange="filterByCinema()">
+                    <span class="cinema-name">Pathé Capucins</span>
+                </label>
+                <label class="cinema-checkbox-label active">
+                    <input type="checkbox" value="Ciné Galaxy" checked onchange="filterByCinema()">
+                    <span class="cinema-name">Ciné Galaxy</span>
+                </label>
+            </div>
         </div>
         
         <div class="filter-section">
@@ -267,22 +355,22 @@
                 </div>
                 
                 <div class="age-grid">
-                    <a href="{{ url_for('home', week=week_offset) }}" 
+                    <button onclick="changeAgeFilter(0)" 
                        class="age-filter {% if min_age == 0 %}active{% endif %}">
                         Tous les films
-                    </a>
-                    <a href="{{ url_for('home', age=1, week=week_offset) }}" 
+                    </button>
+                    <button onclick="changeAgeFilter(1)" 
                        class="age-filter {% if min_age == 1 %}active{% endif %}">
                         +1 an
-                    </a>
-                    <a href="{{ url_for('home', age=5, week=week_offset) }}" 
+                    </button>
+                    <button onclick="changeAgeFilter(5)" 
                        class="age-filter {% if min_age == 5 %}active{% endif %}">
                         +5 ans
-                    </a>
-                    <a href="{{ url_for('home', age=30, week=week_offset) }}" 
+                    </button>
+                    <button onclick="changeAgeFilter(30)" 
                        class="age-filter {% if min_age == 30 %}active{% endif %}">
                         +30 ans
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -345,7 +433,7 @@
             </thead>
             <tbody>
                 {% for cinema_name, days_data in film.seances_table.items() %}
-                <tr style="border-top: 1px solid rgba(255,255,255,0.04);">
+                <tr class="cinema-row" data-cinema="{{ cinema_name }}" style="border-top: 1px solid rgba(255,255,255,0.04);">
                     <td style="padding: 14px 16px; color: rgba(255,255,255,0.85); font-weight: 500; border-right: 1px solid rgba(255,255,255,0.06); white-space: nowrap; font-size: 0.9em;">
                         {{cinema_name}}
                     </td>
@@ -383,6 +471,9 @@ function searchFilms() {
     const filmItems = document.querySelectorAll('.film-item');
     const resultsText = document.getElementById('searchResults');
     
+    // Sauvegarder la recherche dans localStorage
+    localStorage.setItem('searchTerm', input.value);
+    
     let visibleCount = 0;
     
     filmItems.forEach(filmItem => {
@@ -406,6 +497,78 @@ function searchFilms() {
     }
 }
 
+// Fonction de filtre par cinéma
+function filterByCinema() {
+    const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
+    const selectedCinemas = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+    
+    // Sauvegarder les préférences dans localStorage
+    localStorage.setItem('selectedCinemas', JSON.stringify(selectedCinemas));
+    
+    // Mettre à jour les styles des labels
+    checkboxes.forEach(checkbox => {
+        const label = checkbox.closest('.cinema-checkbox-label');
+        if (checkbox.checked) {
+            label.classList.add('active');
+        } else {
+            label.classList.remove('active');
+        }
+    });
+    
+    // Filtrer les lignes des tableaux de séances
+    document.querySelectorAll('.cinema-row').forEach(row => {
+        const cinemaName = row.dataset.cinema;
+        if (selectedCinemas.includes(cinemaName)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // Masquer les films qui n'ont plus de séances visibles
+    document.querySelectorAll('.film-item').forEach(filmItem => {
+        const visibleRows = filmItem.querySelectorAll('.cinema-row:not([style*="display: none"])');
+        
+        // Si aucune ligne de cinéma n'est visible, masquer le film entier
+        if (visibleRows.length === 0) {
+            filmItem.style.display = 'none';
+        } else {
+            filmItem.style.display = '';
+        }
+    });
+}
+
+// Restaurer les préférences de cinéma au chargement
+function restoreCinemaPreferences() {
+    const savedCinemas = localStorage.getItem('selectedCinemas');
+    
+    if (savedCinemas) {
+        try {
+            const selectedCinemas = JSON.parse(savedCinemas);
+            const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
+            
+            // Décocher toutes les checkboxes
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Cocher seulement celles qui étaient sauvegardées
+            checkboxes.forEach(checkbox => {
+                if (selectedCinemas.includes(checkbox.value)) {
+                    checkbox.checked = true;
+                }
+            });
+            
+            // Appliquer le filtre
+            filterByCinema();
+        } catch (e) {
+            console.error('Erreur lors de la restauration des préférences:', e);
+        }
+    }
+}
+
 // Variable pour mémoriser le tri actuel
 let currentSort = 'popularity';
 
@@ -413,6 +576,9 @@ let currentSort = 'popularity';
 function sortFilms(sortType) {
     const container = document.getElementById('filmsContainer');
     const films = Array.from(container.querySelectorAll('.film-item'));
+    
+    // Sauvegarder le tri dans localStorage
+    localStorage.setItem('sortType', sortType);
     
     // Mettre à jour l'apparence des boutons avec le nouveau style
     document.querySelectorAll('.sort-btn').forEach(btn => {
@@ -460,11 +626,274 @@ function sortFilms(sortType) {
     }, 150);
 }
 
-// Réinitialiser la recherche au chargement de la page
+// Variable globale pour suivre la semaine actuelle
+let currentWeekOffset = {{ week_offset }};
+let currentMinAge = {{ min_age }};
+let isLoading = false;
+
+// Fonction pour changer le filtre d'âge dynamiquement
+async function changeAgeFilter(minAge) {
+    if (isLoading) return;
+    
+    isLoading = true;
+    currentMinAge = minAge;
+    
+    // Sauvegarder le filtre d'âge dans localStorage
+    localStorage.setItem('minAge', minAge);
+    
+    try {
+        // Afficher un indicateur de chargement
+        const container = document.getElementById('filmsContainer');
+        container.style.opacity = '0.5';
+        
+        // Mettre à jour l'apparence des boutons
+        document.querySelectorAll('.age-filter').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+        
+        // Récupérer les données via l'API
+        const response = await fetch(`/api/films?week=${currentWeekOffset}&age=${currentMinAge}`);
+        const data = await response.json();
+        
+        // Mettre à jour l'URL sans recharger la page
+        const newUrl = currentMinAge > 0 ? `/?week=${currentWeekOffset}&age=${currentMinAge}` : `/?week=${currentWeekOffset}`;
+        window.history.pushState({week: currentWeekOffset, age: currentMinAge}, '', newUrl);
+        
+        // Reconstruire le contenu HTML des films
+        renderFilms(data.films, data.dates);
+        
+        // Restaurer l'opacité
+        container.style.opacity = '1';
+        
+        // Réappliquer les filtres et tri sauvegardés
+        restoreCinemaPreferences();
+        
+        const savedSearch = localStorage.getItem('searchTerm');
+        if (savedSearch) {
+            document.getElementById('searchInput').value = savedSearch;
+            searchFilms();
+        }
+        
+        const savedSort = localStorage.getItem('sortType');
+        if (savedSort) {
+            sortFilms(savedSort);
+        } else {
+            sortFilms('popularity');
+        }
+        
+    } catch (error) {
+        console.error('Erreur lors du changement de filtre:', error);
+        alert('Erreur lors du chargement des données');
+        container.style.opacity = '1';
+    } finally {
+        isLoading = false;
+    }
+}
+
+// Fonction pour changer de semaine dynamiquement
+async function changeWeek(offset) {
+    if (isLoading) return;
+    
+    isLoading = true;
+    currentWeekOffset += offset;
+    
+    try {
+        // Afficher un indicateur de chargement
+        const container = document.getElementById('filmsContainer');
+        container.style.opacity = '0.5';
+        
+        // Récupérer les données via l'API
+        const response = await fetch(`/api/films?week=${currentWeekOffset}&age=${currentMinAge}`);
+        const data = await response.json();
+        
+        // Mettre à jour la période affichée
+        document.getElementById('weekPeriod').textContent = `📅 ${data.week_period}`;
+        
+        // Mettre à jour l'URL sans recharger la page
+        const newUrl = `/?week=${currentWeekOffset}&age=${currentMinAge}`;
+        window.history.pushState({week: currentWeekOffset}, '', newUrl);
+        
+        // Reconstruire le contenu HTML des films
+        renderFilms(data.films, data.dates);
+        
+        // Restaurer l'opacité
+        container.style.opacity = '1';
+        
+        // Réappliquer les filtres et tri sauvegardés
+        restoreCinemaPreferences();
+        
+        const savedSearch = localStorage.getItem('searchTerm');
+        if (savedSearch) {
+            document.getElementById('searchInput').value = savedSearch;
+            searchFilms();
+        }
+        
+        const savedSort = localStorage.getItem('sortType');
+        if (savedSort) {
+            sortFilms(savedSort);
+        } else {
+            // Tri par popularité par défaut
+            sortFilms('popularity');
+        }
+        
+    } catch (error) {
+        console.error('Erreur lors du changement de semaine:', error);
+        alert('Erreur lors du chargement des données');
+        container.style.opacity = '1';
+    } finally {
+        isLoading = false;
+    }
+}
+
+// Fonction pour générer le HTML d'un film
+function renderFilms(films, dates) {
+    const container = document.getElementById('filmsContainer');
+    
+    if (films.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.6);">Aucun film trouvé pour cette semaine</div>';
+        return;
+    }
+    
+    container.innerHTML = films.map(film => {
+        // Construire les en-têtes de dates
+        const datesHeader = dates.map(date => `
+            <th style="padding: 14px 10px; text-align: center; color: rgba(255,255,255,0.9); font-size: 0.85em; border-right: 1px solid rgba(255,255,255,0.04);">
+                <div style="color: rgba(255,255,255,0.5); font-weight: 400; font-size: 0.85em;">${date.jour}</div>
+                <div style="font-size: 1.3em; font-weight: 700; margin: 4px 0;">${date.chiffre}</div>
+                <div style="font-size: 0.75em; color: rgba(255,255,255,0.5); font-weight: 400;">${date.mois}</div>
+            </th>
+        `).join('');
+        
+        // Construire le tableau des séances
+        let seancesHTML = '';
+        for (const [cinema, days] of Object.entries(film.seances_table || {})) {
+            seancesHTML += `
+                <tr class="cinema-row" data-cinema="${cinema}" style="border-top: 1px solid rgba(255,255,255,0.04);">
+                    <td style="padding: 14px 16px; color: rgba(255,255,255,0.85); font-weight: 500; border-right: 1px solid rgba(255,255,255,0.06); white-space: nowrap; font-size: 0.9em;">
+                        ${cinema}
+                    </td>`;
+            
+            for (let i = 0; i < 7; i++) {
+                const times = days[i] || [];
+                if (times.length > 0) {
+                    seancesHTML += `
+                        <td style="padding: 10px; text-align: center; border-right: 1px solid rgba(255,255,255,0.04);">
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;">
+                                ${times.map(time => `<span style="background: rgba(255,255,255,0.12); color: white; padding: 5px 10px; border-radius: 6px; font-size: 0.8em; white-space: nowrap; font-weight: 500; border: 1px solid rgba(255,255,255,0.15);">${time}</span>`).join('')}
+                            </div>
+                        </td>`;
+                } else {
+                    seancesHTML += `<td style="padding: 10px; text-align: center; border-right: 1px solid rgba(255,255,255,0.04);"><span style="color: rgba(255,255,255,0.2); font-size: 0.9em;">—</span></td>`;
+                }
+            }
+            seancesHTML += '</tr>';
+        }
+        
+        const filmAge = film.filmAge || '';
+        const releaseYear = film.releaseYear || '';
+        
+        return `
+            <div class="film-item" 
+                 data-title="${film.title || ''}" 
+                 data-year="${releaseYear}"
+                 data-popularity="${film.wantToSee || 0}"
+                 data-showtimes="${film.total_showtimes || 0}">
+                
+                <div class="container_infoFilm">
+                    <img src="${film.affiche || ''}" class="affiche" />
+                    <div class="infoFilm">
+                        <div class="blur-background"></div>
+                        <div>
+                            <h3 class="titreFilm">
+                                <a href="${film.url || '#'}">${film.title || ''}</a>
+                                ${releaseYear ? `<span style="font-size: 0.75em; color: rgba(255,255,255,0.4); font-weight: 400; margin-left: 8px;">(${releaseYear})</span>` : ''}
+                            </h3>
+                            ${releaseYear && filmAge ? `
+                            <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); padding: 6px 14px; border-radius: 6px; font-size: 0.8em; margin-bottom: 12px; font-weight: 500; border: 1px solid rgba(255,255,255,0.1);">
+                                <span style="opacity: 0.6;">📅</span> Il y a ${filmAge} ans
+                            </div>
+                            ` : ''}
+                            <div class="info-content">
+                                <p class="realisateur">Réalisateur : ${film.director || 'N/A'}</p>
+                                <p class="casting">Casting : ${film.casting || 'N/A'}</p>
+                                <p class="genre">Genre : ${film.genres || 'N/A'}</p>
+                                <p class="duree">Durée : ${film.duree || 'N/A'}</p>
+                            </div>
+                            <div class="synopsis_container">
+                                <p class="synopsis">
+                                    ${film.synopsis || ''}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="height: 15px;"></div>
+                
+                <div style="overflow-x: auto; margin-bottom: 20px;">
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 0; background: rgba(255,255,255,0.02); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06);">
+                        <thead>
+                            <tr style="background: rgba(255,255,255,0.04);">
+                                <th style="padding: 16px; text-align: left; color: rgba(255,255,255,0.9); font-weight: 600; border-right: 1px solid rgba(255,255,255,0.06); font-size: 0.9em;">Cinéma</th>
+                                ${datesHeader}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${seancesHTML}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="responsive-div"></div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Gérer le bouton retour du navigateur
+window.addEventListener('popstate', (event) => {
+    if (event.state && event.state.week !== undefined) {
+        const offset = event.state.week - currentWeekOffset;
+        changeWeek(offset);
+    }
+});
+
+// Restaurer les préférences au chargement de la page
 window.addEventListener('load', () => {
+    // Restaurer le filtre d'âge
+    const savedMinAge = localStorage.getItem('minAge');
+    if (savedMinAge !== null) {
+        const minAge = parseInt(savedMinAge);
+        if (minAge !== currentMinAge) {
+            // Si le filtre sauvegardé est différent de celui de l'URL, utiliser celui sauvegardé
+            currentMinAge = minAge;
+            // Mettre à jour l'apparence des boutons
+            document.querySelectorAll('.age-filter').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeBtn = document.querySelector(`.age-filter[onclick="changeAgeFilter(${minAge})"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+        }
+    }
+    
+    // Restaurer les préférences de cinéma
+    restoreCinemaPreferences();
+    
+    // Restaurer la recherche
     const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.value = '';
+    const savedSearch = localStorage.getItem('searchTerm');
+    if (searchInput && savedSearch) {
+        searchInput.value = savedSearch;
+        searchFilms();
+    }
+    
+    // Restaurer le tri
+    const savedSort = localStorage.getItem('sortType');
+    if (savedSort) {
+        sortFilms(savedSort);
     }
 });
 </script>

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from datetime import timedelta
 from dotenv import load_dotenv
 from zoneinfo import ZoneInfo
@@ -182,6 +182,34 @@ _html_cache = {}
 @app.route('/healthcheck')
 def healthcheck():
     return 'ok'
+
+@app.route('/api/films')
+def api_films():
+    """API pour récupérer les films d'une semaine en JSON (pour chargement dynamique)"""
+    min_age = request.args.get("age", default=0, type=int)
+    week_offset = request.args.get("week", default=0, type=int)
+    
+    # Récupérer les données de la semaine
+    films_to_show, week_dates_display = getShowtimesWeek(week_offset)
+    
+    # Filtrage des films par âge minimal
+    if min_age > 0:
+        films_to_show = [f for f in films_to_show if f.get("filmAge") and f["filmAge"] >= min_age]
+    
+    # Calculer la période de la semaine pour l'affichage
+    first_day = week_dates_display[0]
+    last_day = week_dates_display[-1]
+    if first_day['mois'] == last_day['mois']:
+        week_period = f"{first_day['chiffre']}-{last_day['chiffre']} {last_day['mois']}"
+    else:
+        week_period = f"{first_day['chiffre']} {first_day['mois']} - {last_day['chiffre']} {last_day['mois']}"
+    
+    return jsonify({
+        'films': films_to_show,
+        'dates': week_dates_display,
+        'week_period': week_period,
+        'week_offset': week_offset
+    })
 
 @app.route('/')
 def home():
