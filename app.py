@@ -99,10 +99,25 @@ def getShowtimesWeek(week_offset=0):
         if day_index not in data[movie.title]["seances_table"][theater.name]:
             data[movie.title]["seances_table"][theater.name][day_index] = []
         
-        # Ajouter l'heure de séance
-        data[movie.title]["seances_table"][theater.name][day_index].append(
-            showtime.startsAt.strftime("%H:%M")
-        )
+        # Filtrer les séances passées pour aujourd'hui uniquement
+        current_datetime = datetime.now(timezone)
+        
+        # S'assurer que startsAt a une timezone
+        showtime_dt = showtime.startsAt
+        if showtime_dt.tzinfo is None:
+            showtime_dt = showtime_dt.replace(tzinfo=timezone)
+        
+        if showtime_dt.date() == current_datetime.date():
+            # Ne garder que les séances futures
+            if showtime_dt > current_datetime:
+                data[movie.title]["seances_table"][theater.name][day_index].append(
+                    showtime.startsAt.strftime("%H:%M")
+                )
+        else:
+            # Pour les autres jours, afficher toutes les séances
+            data[movie.title]["seances_table"][theater.name][day_index].append(
+                showtime.startsAt.strftime("%H:%M")
+            )
 
     # Calculer le nombre total de séances pour chaque film
     for movie_data in data.values():
