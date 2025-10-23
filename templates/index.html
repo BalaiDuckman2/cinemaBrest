@@ -22,94 +22,268 @@
     <div class="container_titrePlanning">
         <div class="contenu_edt">
             <h2 class="txt_edt">Emploi du temps</h2>
-            
-            <!-- Navigation entre semaines -->
-            <div class="week-navigation">
-                <a href="{{ url_for('home', week=week_offset-1, age=min_age) }}" class="week-nav-btn">
-                    ← Semaine précédente
-                </a>
-                <div class="week-period">
-                    📅 {{ week_period }}
-                </div>
-                <a href="{{ url_for('home', week=week_offset+1, age=min_age) }}" class="week-nav-btn">
-                    Semaine suivante →
-                </a>
-            </div>
         </div>
         <div class="line"></div>
         
-        <!-- Filtre par âge des films -->
-        <div style="padding: 15px 20px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; margin: 10px 0;">
-            <h3 style="color: white; margin-bottom: 10px; font-size: 1.1em;">🎞️ Filtre films classiques</h3>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                <a href="{{ url_for('home', week=week_offset) }}" 
-                   style="padding: 8px 15px; background: {% if min_age == 0 %}#e74c3c{% else %}rgba(255,255,255,0.1){% endif %}; color: white; text-decoration: none; border-radius: 5px; transition: all 0.3s;">
-                    Tous les films
-                </a>
-                <a href="{{ url_for('home', age=1, week=week_offset) }}" 
-                   style="padding: 8px 15px; background: {% if min_age == 1 %}#e74c3c{% else %}rgba(255,255,255,0.1){% endif %}; color: white; text-decoration: none; border-radius: 5px; transition: all 0.3s;">
-                    +1 an 🎦
-                </a>
-                <a href="{{ url_for('home', age=5, week=week_offset) }}" 
-                   style="padding: 8px 15px; background: {% if min_age == 5 %}#e74c3c{% else %}rgba(255,255,255,0.1){% endif %}; color: white; text-decoration: none; border-radius: 5px; transition: all 0.3s;">
-                    +5 ans 📼
-                </a>
-                <a href="{{ url_for('home', age=10, week=week_offset) }}" 
-                   style="padding: 8px 15px; background: {% if min_age == 10 %}#e74c3c{% else %}rgba(255,255,255,0.1){% endif %}; color: white; text-decoration: none; border-radius: 5px; transition: all 0.3s;">
-                    +10 ans 🎬
-                </a>
-                <a href="{{ url_for('home', age=20, week=week_offset) }}" 
-                   style="padding: 8px 15px; background: {% if min_age == 20 %}#e74c3c{% else %}rgba(255,255,255,0.1){% endif %}; color: white; text-decoration: none; border-radius: 5px; transition: all 0.3s;">
-                    +20 ans 🎥
-                </a>
-                <a href="{{ url_for('home', age=30, week=week_offset) }}" 
-                   style="padding: 8px 15px; background: {% if min_age == 30 %}#e74c3c{% else %}rgba(255,255,255,0.1){% endif %}; color: white; text-decoration: none; border-radius: 5px; transition: all 0.3s;">
-                    +30 ans 🎞️
-                </a>
-                <a href="{{ url_for('home', age=50, week=week_offset) }}" 
-                   style="padding: 8px 15px; background: {% if min_age == 50 %}#e74c3c{% else %}rgba(255,255,255,0.1){% endif %}; color: white; text-decoration: none; border-radius: 5px; transition: all 0.3s;">
-                    +50 ans 🏛️
-                </a>
+        <!-- Section Filtres et Recherche (Design moderne épuré) -->
+        <style>
+            .filter-section {
+                display: grid;
+                grid-template-columns: 2fr 1fr;
+                gap: 20px;
+                margin: 25px 0 15px 0;
+            }
+            
+            .week-nav-integrated {
+                background: rgba(255,255,255,0.02);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 16px;
+                padding: 20px 24px;
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 20px;
+            }
+            
+            .week-nav-integrated .week-nav-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 18px;
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.1);
+                border-radius: 8px;
+                color: rgba(255,255,255,0.9);
+                font-weight: 500;
+                font-size: 0.9rem;
+                transition: all 0.2s ease;
+                cursor: pointer;
+                text-decoration: none;
+            }
+            
+            .week-nav-integrated .week-nav-btn:hover {
+                background: rgba(255,255,255,0.1);
+                border-color: rgba(255,255,255,0.2);
+                transform: translateX(-2px);
+            }
+            
+            .week-nav-integrated .week-nav-btn:last-child:hover {
+                transform: translateX(2px);
+            }
+            
+            .week-nav-integrated .week-period {
+                flex: 1;
+                text-align: center;
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: rgba(255,255,255,0.95);
+                letter-spacing: 0.5px;
+            }
+            
+            .search-sort-section {
+                background: rgba(255,255,255,0.03);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 16px;
+                padding: 24px;
+            }
+            
+            .filter-card {
+                background: rgba(255,255,255,0.03);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 16px;
+                padding: 24px;
+            }
+            
+            .section-label {
+                color: rgba(255,255,255,0.6);
+                font-size: 0.75em;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                font-weight: 600;
+                margin-bottom: 16px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .search-input {
+                width: 100%;
+                padding: 14px 18px;
+                border: 1px solid rgba(255,255,255,0.1);
+                border-radius: 10px;
+                background: rgba(0,0,0,0.3);
+                color: white;
+                font-size: 0.95em;
+                outline: none;
+                transition: all 0.2s ease;
+                font-family: inherit;
+            }
+            
+            .search-input:focus {
+                border-color: rgba(255,255,255,0.3);
+                background: rgba(0,0,0,0.4);
+            }
+            
+            .search-input::placeholder {
+                color: rgba(255,255,255,0.4);
+            }
+            
+            .sort-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                margin-top: 12px;
+            }
+            
+            .sort-btn {
+                padding: 10px 14px;
+                background: rgba(255,255,255,0.05);
+                color: rgba(255,255,255,0.7);
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-size: 0.85em;
+                font-weight: 500;
+                font-family: inherit;
+            }
+            
+            .sort-btn:hover {
+                background: rgba(255,255,255,0.08);
+                color: white;
+                border-color: rgba(255,255,255,0.15);
+                transform: translateY(-1px);
+            }
+            
+            .sort-btn.active {
+                background: white;
+                color: #0f1419;
+                border-color: white;
+            }
+            
+            .age-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .age-filter {
+                padding: 14px;
+                background: rgba(255,255,255,0.05);
+                color: rgba(255,255,255,0.8);
+                text-decoration: none;
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 10px;
+                transition: all 0.2s ease;
+                text-align: center;
+                font-weight: 500;
+                font-size: 0.9em;
+            }
+            
+            .age-filter:hover {
+                background: rgba(255,255,255,0.08);
+                border-color: rgba(255,255,255,0.15);
+                transform: translateY(-1px);
+            }
+            
+            .age-filter.active {
+                background: white;
+                color: #0f1419;
+                border-color: white;
+            }
+            
+            .search-results {
+                color: rgba(255,255,255,0.5);
+                margin-top: 12px;
+                font-size: 0.8em;
+                min-height: 18px;
+            }
+            
+            @media (max-width: 968px) {
+                .filter-section {
+                    grid-template-columns: 1fr;
+                }
+                .sort-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+        </style>
+        
+        <!-- Navigation entre semaines (intégrée) -->
+        <div class="week-nav-integrated">
+            <a href="{{ url_for('home', week=week_offset-1, age=min_age) }}" class="week-nav-btn">
+                ← Semaine précédente
+            </a>
+            <div class="week-period">
+                📅 {{ week_period }}
             </div>
+            <a href="{{ url_for('home', week=week_offset+1, age=min_age) }}" class="week-nav-btn">
+                Semaine suivante →
+            </a>
         </div>
         
-        <!-- Barre de recherche -->
-        <div style="padding: 15px 20px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; margin: 10px 0;">
-            <h3 style="color: white; margin-bottom: 10px; font-size: 1.1em;">🔍 Rechercher un film</h3>
-            <input type="text" 
-                   id="searchInput" 
-                   placeholder="Tapez un titre, acteur, réalisateur, genre..."
-                   style="width: 100%; padding: 12px 20px; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.3); color: white; font-size: 1em; outline: none; transition: all 0.3s;"
-                   onkeyup="searchFilms()"
-                   onfocus="this.style.borderColor='#e74c3c'"
-                   onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
-            <p id="searchResults" style="color: #aaa; margin-top: 8px; font-size: 0.9em;"></p>
-        </div>
-        
-        <!-- Options de tri -->
-        <div style="padding: 15px 20px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; margin: 10px 0;">
-            <h3 style="color: white; margin-bottom: 10px; font-size: 1.1em;">📊 Trier par</h3>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                <button onclick="sortFilms('popularity')" id="sort-popularity"
-                        style="padding: 8px 15px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; transition: all 0.3s; font-size: 0.95em;">
-                    ⭐ Popularité
-                </button>
-                <button onclick="sortFilms('alphabetical')" id="sort-alphabetical"
-                        style="padding: 8px 15px; background: rgba(255,255,255,0.1); color: white; border: none; border-radius: 5px; cursor: pointer; transition: all 0.3s; font-size: 0.95em;">
-                    🔤 A → Z
-                </button>
-                <button onclick="sortFilms('year-desc')" id="sort-year-desc"
-                        style="padding: 8px 15px; background: rgba(255,255,255,0.1); color: white; border: none; border-radius: 5px; cursor: pointer; transition: all 0.3s; font-size: 0.95em;">
-                    📅 Plus récent
-                </button>
-                <button onclick="sortFilms('year-asc')" id="sort-year-asc"
-                        style="padding: 8px 15px; background: rgba(255,255,255,0.1); color: white; border: none; border-radius: 5px; cursor: pointer; transition: all 0.3s; font-size: 0.95em;">
-                    🎞️ Plus ancien
-                </button>
-                <button onclick="sortFilms('showtimes')" id="sort-showtimes"
-                        style="padding: 8px 15px; background: rgba(255,255,255,0.1); color: white; border: none; border-radius: 5px; cursor: pointer; transition: all 0.3s; font-size: 0.95em;">
-                    🎬 Nb séances
-                </button>
+        <div class="filter-section">
+            <!-- Recherche et Tri -->
+            <div class="search-sort-section">
+                <div class="section-label">
+                    <span>🔍</span> Recherche & Tri
+                </div>
+                
+                <input type="text" 
+                       id="searchInput" 
+                       class="search-input"
+                       placeholder="Rechercher un film, acteur, réalisateur..."
+                       onkeyup="searchFilms()">
+                
+                <p id="searchResults" class="search-results"></p>
+                
+                <div class="sort-grid">
+                    <button onclick="sortFilms('popularity')" id="sort-popularity" class="sort-btn active">
+                        ⭐ Popularité
+                    </button>
+                    <button onclick="sortFilms('alphabetical')" id="sort-alphabetical" class="sort-btn">
+                        A → Z
+                    </button>
+                    <button onclick="sortFilms('year-desc')" id="sort-year-desc" class="sort-btn">
+                        Récent
+                    </button>
+                    <button onclick="sortFilms('year-asc')" id="sort-year-asc" class="sort-btn">
+                        Ancien
+                    </button>
+                    <button onclick="sortFilms('showtimes')" id="sort-showtimes" class="sort-btn">
+                        Séances
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Filtres par âge -->
+            <div class="filter-card">
+                <div class="section-label">
+                    <span>📅</span> Films classiques
+                </div>
+                
+                <div class="age-grid">
+                    <a href="{{ url_for('home', week=week_offset) }}" 
+                       class="age-filter {% if min_age == 0 %}active{% endif %}">
+                        Tous les films
+                    </a>
+                    <a href="{{ url_for('home', age=1, week=week_offset) }}" 
+                       class="age-filter {% if min_age == 1 %}active{% endif %}">
+                        +1 an
+                    </a>
+                    <a href="{{ url_for('home', age=5, week=week_offset) }}" 
+                       class="age-filter {% if min_age == 5 %}active{% endif %}">
+                        +5 ans
+                    </a>
+                    <a href="{{ url_for('home', age=30, week=week_offset) }}" 
+                       class="age-filter {% if min_age == 30 %}active{% endif %}">
+                        +30 ans
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -129,12 +303,12 @@
                     <h3 class="titreFilm">
                         <a href="{{ film.url }}">{{film.title}}</a>
                         {% if film.releaseYear %}
-                        <span style="font-size: 0.8em; color: #aaa; font-weight: normal;">({{ film.releaseYear }}{% if film.filmAge %} - il y a {{ film.filmAge }} ans{% endif %})</span>
+                        <span style="font-size: 0.75em; color: rgba(255,255,255,0.4); font-weight: 400; margin-left: 8px;">({{ film.releaseYear }})</span>
                         {% endif %}
                     </h3>
-                    {% if film.releaseYear %}
-                    <div style="display: inline-block; background: rgba(231, 76, 60, 0.8); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.85em; margin-bottom: 10px; font-weight: 500;">
-                        📅 Sortie : {{ film.releaseYear }}
+                    {% if film.releaseYear and film.filmAge %}
+                    <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); padding: 6px 14px; border-radius: 6px; font-size: 0.8em; margin-bottom: 12px; font-weight: 500; border: 1px solid rgba(255,255,255,0.1);">
+                        <span style="opacity: 0.6;">📅</span> Il y a {{ film.filmAge }} ans
                     </div>
                     {% endif %}
                     <div class="info-content">
@@ -152,39 +326,39 @@
             </div>
         </div>
 
-        <div style="height: 10px;"></div>
+        <div style="height: 15px;"></div>
         
         <!-- Affichage en tableau de la semaine -->
     <div style="overflow-x: auto; margin-bottom: 20px;">
-        <table style="width: 100%; border-collapse: collapse; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden;">
+        <table style="width: 100%; border-collapse: separate; border-spacing: 0; background: rgba(255,255,255,0.02); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06);">
             <thead>
-                <tr style="background: rgba(255,255,255,0.1);">
-                    <th style="padding: 12px; text-align: left; color: white; font-weight: bold; border-right: 1px solid rgba(255,255,255,0.1);">Cinéma</th>
+                <tr style="background: rgba(255,255,255,0.04);">
+                    <th style="padding: 16px; text-align: left; color: rgba(255,255,255,0.9); font-weight: 600; border-right: 1px solid rgba(255,255,255,0.06); font-size: 0.9em;">Cinéma</th>
                     {% for date in dates %}
-                    <th style="padding: 12px; text-align: center; color: white; font-size: 0.9em; border-right: 1px solid rgba(255,255,255,0.05);">
-                        <div>{{date.jour}}</div>
-                        <div style="font-size: 1.2em; font-weight: bold;">{{date.chiffre}}</div>
-                        <div style="font-size: 0.8em; opacity: 0.7;">{{date.mois}}</div>
+                    <th style="padding: 14px 10px; text-align: center; color: rgba(255,255,255,0.9); font-size: 0.85em; border-right: 1px solid rgba(255,255,255,0.04);">
+                        <div style="color: rgba(255,255,255,0.5); font-weight: 400; font-size: 0.85em;">{{date.jour}}</div>
+                        <div style="font-size: 1.3em; font-weight: 700; margin: 4px 0;">{{date.chiffre}}</div>
+                        <div style="font-size: 0.75em; color: rgba(255,255,255,0.5); font-weight: 400;">{{date.mois}}</div>
                     </th>
                     {% endfor %}
                 </tr>
             </thead>
             <tbody>
                 {% for cinema_name, days_data in film.seances_table.items() %}
-                <tr style="border-top: 1px solid rgba(255,255,255,0.1);">
-                    <td style="padding: 12px; color: white; font-weight: bold; border-right: 1px solid rgba(255,255,255,0.1); white-space: nowrap;">
+                <tr style="border-top: 1px solid rgba(255,255,255,0.04);">
+                    <td style="padding: 14px 16px; color: rgba(255,255,255,0.85); font-weight: 500; border-right: 1px solid rgba(255,255,255,0.06); white-space: nowrap; font-size: 0.9em;">
                         {{cinema_name}}
                     </td>
                     {% for date in dates %}
-                    <td style="padding: 8px; text-align: center; border-right: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 10px; text-align: center; border-right: 1px solid rgba(255,255,255,0.04);">
                         {% if date.index in days_data %}
-                        <div style="display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;">
                             {% for time in days_data[date.index] %}
-                            <span style="background: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; white-space: nowrap;">{{time}}</span>
+                            <span style="background: rgba(255,255,255,0.12); color: white; padding: 5px 10px; border-radius: 6px; font-size: 0.8em; white-space: nowrap; font-weight: 500; border: 1px solid rgba(255,255,255,0.15);">{{time}}</span>
                             {% endfor %}
                         </div>
                         {% else %}
-                        <span style="color: #666;">-</span>
+                        <span style="color: rgba(255,255,255,0.2); font-size: 0.9em;">—</span>
                         {% endif %}
                     </td>
                     {% endfor %}
@@ -240,11 +414,11 @@ function sortFilms(sortType) {
     const container = document.getElementById('filmsContainer');
     const films = Array.from(container.querySelectorAll('.film-item'));
     
-    // Mettre à jour l'apparence des boutons
-    document.querySelectorAll('[id^="sort-"]').forEach(btn => {
-        btn.style.background = 'rgba(255,255,255,0.1)';
+    // Mettre à jour l'apparence des boutons avec le nouveau style
+    document.querySelectorAll('.sort-btn').forEach(btn => {
+        btn.classList.remove('active');
     });
-    document.getElementById(`sort-${sortType}`).style.background = '#e74c3c';
+    document.getElementById(`sort-${sortType}`).classList.add('active');
     
     currentSort = sortType;
     

@@ -147,20 +147,29 @@ print(f"📊 BDD: {stats['cinemas']} cinémas, {stats['films']} films, {stats['s
 print()
 
 # Chargement initial (2 premiers mois au démarrage)
-print("📅 Préchargement des 2 prochains mois (60 jours)...")
-print("⏳ Cela peut prendre quelques minutes lors du premier démarrage...")
+# Désactivé en mode debug pour démarrage rapide
+SKIP_PRELOAD = getenv("SKIP_PRELOAD", "false").lower() == "true"
 
-# Précharger les 8 prochaines semaines
-for week in range(8):
-    try:
-        showtimes_week, _ = getShowtimesWeek(week)
-        print(f"✓ Semaine +{week}: {len(showtimes_week)} films chargés")
-    except Exception as e:
-        print(f"⚠️  Erreur semaine +{week}: {e}")
+if not SKIP_PRELOAD:
+    print("📅 Préchargement des 2 prochains mois (60 jours)...")
+    print("⏳ Cela peut prendre quelques minutes lors du premier démarrage...")
+    print("💡 Conseil : Ajoutez SKIP_PRELOAD=true dans .env pour tests rapides")
 
-# Afficher les stats finales de la BDD
-stats = db.get_stats()
-print(f"✓ BDD finale: {stats['seances']} séances sur {stats['dates']} dates")
+    # Précharger les 8 prochaines semaines
+    for week in range(8):
+        try:
+            showtimes_week, _ = getShowtimesWeek(week)
+            print(f"✓ Semaine +{week}: {len(showtimes_week)} films chargés")
+        except Exception as e:
+            print(f"⚠️  Erreur semaine +{week}: {e}")
+
+    # Afficher les stats finales de la BDD
+    stats = db.get_stats()
+    print(f"✓ BDD finale: {stats['seances']} séances sur {stats['dates']} dates")
+else:
+    print("⚡ Mode développement : Préchargement désactivé (démarrage rapide)")
+    print("💡 Les données seront chargées à la demande")
+
 print("=" * 60)
 print()
 
@@ -225,8 +234,11 @@ def home():
     return html_response
 
 # Démarrer le système de rafraîchissement automatique quotidien à 5h
-auto_refresh = AutoRefresh(theaters, refresh_hour=5)
-auto_refresh.start()
+# (Désactivé en mode debug pour éviter les problèmes de rechargement)
+if not app.debug:
+    auto_refresh = AutoRefresh(theaters, refresh_hour=5)
+    auto_refresh.start()
 
 if __name__ == '__main__':
-    app.run(host=getenv("HOST"), port=getenv("PORT"))
+    # Mode debug activé : rechargement automatique + pas de préchargement
+    app.run(host=getenv("HOST"), port=getenv("PORT"), debug=True)
