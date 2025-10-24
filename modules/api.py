@@ -61,29 +61,37 @@ class Movie:
         self.productionYear = None
         self.filmAge = None
         
-        # Priorité 1: Utiliser productionYear si disponible (le plus fiable)
+        # Liste de toutes les années trouvées
+        found_years = []
+        
+        # Source 1: productionYear (année de production)
         if data.get("productionYear"):
             try:
-                self.productionYear = int(data["productionYear"])
-                self.releaseYear = self.productionYear
-                self.filmAge = datetime.now().year - self.releaseYear
+                year = int(data["productionYear"])
+                if 1880 <= year <= datetime.now().year + 2:  # Validation
+                    found_years.append(year)
+                    self.productionYear = year
             except:
                 pass
         
-        # Priorité 2: Chercher dans les releases la date "Released" (sortie cinéma)
-        if self.releaseYear is None and "releases" in data and data["releases"]:
+        # Source 2: Toutes les releases (sortie cinéma, DVD, etc.)
+        if "releases" in data and data["releases"]:
             for release in data["releases"]:
-                if release and release.get("name") == "Released":
-                    release_date_dict = release.get("releaseDate")
-                    if release_date_dict and isinstance(release_date_dict, dict) and release_date_dict.get("date"):
-                        release_date_str = release_date_dict["date"]
+                if release and release.get("releaseDate"):
+                    release_date_dict = release["releaseDate"]
+                    if isinstance(release_date_dict, dict) and release_date_dict.get("date"):
                         try:
-                            release_date = datetime.fromisoformat(release_date_str)
-                            self.releaseYear = release_date.year
-                            self.filmAge = datetime.now().year - self.releaseYear
-                            break
+                            release_date = datetime.fromisoformat(release_date_dict["date"])
+                            year = release_date.year
+                            if 1880 <= year <= datetime.now().year + 2:  # Validation
+                                found_years.append(year)
                         except:
                             pass
+        
+        # Prendre l'année la plus ANCIENNE (= la vraie sortie originale)
+        if found_years:
+            self.releaseYear = min(found_years)
+            self.filmAge = datetime.now().year - self.releaseYear
         
         # Valeurs par défaut si rien n'a été trouvé
         if self.productionYear is None:
