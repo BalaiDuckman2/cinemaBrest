@@ -1,15 +1,8 @@
 const CACHE_NAME = 'cinebrest-v1';
 const urlsToCache = [
   '/',
-  '/static/css/main.css',
   '/static/images/favicon.png',
-  '/static/images/background.svg',
-  '/static/images/nocontent.png',
-  '/static/font/HealTheWebA-Regular.otf',
-  '/static/font/HealTheWebB-Regular.otf',
-  '/static/font/montserrat_extrabold.ttf',
-  '/static/font/Raleway-Black.ttf',
-  'https://cdn.tailwindcss.com'
+  '/static/images/nocontent.png'
 ];
 
 // Installation du Service Worker
@@ -46,7 +39,7 @@ self.addEventListener('fetch', event => {
       .then(response => {
         // Clone la réponse
         const responseToCache = response.clone();
-        
+
         // Met en cache uniquement les GET requests
         if (event.request.method === 'GET') {
           caches.open(CACHE_NAME)
@@ -54,7 +47,7 @@ self.addEventListener('fetch', event => {
               cache.put(event.request, responseToCache);
             });
         }
-        
+
         return response;
       })
       .catch(() => {
