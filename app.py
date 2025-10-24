@@ -48,6 +48,7 @@ def translate_day(weekday: int) -> str:
 
 # Cache mémoire pour les semaines complètes (ultra-rapide)
 _week_cache = {}
+# NOTE: Vider le cache en redémarrant l'application si les versions ne s'affichent pas correctement
 
 def getShowtimesWeek(week_offset=0):
     """Récupère toutes les séances de la semaine en format tableau
@@ -111,17 +112,27 @@ def getShowtimesWeek(week_offset=0):
         if showtime_dt.tzinfo is None:
             showtime_dt = showtime_dt.replace(tzinfo=timezone)
         
+        # Créer l'objet séance avec horaire et version
+        # Traduire les versions AlloCiné en français
+        version_map = {
+            "DUBBED": "VF",
+            "ORIGINAL": "VO",
+            "LOCAL_LANGUAGE": "VF"
+        }
+        version = version_map.get(showtime.diffusionVersion, showtime.diffusionVersion)
+        
+        showtime_info = {
+            "time": showtime.startsAt.strftime("%H:%M"),
+            "version": version  # VF, VO, VOST, etc.
+        }
+        
         if showtime_dt.date() == current_datetime.date():
             # Ne garder que les séances futures
             if showtime_dt > current_datetime:
-                data[movie.title]["seances_table"][theater.name][day_index].append(
-                    showtime.startsAt.strftime("%H:%M")
-                )
+                data[movie.title]["seances_table"][theater.name][day_index].append(showtime_info)
         else:
             # Pour les autres jours, afficher toutes les séances
-            data[movie.title]["seances_table"][theater.name][day_index].append(
-                showtime.startsAt.strftime("%H:%M")
-            )
+            data[movie.title]["seances_table"][theater.name][day_index].append(showtime_info)
 
     # Calculer le nombre total de séances pour chaque film
     for movie_data in data.values():
