@@ -13,23 +13,38 @@
     
     <!-- Navigation entre semaines -->
     <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-3 sm:p-5 mb-4 sm:mb-6">
-        <div class="flex items-center justify-between sm:justify-center gap-2 sm:gap-4">
-            <button onclick="changeWeek(-1)" class="px-3 sm:px-6 py-2 sm:py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium transition-all duration-200 hover:-translate-x-1">
-                <span class="hidden sm:inline">← Précédent</span>
-                <span class="sm:hidden">←</span>
-            </button>
-            <div id="weekPeriod" class="px-3 sm:px-8 py-2 sm:py-2.5 bg-indigo-600/20 border border-indigo-500/30 rounded-lg sm:rounded-xl text-white text-xs sm:text-base font-semibold text-center flex-1 sm:flex-none">
-                <span class="hidden sm:inline">📅 </span>{{ week_period }}
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+            <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-center">
+                <button onclick="changeWeek(-1)" class="px-3 sm:px-6 py-2 sm:py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium transition-all duration-200 hover:-translate-x-1">
+                    <span class="hidden sm:inline">← Précédent</span>
+                    <span class="sm:hidden">←</span>
+                </button>
+                <div id="weekPeriod" class="px-3 sm:px-8 py-2 sm:py-2.5 bg-indigo-600/20 border border-indigo-500/30 rounded-lg sm:rounded-xl text-white text-xs sm:text-base font-semibold text-center flex-1 sm:flex-none">
+                    <span class="hidden sm:inline">📅 </span>{{ week_period }}
+                </div>
+                <button onclick="changeWeek(1)" class="px-3 sm:px-6 py-2 sm:py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium transition-all duration-200 hover:translate-x-1">
+                    <span class="hidden sm:inline">Suivant →</span>
+                    <span class="sm:hidden">→</span>
+                </button>
             </div>
-            <button onclick="changeWeek(1)" class="px-3 sm:px-6 py-2 sm:py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium transition-all duration-200 hover:translate-x-1">
-                <span class="hidden sm:inline">Suivant →</span>
-                <span class="sm:hidden">→</span>
+            <button id="todayBtn" onclick="goToToday()" class="hidden px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 border border-indigo-500 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium transition-all duration-200 hover:scale-105 shadow-lg">
+                <span class="hidden sm:inline">🎬 Aujourd'hui</span>
+                <span class="sm:hidden">Aujourd'hui</span>
             </button>
         </div>
     </div>
 
     <!-- Filtres -->
     <div class="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20 rounded-xl md:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 shadow-xl">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-white/90 text-sm sm:text-base font-semibold">🎯 Filtres & Recherche</h3>
+            <button onclick="toggleViewMode()" class="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/15 border border-white/20 rounded-lg text-white text-xs sm:text-sm font-medium transition">
+                <svg id="viewIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                <span id="viewModeText">Vue compacte</span>
+            </button>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
             <!-- Tri -->
             <div>
@@ -227,6 +242,128 @@ window.addEventListener('scroll', function() {
 let currentWeekOffset = {{ week_offset }};
 let currentMinAge = {{ min_age }};
 let isLoading = false;
+let isCompactView = localStorage.getItem('compactView') === 'true';
+
+// Initialiser les préférences sauvegardées au chargement
+window.addEventListener('DOMContentLoaded', function() {
+    // Restaurer le filtre d'âge sauvegardé
+    const savedMinAge = localStorage.getItem('minAge');
+    if (savedMinAge !== null) {
+        document.getElementById('ageSelect').value = savedMinAge;
+    }
+    
+    // Restaurer le tri sauvegardé
+    const savedSort = localStorage.getItem('sortBy');
+    if (savedSort) {
+        document.getElementById('sortSelect').value = savedSort;
+        sortFilms(savedSort);
+    }
+    
+    // Restaurer les cinémas sélectionnés
+    const savedCinemas = localStorage.getItem('selectedCinemas');
+    if (savedCinemas) {
+        const cinemasList = JSON.parse(savedCinemas);
+        document.querySelectorAll('.cinema-checkbox-label input').forEach(checkbox => {
+            checkbox.checked = cinemasList.includes(checkbox.value);
+        });
+        filterByCinema();
+    }
+    
+    // Restaurer la vue compacte/étendue
+    if (isCompactView) {
+        applyCompactView();
+    }
+    
+    // Afficher le bouton "Aujourd'hui" si on n'est pas sur la semaine actuelle
+    updateTodayButton();
+});
+
+// Fonction pour retourner à la semaine actuelle
+function goToToday() {
+    if (currentWeekOffset !== 0) {
+        changeWeek(-currentWeekOffset);
+    }
+}
+
+// Mettre à jour l'affichage du bouton "Aujourd'hui"
+function updateTodayButton() {
+    const todayBtn = document.getElementById('todayBtn');
+    if (currentWeekOffset !== 0) {
+        todayBtn.classList.remove('hidden');
+    } else {
+        todayBtn.classList.add('hidden');
+    }
+}
+
+// Toggle entre vue compacte et étendue
+function toggleViewMode() {
+    isCompactView = !isCompactView;
+    localStorage.setItem('compactView', isCompactView);
+    
+    if (isCompactView) {
+        applyCompactView();
+    } else {
+        applyExtendedView();
+    }
+}
+
+// Appliquer la vue compacte
+function applyCompactView() {
+    const viewIcon = document.getElementById('viewIcon');
+    const viewModeText = document.getElementById('viewModeText');
+    
+    viewModeText.textContent = 'Vue étendue';
+    viewIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>';
+    
+    document.querySelectorAll('.film-item').forEach(film => {
+        // Cacher l'image, synopsis et infos détaillées
+        const img = film.querySelector('img');
+        const synopsis = film.querySelector('.line-clamp-3');
+        const filmInfo = film.querySelector('.grid.grid-cols-1');
+        const filmAge = film.querySelector('.inline-flex');
+        
+        if (img) img.classList.add('hidden');
+        if (synopsis) synopsis.classList.add('hidden');
+        if (filmInfo) filmInfo.classList.add('hidden');
+        if (filmAge) filmAge.classList.add('hidden');
+        
+        // Réduire le padding
+        const header = film.querySelector('.flex.flex-col');
+        if (header) {
+            header.classList.remove('p-4', 'sm:p-6', 'gap-4', 'sm:gap-6');
+            header.classList.add('p-2', 'sm:p-3');
+        }
+    });
+}
+
+// Appliquer la vue étendue
+function applyExtendedView() {
+    const viewIcon = document.getElementById('viewIcon');
+    const viewModeText = document.getElementById('viewModeText');
+    
+    viewModeText.textContent = 'Vue compacte';
+    viewIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>';
+    
+    document.querySelectorAll('.film-item').forEach(film => {
+        // Réafficher tout
+        const img = film.querySelector('img');
+        const synopsis = film.querySelector('.line-clamp-3');
+        const filmInfo = film.querySelector('.grid.grid-cols-1');
+        const filmAge = film.querySelector('.inline-flex');
+        
+        if (img) img.classList.remove('hidden');
+        if (synopsis) synopsis.classList.remove('hidden');
+        if (filmInfo) filmInfo.classList.remove('hidden');
+        if (filmAge) filmAge.classList.remove('hidden');
+        
+        // Restaurer le padding
+        const header = film.querySelector('.flex.flex-col');
+        if (header) {
+            header.classList.remove('p-2', 'sm:p-3');
+            header.classList.add('p-4', 'sm:p-6', 'gap-4', 'sm:gap-6');
+        }
+    });
+}
 
 // Fonction pour changer le filtre d'âge dynamiquement
 async function changeAgeFilter(minAge) {
@@ -294,12 +431,15 @@ async function changeWeek(offset) {
         const response = await fetch(`/api/films?week=${currentWeekOffset}&age=${currentMinAge}`);
         const data = await response.json();
         
-        document.getElementById('weekPeriod').textContent = `📅 ${data.week_period}`;
+        document.getElementById('weekPeriod').innerHTML = `<span class="hidden sm:inline">📅 </span>${data.week_period}`;
         
         const newUrl = `/?week=${currentWeekOffset}&age=${currentMinAge}`;
         window.history.pushState({week: currentWeekOffset}, '', newUrl);
         
         renderFilms(data.films, data.dates);
+        
+        // Mettre à jour le bouton "Aujourd'hui"
+        updateTodayButton();
         
         container.style.opacity = '1';
         
@@ -429,6 +569,9 @@ function sortFilms(sortType) {
     const container = document.getElementById('filmsContainer');
     const films = Array.from(container.querySelectorAll('.film-item'));
     
+    // Sauvegarder le tri dans localStorage
+    localStorage.setItem('sortBy', sortType);
+    currentSort = sortType;
     localStorage.setItem('sortType', sortType);
     
     // Mettre à jour la valeur du select
@@ -561,6 +704,14 @@ function renderFilms(films, dates) {
             </div>
         `;
     }).join('');
+    
+    // Réappliquer la vue compacte si nécessaire
+    if (isCompactView) {
+        setTimeout(() => applyCompactView(), 100);
+    }
+    
+    // Réappliquer le filtre par cinéma
+    filterByCinema();
 }
 
 // Gérer le bouton retour du navigateur
