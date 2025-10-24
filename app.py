@@ -287,11 +287,9 @@ def home():
     return html_response
 
 # Démarrer le système de rafraîchissement automatique quotidien à 5h
-# (Désactivé en mode debug pour éviter les problèmes de rechargement)
-if not app.debug:
-    auto_refresh = AutoRefresh(theaters, refresh_hour=5)
-    auto_refresh.start()
+# Auto-refresh des données toutes les nuits à 5h
+auto_refresh = AutoRefresh(theaters, refresh_hour=5)
+auto_refresh.start()
 
 if __name__ == '__main__':
-    # Mode debug activé : rechargement automatique + pas de préchargement
-    app.run(host=getenv("HOST"), port=getenv("PORT"), debug=True)
+    app.run(host=getenv("HOST"), port=getenv("PORT"), debug=False)
