@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8 max-w-md">
+    <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 shadow-xl">
+        <h2 class="text-3xl font-bold text-white mb-6 text-center">🎬 Connexion</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-4 p-4 rounded-lg {% if category == 'error' %}bg-red-500/20 border border-red-500/50 text-red-200{% else %}bg-green-500/20 border border-green-500/50 text-green-200{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" action="{{ url_for('login') }}">
+            {{ form.hidden_tag() }}
+            
+            <div class="mb-4">
+                {{ form.email.label(class="block text-white/90 text-sm font-semibold mb-2") }}
+                {{ form.email(class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition", placeholder="votre@email.com") }}
+                {% if form.email.errors %}
+                    <p class="mt-1 text-sm text-red-300">{{ form.email.errors[0] }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                {{ form.password.label(class="block text-white/90 text-sm font-semibold mb-2") }}
+                {{ form.password(class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition", placeholder="••••••••") }}
+                {% if form.password.errors %}
+                    <p class="mt-1 text-sm text-red-300">{{ form.password.errors[0] }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="mb-6 flex items-center">
+                {{ form.remember(class="w-4 h-4 text-indigo-600 bg-white/10 border-white/20 rounded focus:ring-2 focus:ring-indigo-500") }}
+                {{ form.remember.label(class="ml-2 text-sm text-white/80") }}
+            </div>
+            
+            {{ form.submit(class="w-full px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 shadow-lg cursor-pointer") }}
+        </form>
+        
+        <div class="mt-6 text-center">
+            <p class="text-white/70 text-sm">
+                Pas encore de compte ? 
+                <a href="{{ url_for('register') }}" class="text-indigo-400 hover:text-indigo-300 font-semibold transition">
+                    S'inscrire
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -178,7 +178,17 @@
                             {% if date.index in days_data %}
                             <div class="flex flex-wrap gap-1 sm:gap-1.5 justify-center">
                                 {% for time in days_data[date.index] %}
-                                <span class="bg-white/15 hover:bg-white/20 text-white px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium border border-white/20 whitespace-nowrap transition">{{ time }}</span>
+                                <div class="relative inline-block group">
+                                    <button 
+                                        onclick="handleShowtimeClick('{{ film.title }}', '{{ cinema_name }}', '{{ date.date }}', '{{ time }}', '{{ film.url }}', '{{ film.affiche }}', 'VF')"
+                                        data-film="{{ film.title }}"
+                                        data-cinema="{{ cinema_name }}"
+                                        data-date="{{ date.date }}"
+                                        data-time="{{ time }}"
+                                        class="showtime-slot bg-white/15 hover:bg-white/25 text-white px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium border border-white/20 whitespace-nowrap transition cursor-pointer">
+                                        {{ time }}
+                                    </button>
+                                </div>
                                 {% endfor %}
                             </div>
                             {% else %}
@@ -758,6 +768,137 @@ window.addEventListener('load', () => {
     if (savedSort) {
         sortFilms(savedSort);
     }
+});
+
+// Fonction pour ajouter une séance au calendrier
+async function addToCalendar(filmTitle, cinema, showtimeDate, showtimeTime, filmUrl, filmPoster, showtimeVersion) {
+    try {
+        const formData = new FormData();
+        formData.append('film_title', filmTitle);
+        formData.append('cinema', cinema);
+        formData.append('showtime_date', showtimeDate);
+        formData.append('showtime_time', showtimeTime);
+        formData.append('film_url', filmUrl || '');
+        formData.append('film_poster', filmPoster || '');
+        formData.append('showtime_version', showtimeVersion || '');
+        
+        const response = await fetch('/add-to-calendar', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Afficher une notification de succès
+            showNotification('✅ Ajouté à votre calendrier !', 'success');
+            // Recharger la watchlist pour mettre à jour les couleurs
+            await loadWatchlist();
+        } else {
+            showNotification('⚠️ ' + data.message, 'warning');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showNotification('❌ Erreur lors de l\'ajout', 'error');
+    }
+}
+
+// Watchlist en mémoire pour coloration rapide
+let userWatchlist = [];
+
+// Charger la watchlist de l'utilisateur
+async function loadWatchlist() {
+    {% if current_user.is_authenticated %}
+    try {
+        const response = await fetch('/api/my-watchlist');
+        if (response.ok) {
+            userWatchlist = await response.json();
+            colorizeShowtimes();
+        }
+    } catch (error) {
+        console.error('Erreur chargement watchlist:', error);
+    }
+    {% endif %}
+}
+
+// Colorer les horaires selon s'ils sont dans le calendrier
+function colorizeShowtimes() {
+    document.querySelectorAll('.showtime-slot').forEach(slot => {
+        const filmTitle = slot.dataset.film;
+        const cinema = slot.dataset.cinema;
+        const date = slot.dataset.date;
+        const time = slot.dataset.time;
+        
+        const isInWatchlist = userWatchlist.some(item => 
+            item.film_title === filmTitle &&
+            item.cinema === cinema &&
+            item.showtime_date === date &&
+            item.showtime_time === time
+        );
+        
+        if (isInWatchlist) {
+            // Horaire déjà dans le calendrier → Couleur verte
+            slot.classList.remove('bg-white/15', 'hover:bg-white/25', 'border-white/20');
+            slot.classList.add('bg-green-600/40', 'hover:bg-green-600/60', 'border-green-500/50', 'text-green-100');
+        } else {
+            // Horaire pas dans le calendrier → Couleur normale
+            slot.classList.remove('bg-green-600/40', 'hover:bg-green-600/60', 'border-green-500/50', 'text-green-100');
+            slot.classList.add('bg-white/15', 'hover:bg-white/25', 'border-white/20');
+        }
+    });
+}
+
+// Gérer le clic sur un horaire
+async function handleShowtimeClick(filmTitle, cinema, showtimeDate, showtimeTime, filmUrl, filmPoster, showtimeVersion) {
+    {% if current_user.is_authenticated %}
+    // Vérifier si déjà dans le calendrier
+    const isInWatchlist = userWatchlist.some(item => 
+        item.film_title === filmTitle &&
+        item.cinema === cinema &&
+        item.showtime_date === showtimeDate &&
+        item.showtime_time === showtimeTime
+    );
+    
+    if (isInWatchlist) {
+        showNotification('ℹ️ Déjà dans votre calendrier', 'info');
+    } else {
+        // Ajouter au calendrier
+        await addToCalendar(filmTitle, cinema, showtimeDate, showtimeTime, filmUrl, filmPoster, showtimeVersion);
+    }
+    {% else %}
+    showNotification('🔒 Connectez-vous pour ajouter au calendrier', 'info');
+    {% endif %}
+}
+
+// Fonction pour afficher une notification temporaire
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg backdrop-blur-md border transition-all duration-300 ${
+        type === 'success' ? 'bg-green-500/20 border-green-500/30 text-green-100' :
+        type === 'error' ? 'bg-red-500/20 border-red-500/30 text-red-100' :
+        type === 'warning' ? 'bg-yellow-500/20 border-yellow-500/30 text-yellow-100' :
+        'bg-blue-500/20 border-blue-500/30 text-blue-100'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Animation d'entrée
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Supprimer après 3 secondes
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100px)';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Charger la watchlist au démarrage
+document.addEventListener('DOMContentLoaded', () => {
+    loadWatchlist();
 });
 </script>
 

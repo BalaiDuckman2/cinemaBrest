@@ -2,3 +2,7 @@ Flask
 requests
 python-dotenv
 ua-parser[regex]
+Flask-Login
+Flask-Bcrypt
+Flask-WTF
+email-validator

@@ -4,7 +4,7 @@ Structure relationnelle propre avec SQLite
 """
 import sqlite3
 from datetime import datetime, timedelta
-from typing import List, Optional, Tuple
+from typing import List, Optional
 import json
 import os
 
@@ -99,6 +99,47 @@ class CinemaDatabase:
                 value TEXT,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        """)
+        
+        # Table des utilisateurs
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                name TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_login TIMESTAMP
+            )
+        """)
+        
+        # Table du calendrier personnel (watchlist)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_watchlist (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                film_title TEXT NOT NULL,
+                film_url TEXT,
+                film_poster TEXT,
+                cinema TEXT NOT NULL,
+                showtime_date TEXT NOT NULL,
+                showtime_time TEXT NOT NULL,
+                showtime_version TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+        
+        # Index pour optimiser les requêtes
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_watchlist_user 
+            ON user_watchlist(user_id)
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_watchlist_date 
+            ON user_watchlist(user_id, showtime_date)
         """)
         
         conn.commit()
@@ -323,6 +364,236 @@ class CinemaDatabase:
         
         conn.commit()
         conn.close()
+    
+    # ============ GESTION DES UTILISATEURS ============
+    
+    def create_user(self, email: str, password_hash: str, name: str = None) -> Optional[int]:
+        """Crée un nouvel utilisateur.
+        
+        Args:
+            email: Email de l'utilisateur
+            password_hash: Hash bcrypt du mot de passe
+            name: Nom optionnel de l'utilisateur
+            
+        Returns:
+            int: ID de l'utilisateur créé, None si l'email existe déjà
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("""
+                INSERT INTO users (email, password_hash, name)
+                VALUES (?, ?, ?)
+            """, (email, password_hash, name))
+            
+            user_id = cursor.lastrowid
+            conn.commit()
+            conn.close()
+            return user_id
+        except sqlite3.IntegrityError:
+            conn.close()
+            return None
+    
+    def get_user_by_email(self, email: str) -> Optional[dict]:
+        """Récupère un utilisateur par email.
+        
+        Args:
+            email: Email de l'utilisateur
+            
+        Returns:
+            dict: Données de l'utilisateur ou None
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT id, email, password_hash, name, created_at, last_login
+            FROM users
+            WHERE email = ?
+        """, (email,))
+        
+        user = cursor.fetchone()
+        conn.close()
+        
+        if user:
+            return dict(user)
+        return None
+    
+    def get_user_by_id(self, user_id: int) -> Optional[dict]:
+        """Récupère un utilisateur par ID.
+        
+        Args:
+            user_id: ID de l'utilisateur
+            
+        Returns:
+            dict: Données de l'utilisateur ou None
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT id, email, password_hash, name, created_at, last_login
+            FROM users
+            WHERE id = ?
+        """, (user_id,))
+        
+        user = cursor.fetchone()
+        conn.close()
+        
+        if user:
+            return dict(user)
+        return None
+    
+    def update_last_login(self, user_id: int):
+        """Met à jour la date de dernière connexion."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            UPDATE users
+            SET last_login = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """, (user_id,))
+        
+        conn.commit()
+        conn.close()
+    
+    # ============ GESTION DU CALENDRIER (WATCHLIST) ============
+    
+    def add_to_watchlist(self, user_id: int, film_title: str, cinema: str,
+                        showtime_date: str, showtime_time: str,
+                        film_url: str = None, film_poster: str = None,
+                        showtime_version: str = None, notes: str = None) -> int:
+        """Ajoute une séance au calendrier de l'utilisateur.
+        
+        Args:
+            user_id: ID de l'utilisateur
+            film_title: Titre du film
+            cinema: Nom du cinéma
+            showtime_date: Date de la séance (YYYY-MM-DD)
+            showtime_time: Heure de la séance (HH:MM)
+            film_url: URL AlloCiné du film (optionnel)
+            film_poster: URL de l'affiche (optionnel)
+            showtime_version: Version (VF/VO/VOST) (optionnel)
+            notes: Notes personnelles (optionnel)
+            
+        Returns:
+            int: ID de l'entrée créée
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            INSERT INTO user_watchlist 
+            (user_id, film_title, film_url, film_poster, cinema, 
+             showtime_date, showtime_time, showtime_version, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (user_id, film_title, film_url, film_poster, cinema,
+              showtime_date, showtime_time, showtime_version, notes))
+        
+        watchlist_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        
+        return watchlist_id
+    
+    def remove_from_watchlist(self, watchlist_id: int, user_id: int) -> bool:
+        """Supprime une séance du calendrier.
+        
+        Args:
+            watchlist_id: ID de l'entrée watchlist
+            user_id: ID de l'utilisateur (pour sécurité)
+            
+        Returns:
+            bool: True si supprimé, False sinon
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            DELETE FROM user_watchlist
+            WHERE id = ? AND user_id = ?
+        """, (watchlist_id, user_id))
+        
+        deleted = cursor.rowcount > 0
+        conn.commit()
+        conn.close()
+        
+        return deleted
+    
+    def get_user_watchlist(self, user_id: int, start_date: str = None, 
+                          end_date: str = None) -> List[dict]:
+        """Récupère le calendrier d'un utilisateur.
+        
+        Args:
+            user_id: ID de l'utilisateur
+            start_date: Date de début (optionnel, YYYY-MM-DD)
+            end_date: Date de fin (optionnel, YYYY-MM-DD)
+            
+        Returns:
+            List[dict]: Liste des séances planifiées
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT id, film_title, film_url, film_poster, cinema,
+                   showtime_date, showtime_time, showtime_version, notes,
+                   created_at
+            FROM user_watchlist
+            WHERE user_id = ?
+        """
+        params = [user_id]
+        
+        if start_date:
+            query += " AND showtime_date >= ?"
+            params.append(start_date)
+        
+        if end_date:
+            query += " AND showtime_date <= ?"
+            params.append(end_date)
+        
+        query += " ORDER BY showtime_date, showtime_time"
+        
+        cursor.execute(query, params)
+        
+        watchlist = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        
+        return watchlist
+    
+    def is_in_watchlist(self, user_id: int, film_title: str, cinema: str,
+                       showtime_date: str, showtime_time: str) -> bool:
+        """Vérifie si une séance est déjà dans le calendrier.
+        
+        Args:
+            user_id: ID de l'utilisateur
+            film_title: Titre du film
+            cinema: Nom du cinéma
+            showtime_date: Date de la séance
+            showtime_time: Heure de la séance
+            
+        Returns:
+            bool: True si déjà ajoutée, False sinon
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT COUNT(*) as count
+            FROM user_watchlist
+            WHERE user_id = ? 
+              AND film_title = ? 
+              AND cinema = ?
+              AND showtime_date = ?
+              AND showtime_time = ?
+        """, (user_id, film_title, cinema, showtime_date, showtime_time))
+        
+        count = cursor.fetchone()['count']
+        conn.close()
+        
+        return count > 0
 
 # Instance globale
 db = CinemaDatabase()

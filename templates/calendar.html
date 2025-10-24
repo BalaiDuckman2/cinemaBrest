@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-7xl">
+    
+    <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <h2 class="text-2xl sm:text-3xl font-bold text-white">
+            📅 Mon Calendrier Cinéma
+        </h2>
+        <div class="flex gap-2">
+            <a href="{{ url_for('home') }}" class="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white text-sm transition">
+                ← Retour
+            </a>
+        </div>
+    </div>
+    
+    {% if watchlist %}
+    
+    <!-- VUE CALENDRIER (par défaut) -->
+    <div id="calendarView" class="mb-8">
+        <!-- Navigation mois -->
+        <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 mb-4">
+            <div class="flex items-center justify-between">
+                <button onclick="previousMonth()" class="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white transition">
+                    ◀ Précédent
+                </button>
+                <h3 id="currentMonth" class="text-xl sm:text-2xl font-bold text-white"></h3>
+                <button onclick="nextMonth()" class="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white transition">
+                    Suivant ▶
+                </button>
+            </div>
+        </div>
+        
+        <!-- Grille du calendrier -->
+        <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 overflow-x-auto">
+            <!-- Jours de la semaine -->
+            <div class="grid grid-cols-7 gap-2 mb-2">
+                <div class="text-center text-white/60 font-semibold text-sm py-2">Lun</div>
+                <div class="text-center text-white/60 font-semibold text-sm py-2">Mar</div>
+                <div class="text-center text-white/60 font-semibold text-sm py-2">Mer</div>
+                <div class="text-center text-white/60 font-semibold text-sm py-2">Jeu</div>
+                <div class="text-center text-white/60 font-semibold text-sm py-2">Ven</div>
+                <div class="text-center text-white/60 font-semibold text-sm py-2">Sam</div>
+                <div class="text-center text-white/60 font-semibold text-sm py-2">Dim</div>
+            </div>
+            
+            <!-- Cases du calendrier -->
+            <div id="calendarGrid" class="grid grid-cols-7 gap-2">
+                <!-- Généré par JavaScript -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- VUE LISTE (affichée par défaut sous le calendrier) -->
+    <div id="listView" class="space-y-4">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-white">📋 Toutes mes séances</h3>
+            <span class="text-white/60 text-sm">{{ watchlist|length }} séance{{ 's' if watchlist|length > 1 else '' }}</span>
+        </div>
+        {% for item in watchlist %}
+        <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 sm:p-6 hover:bg-white/15 transition">
+            <div class="flex flex-col md:flex-row gap-4">
+                <!-- Affiche du film -->
+                {% if item.film_poster %}
+                <img src="{{ item.film_poster }}" alt="{{ item.film_title }}" class="w-32 h-auto rounded-lg shadow-lg">
+                {% else %}
+                <div class="w-32 h-48 bg-white/5 rounded-lg flex items-center justify-center">
+                    <span class="text-4xl">🎬</span>
+                </div>
+                {% endif %}
+                
+                <!-- Informations -->
+                <div class="flex-1">
+                    <h3 class="text-xl sm:text-2xl font-bold text-white mb-2">
+                        {% if item.film_url %}
+                        <a href="{{ item.film_url }}" target="_blank" class="hover:text-indigo-400 transition">
+                            {{ item.film_title }}
+                        </a>
+                        {% else %}
+                        {{ item.film_title }}
+                        {% endif %}
+                    </h3>
+                    
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2 text-white/80">
+                            <span class="text-lg">🎭</span>
+                            <span class="font-medium">{{ item.cinema }}</span>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 text-white/80">
+                            <span class="text-lg">📅</span>
+                            <span class="font-medium">{{ item.showtime_date }}</span>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 text-white/80">
+                            <span class="text-lg">🕐</span>
+                            <span class="font-medium">{{ item.showtime_time }}</span>
+                            {% if item.showtime_version %}
+                            <span class="px-2 py-0.5 bg-indigo-600/30 border border-indigo-500/50 rounded text-xs">
+                                {{ item.showtime_version }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if item.notes %}
+                        <div class="mt-2 p-3 bg-white/5 rounded-lg">
+                            <p class="text-white/70 text-sm italic">📝 {{ item.notes }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Bouton supprimer -->
+                <div class="flex md:flex-col items-center justify-end gap-2">
+                    <form method="POST" action="{{ url_for('remove_from_calendar', watchlist_id=item.id) }}" onsubmit="return confirm('Supprimer cette séance de votre calendrier ?')">
+                        <button type="submit" class="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500/50 rounded-lg text-red-200 hover:text-red-100 text-sm font-medium transition">
+                            🗑️ Supprimer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-12 text-center">
+        <p class="text-6xl mb-4">📅</p>
+        <p class="text-xl text-white/80 mb-4">Votre calendrier est vide</p>
+        <p class="text-white/60 mb-6">Ajoutez des séances depuis la page d'accueil pour planifier vos sorties cinéma !</p>
+        <a href="{{ url_for('home') }}" class="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 shadow-lg">
+            🎬 Découvrir les films
+        </a>
+    </div>
+    {% endif %}
+    
+</div>
+
+<script>
+// Données de la watchlist (depuis le backend)
+const watchlistData = [
+    {% for item in watchlist %}
+    {
+        id: {{ item.id }},
+        title: "{{ item.film_title|replace('"', '\\"') }}",
+        cinema: "{{ item.cinema }}",
+        date: "{{ item.showtime_date }}",
+        time: "{{ item.showtime_time }}",
+        version: "{{ item.showtime_version or '' }}",
+        poster: "{{ item.film_poster or '' }}",
+        url: "{{ item.film_url or '' }}"
+    }{{ "," if not loop.last else "" }}
+    {% endfor %}
+];
+
+// Variables globales
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth();
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    if (watchlistData.length > 0) {
+        renderCalendar();
+    }
+});
+
+// Mois précédent
+function previousMonth() {
+    currentMonth--;
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    }
+    renderCalendar();
+}
+
+// Mois suivant
+function nextMonth() {
+    currentMonth++;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    }
+    renderCalendar();
+}
+
+// Rendre le calendrier
+function renderCalendar() {
+    const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    
+    // Titre du mois
+    document.getElementById('currentMonth').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+    
+    // Premier jour du mois (0 = dimanche, 1 = lundi, etc.)
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1; // Ajuster pour que lundi = 0
+    
+    // Nombre de jours dans le mois
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    
+    // Grille du calendrier
+    const grid = document.getElementById('calendarGrid');
+    grid.innerHTML = '';
+    
+    // Cases vides avant le premier jour
+    for (let i = 0; i < adjustedFirstDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'h-24 sm:h-32 bg-white/5 rounded-lg';
+        grid.appendChild(emptyCell);
+    }
+    
+    // Jour actuel
+    const today = new Date();
+    const isCurrentMonth = today.getFullYear() === currentYear && today.getMonth() === currentMonth;
+    
+    // Cases des jours
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const filmsOnDay = watchlistData.filter(item => item.date === dateStr);
+        const isToday = isCurrentMonth && today.getDate() === day;
+        
+        const dayCell = document.createElement('div');
+        dayCell.className = `h-24 sm:h-32 rounded-lg border transition-all cursor-pointer ${
+            isToday ? 'bg-indigo-600/30 border-indigo-500' : 'bg-white/5 border-white/10 hover:bg-white/10'
+        }`;
+        
+        dayCell.onclick = () => showDayDetails(dateStr, day);
+        
+        // Numéro du jour
+        const dayNumber = document.createElement('div');
+        dayNumber.className = `text-sm sm:text-base font-semibold p-2 ${
+            isToday ? 'text-indigo-300' : 'text-white/80'
+        }`;
+        dayNumber.textContent = day;
+        dayCell.appendChild(dayNumber);
+        
+        // Films du jour (max 3 affichés)
+        if (filmsOnDay.length > 0) {
+            const filmsContainer = document.createElement('div');
+            filmsContainer.className = 'px-2 pb-2 space-y-1';
+            
+            filmsOnDay.slice(0, 3).forEach(film => {
+                const filmBadge = document.createElement('div');
+                filmBadge.className = 'text-xs bg-purple-600/50 border border-purple-500/30 rounded px-2 py-1 truncate';
+                filmBadge.textContent = `${film.time} - ${film.title.substring(0, 15)}${film.title.length > 15 ? '...' : ''}`;
+                filmsContainer.appendChild(filmBadge);
+            });
+            
+            if (filmsOnDay.length > 3) {
+                const moreBadge = document.createElement('div');
+                moreBadge.className = 'text-xs text-purple-300 font-semibold px-2';
+                moreBadge.textContent = `+${filmsOnDay.length - 3} autre${filmsOnDay.length - 3 > 1 ? 's' : ''}`;
+                filmsContainer.appendChild(moreBadge);
+            }
+            
+            dayCell.appendChild(filmsContainer);
+        }
+        
+        grid.appendChild(dayCell);
+    }
+}
+
+// Afficher les détails d'un jour
+function showDayDetails(dateStr, day) {
+    const filmsOnDay = watchlistData.filter(item => item.date === dateStr);
+    
+    if (filmsOnDay.length === 0) {
+        return;
+    }
+    
+    const detailsDiv = document.getElementById('dayDetails');
+    const dateTitle = document.getElementById('selectedDate');
+    const filmsContainer = document.getElementById('selectedDayFilms');
+    
+    // Formater la date
+    const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 
+                        'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+    const dayNames = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+    const date = new Date(dateStr);
+    const dayName = dayNames[date.getDay()];
+    const monthName = monthNames[currentMonth];
+    
+    dateTitle.innerHTML = `📅 ${dayName.charAt(0).toUpperCase() + dayName.slice(1)} ${day} ${monthName} ${currentYear} <span class="text-purple-400">(${filmsOnDay.length} séance${filmsOnDay.length > 1 ? 's' : ''})</span>`;
+    
+    // Trier par heure
+    filmsOnDay.sort((a, b) => a.time.localeCompare(b.time));
+    
+    // Afficher les films
+    filmsContainer.innerHTML = '';
+    filmsOnDay.forEach(film => {
+        const filmCard = document.createElement('div');
+        filmCard.className = 'bg-white/5 border border-white/10 rounded-lg p-4 flex gap-4 hover:bg-white/10 transition';
+        
+        filmCard.innerHTML = `
+            <div class="flex-shrink-0">
+                ${film.poster ? 
+                    `<img src="${film.poster}" alt="${film.title}" class="w-16 h-24 object-cover rounded shadow-lg">` :
+                    `<div class="w-16 h-24 bg-white/5 rounded flex items-center justify-center text-2xl">🎬</div>`
+                }
+            </div>
+            <div class="flex-1">
+                <h5 class="text-lg font-bold text-white mb-2">
+                    ${film.url ? 
+                        `<a href="${film.url}" target="_blank" class="hover:text-indigo-400 transition">${film.title}</a>` :
+                        film.title
+                    }
+                </h5>
+                <div class="flex flex-wrap gap-2 text-sm">
+                    <span class="bg-indigo-600/30 border border-indigo-500/30 px-2 py-1 rounded text-indigo-200">
+                        ⏰ ${film.time}
+                    </span>
+                    <span class="bg-white/10 border border-white/20 px-2 py-1 rounded text-white/80">
+                        🎭 ${film.cinema}
+                    </span>
+                    ${film.version ? 
+                        `<span class="bg-purple-600/30 border border-purple-500/30 px-2 py-1 rounded text-purple-200">
+                            🗣️ ${film.version}
+                        </span>` : ''
+                    }
+                </div>
+            </div>
+            <div class="flex-shrink-0">
+                <form action="/remove-from-calendar/${film.id}" method="POST" onsubmit="return confirm('Supprimer cette séance ?');">
+                    <button type="submit" class="px-3 py-2 bg-red-600/30 hover:bg-red-600/50 border border-red-500/30 rounded text-red-200 text-sm transition">
+                        🗑️ Supprimer
+                    </button>
+                </form>
+            </div>
+        `;
+        
+        filmsContainer.appendChild(filmCard);
+    });
+    
+    detailsDiv.classList.remove('hidden');
+    detailsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+
+{% endblock %}

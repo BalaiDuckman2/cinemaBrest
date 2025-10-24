@@ -4,9 +4,8 @@ Rafraîchit les données tous les jours à 5h du matin
 """
 import time
 import logging
-from datetime import datetime, timedelta, time as datetime_time
+from datetime import datetime, timedelta
 from threading import Thread
-from typing import List
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from datetime import timedelta
 from dotenv import load_dotenv
 from zoneinfo import ZoneInfo
 from threading import Thread
 from os import getenv
 import html
+import secrets
 
 load_dotenv()
 
@@ -13,6 +15,8 @@ from modules.api import *
 from modules.curl import *
 from modules.database import db
 from modules.auto_refresh import AutoRefresh
+from modules.auth import User, bcrypt
+from modules.forms import LoginForm, RegisterForm
 import modules.monitoring as monitoring
 
 print("🔍 Chargement des cinémas...")
@@ -139,6 +143,7 @@ def getShowtimesWeek(week_offset=0):
             "chiffre": day.day,
             "mois": translate_month(day.month),
             "index": i,
+            "date": day.strftime("%Y-%m-%d"),  # Format YYYY-MM-DD pour le calendrier
             "jour_complet": f"{translate_day(day.weekday())} {day.day}"
         })
 
@@ -190,6 +195,25 @@ print()
 
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = getenv('SECRET_KEY', secrets.token_hex(32))
+
+# Configuration Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page'
+login_manager.login_message_category = 'info'
+
+# Initialiser Bcrypt
+bcrypt.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Charge un utilisateur depuis la BDD pour Flask-Login."""
+    user_data = db.get_user_by_id(int(user_id))
+    if user_data:
+        return User(user_data['id'], user_data['email'], user_data.get('name'))
+    return None
 
 # Cache HTML pour rendu instantané
 _html_cache = {}
@@ -197,6 +221,139 @@ _html_cache = {}
 @app.route('/healthcheck')
 def healthcheck():
     return 'ok'
+
+# ============ ROUTES D'AUTHENTIFICATION ============
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """Page d'inscription."""
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    
+    form = RegisterForm()
+    
+    if form.validate_on_submit():
+        # Créer le hash du mot de passe
+        password_hash = User.hash_password(form.password.data)
+        
+        # Créer l'utilisateur
+        user_id = db.create_user(
+            email=form.email.data,
+            password_hash=password_hash,
+            name=form.name.data or None
+        )
+        
+        if user_id:
+            flash('Compte créé avec succès ! Vous pouvez maintenant vous connecter.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Erreur lors de la création du compte', 'error')
+    
+    return render_template('register.html', form=form)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Page de connexion."""
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    
+    form = LoginForm()
+    
+    if form.validate_on_submit():
+        # Récupérer l'utilisateur
+        user_data = db.get_user_by_email(form.email.data)
+        
+        if user_data and User.check_password(form.password.data, user_data['password_hash']):
+            # Créer l'objet User et connecter
+            user = User(user_data['id'], user_data['email'], user_data.get('name'))
+            login_user(user, remember=form.remember.data)
+            
+            # Mettre à jour la dernière connexion
+            db.update_last_login(user.id)
+            
+            flash(f'Bienvenue {user.name} ! 🎬', 'success')
+            
+            # Rediriger vers la page demandée ou l'accueil
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('home'))
+        else:
+            flash('Email ou mot de passe incorrect', 'error')
+    
+    return render_template('login.html', form=form)
+
+@app.route('/logout')
+@login_required
+def logout():
+    """Déconnexion."""
+    logout_user()
+    flash('Vous êtes déconnecté', 'info')
+    return redirect(url_for('home'))
+
+# ============ ROUTES DU CALENDRIER ============
+
+@app.route('/my-calendar')
+@login_required
+def my_calendar():
+    """Page du calendrier personnel."""
+    watchlist = db.get_user_watchlist(current_user.id)
+    return render_template('calendar.html', watchlist=watchlist)
+
+@app.route('/add-to-calendar', methods=['POST'])
+@login_required
+def add_to_calendar():
+    """Ajoute une séance au calendrier."""
+    film_title = request.form.get('film_title')
+    cinema = request.form.get('cinema')
+    showtime_date = request.form.get('showtime_date')
+    showtime_time = request.form.get('showtime_time')
+    film_url = request.form.get('film_url')
+    film_poster = request.form.get('film_poster')
+    showtime_version = request.form.get('showtime_version')
+    
+    # Vérifier si déjà ajouté
+    if db.is_in_watchlist(current_user.id, film_title, cinema, showtime_date, showtime_time):
+        return jsonify({'success': False, 'message': 'Déjà dans votre calendrier'})
+    
+    # Ajouter au calendrier
+    db.add_to_watchlist(
+        user_id=current_user.id,
+        film_title=film_title,
+        cinema=cinema,
+        showtime_date=showtime_date,
+        showtime_time=showtime_time,
+        film_url=film_url,
+        film_poster=film_poster,
+        showtime_version=showtime_version
+    )
+    
+    return jsonify({'success': True, 'message': 'Ajouté à votre calendrier !'})
+
+@app.route('/remove-from-calendar/<int:watchlist_id>', methods=['POST'])
+@login_required
+def remove_from_calendar(watchlist_id):
+    """Supprime une séance du calendrier."""
+    if db.remove_from_watchlist(watchlist_id, current_user.id):
+        flash('Séance supprimée de votre calendrier', 'success')
+    else:
+        flash('Erreur lors de la suppression', 'error')
+    
+    return redirect(url_for('my_calendar'))
+
+@app.route('/api/my-watchlist')
+@login_required
+def api_my_watchlist():
+    """API pour récupérer la watchlist de l'utilisateur (pour coloration des horaires)."""
+    watchlist = db.get_user_watchlist(current_user.id)
+    # Retourner seulement les clés nécessaires pour identifier les séances
+    simplified = [{
+        'film_title': item['film_title'],
+        'cinema': item['cinema'],
+        'showtime_date': item['showtime_date'],
+        'showtime_time': item['showtime_time']
+    } for item in watchlist]
+    return jsonify(simplified)
+
+# ============ ROUTES EXISTANTES ============
 
 @app.route('/manifest.json')
 def manifest():

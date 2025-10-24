@@ -61,21 +61,56 @@
                 </div>
             </div>
             
-            <!-- Bouton Installation PWA -->
-            <button id="installButton" class="hidden px-3 sm:px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-lg flex-shrink-0">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
-                <span class="hidden sm:inline">Installer</span>
-                <span class="sm:hidden">App</span>
-            </button>
-            
-            <div class="text-right hidden lg:block">
-                <p class="text-sm text-gray-400 italic">Quand ça va pas, y aura toujours le cinéma</p>
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Liens Compte Utilisateur -->
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('my_calendar') }}" class="px-3 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 rounded-lg text-white text-sm font-medium transition-all duration-200 flex items-center gap-2 flex-shrink-0">
+                        <span>📅</span>
+                        <span class="hidden sm:inline">Mon Calendrier</span>
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="px-3 py-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 rounded-lg text-white text-sm font-medium transition-all duration-200 flex items-center gap-2 flex-shrink-0">
+                        <span>👋</span>
+                        <span class="hidden sm:inline">Déconnexion</span>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 rounded-lg text-white text-sm font-medium transition-all duration-200 flex-shrink-0">
+                        <span class="hidden sm:inline">Se connecter</span>
+                        <span class="sm:hidden">🔐</span>
+                    </a>
+                    <a href="{{ url_for('register') }}" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white text-sm font-medium transition-all duration-200 flex-shrink-0">
+                        <span class="hidden sm:inline">S'inscrire</span>
+                        <span class="sm:hidden">➕</span>
+                    </a>
+                {% endif %}
+                
+                <!-- Bouton Installation PWA -->
+                <button id="installButton" class="hidden px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-lg flex-shrink-0">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    <span class="hidden sm:inline">Installer</span>
+                    <span class="sm:hidden">📱</span>
+                </button>
             </div>
         </div>
     </div>
 </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mx-auto px-3 sm:px-4 mt-4">
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-lg mb-3 {% if category == 'success' %}bg-green-500/20 border border-green-500/30 text-green-100{% elif category == 'error' %}bg-red-500/20 border border-red-500/30 text-red-100{% else %}bg-blue-500/20 border border-blue-500/30 text-blue-100{% endif %}">
+                        <div class="flex items-center gap-2">
+                            {% if category == 'success' %}✅{% elif category == 'error' %}❌{% else %}ℹ️{% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
     {% block body %} {% endblock %}
 

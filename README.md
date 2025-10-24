@@ -9,14 +9,32 @@ Application web pour visualiser tous les films à l'affiche dans les cinémas de
 
 ## ✨ Fonctionnalités
 
+### 🎬 Gestion des Séances
+
 - 📅 **Vue hebdomadaire** des séances pour tous les cinémas
 - 🎭 **5 cinémas** : Les Studios, CGR Le Celtic, Multiplexe Liberté, Pathé Capucins, Ciné Galaxy
 - 🔍 **Filtres par âge du film** : +1, +5, +10, +20, +30, +50 ans
 - 🗓️ **Navigation par semaine** (précédente/suivante)
-- 🗺️ **Carte interactive** des cinémas (Leaflet.js + Jawg Maps)
+- 🎯 **Tri** par date de sortie, popularité, nombre de séances
+- 🔎 **Recherche** par titre de film
+
+### 👤 Comptes Utilisateurs ⭐ NOUVEAU
+
+- 📝 **Inscription** avec email et mot de passe sécurisé (bcrypt)
+- 🔐 **Connexion** avec session persistante (30 jours)
+- 📅 **Calendrier personnel** pour sauvegarder vos séances favorites
+- ➕ **Ajouter des séances** en 1 clic depuis la page principale
+- �️ **Gérer votre watchlist** avec suppression facile
+- 🔒 **Sécurité** : CSRF protection, password hashing, email validation
+
+### 🛠️ Technique
+
+- �🗺️ **Carte interactive** des cinémas (Leaflet.js + Jawg Maps)
 - ⚡ **Cache 3 niveaux** pour des performances instantanées
 - 💾 **Base de données SQLite** avec TTL de 6 heures
-- 🎨 **Interface moderne** avec thème sombre cinématographique
+- 📱 **PWA** (Progressive Web App) installable
+- 📈 **Monitoring Prometheus** pour métriques
+- 🎨 **Interface moderne** avec Tailwind CSS (thème sombre)
 - 🐳 **Prêt pour Docker** et déploiement sur NAS
 
 ## 🚀 Installation
@@ -44,14 +62,26 @@ Application web pour visualiser tous les films à l'affiche dans les cinémas de
    cp .env.example .env
    ```
    
-   Éditez `.env` et ajoutez votre clé API Jawg Maps (gratuite sur https://www.jawg.io/)
+   Éditez `.env` et ajoutez :
+   - **SECRET_KEY** : Clé secrète pour les sessions (obligatoire)
+   - **JAWG_API_KEY** : Clé API Jawg Maps (gratuite sur https://www.jawg.io/)
+   
+   Générer une clé secrète :
+   ```bash
+   python -c "import secrets; print(secrets.token_hex(32))"
+   ```
 
-5. **Lancer l'application**
+5. **Initialiser la base de données**
+   ```bash
+   python init_auth_db.py
+   ```
+
+6. **Lancer l'application**
    ```bash
    python app.py
    ```
 
-6. **Ouvrir dans le navigateur**
+7. **Ouvrir dans le navigateur**
    ```
    http://localhost:5000
    ```
