@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, make_response
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from datetime import timedelta
 from dotenv import load_dotenv
 from zoneinfo import ZoneInfo
 from threading import Thread
 from os import getenv
+from functools import wraps
 import html
 import secrets
 
@@ -117,9 +118,12 @@ def getShowtimesWeek(week_offset=0):
         version_map = {
             "DUBBED": "VF",
             "ORIGINAL": "VO",
-            "LOCAL_LANGUAGE": "VF"
+            "LOCAL_LANGUAGE": "VF",
+            "LOCAL": "VF"  # Parfois AlloCiné renvoie "local" en minuscules
         }
-        version = version_map.get(showtime.diffusionVersion, showtime.diffusionVersion)
+        # Normaliser en uppercase pour éviter les problèmes de casse
+        raw_version = showtime.diffusionVersion.upper() if showtime.diffusionVersion else ""
+        version = version_map.get(raw_version, showtime.diffusionVersion)
         
         showtime_info = {
             "time": showtime.startsAt.strftime("%H:%M"),
@@ -208,6 +212,18 @@ print()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = getenv('SECRET_KEY', secrets.token_hex(32))
 
+# Décorateur pour désactiver le cache navigateur
+def no_cache(view):
+    """Désactive le cache HTTP pour éviter les problèmes après login/logout."""
+    @wraps(view)
+    def no_cache_wrapper(*args, **kwargs):
+        response = make_response(view(*args, **kwargs))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
+    return no_cache_wrapper
+
 # Configuration Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -263,6 +279,7 @@ def register():
     return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
+@no_cache
 def login():
     """Page de connexion."""
     if current_user.is_authenticated:
@@ -294,18 +311,20 @@ def login():
 
 @app.route('/logout')
 @login_required
+@no_cache
 def logout():
-    """Déconnexion."""
+    """Déconnexion de l'utilisateur."""
     logout_user()
-    flash('Vous êtes déconnecté', 'info')
+    flash('Vous êtes déconnecté. À bientôt ! 👋', 'success')
     return redirect(url_for('home'))
 
 # ============ ROUTES DU CALENDRIER ============
 
 @app.route('/my-calendar')
 @login_required
+@no_cache
 def my_calendar():
-    """Page du calendrier personnel."""
+    """Page du calendrier personnel de l'utilisateur."""
     watchlist = db.get_user_watchlist(current_user.id)
     return render_template('calendar.html', watchlist=watchlist)
 
@@ -349,6 +368,47 @@ def remove_from_calendar(watchlist_id):
         flash('Erreur lors de la suppression', 'error')
     
     return redirect(url_for('my_calendar'))
+
+@app.route('/mark-as-watched/<int:watchlist_id>', methods=['POST'])
+@login_required
+def mark_as_watched(watchlist_id):
+    """Marque une séance comme vue."""
+    if db.mark_as_watched(watchlist_id, current_user.id):
+        return jsonify({'success': True, 'message': 'Film marqué comme vu ✓'})
+    return jsonify({'success': False, 'message': 'Erreur'}), 400
+
+@app.route('/mark-as-unwatched/<int:watchlist_id>', methods=['POST'])
+@login_required
+def mark_as_unwatched(watchlist_id):
+    """Marque une séance comme non vue."""
+    if db.mark_as_unwatched(watchlist_id, current_user.id):
+        return jsonify({'success': True, 'message': 'Film marqué comme non vu'})
+    return jsonify({'success': False, 'message': 'Erreur'}), 400
+
+@app.route('/history')
+@login_required
+@no_cache
+def history():
+    """Page d'historique des films vus."""
+    watchlist = db.get_user_watchlist(current_user.id)
+    stats = db.get_watch_stats(current_user.id)
+    
+    # Debug: afficher la watchlist
+    print(f"🔍 DEBUG - Total items in watchlist: {len(watchlist)}")
+    for item in watchlist:
+        print(f"  - {item.get('film_title')}: watched={item.get('watched')} (type: {type(item.get('watched'))})")
+    
+    # Séparer les films vus et non vus (1 = vu, 0 ou None = non vu)
+    watched_films = [item for item in watchlist if item.get('watched') == 1]
+    unwatched_films = [item for item in watchlist if item.get('watched') != 1]
+    
+    print(f"✅ Watched films: {len(watched_films)}")
+    print(f"⏳ Unwatched films: {len(unwatched_films)}")
+    
+    return render_template('history.html',
+                         watched_films=watched_films,
+                         unwatched_films=unwatched_films,
+                         stats=stats)
 
 @app.route('/api/my-watchlist')
 @login_required
@@ -405,12 +465,14 @@ def api_films():
     })
 
 @app.route('/')
+@no_cache
 def home():
     min_age = request.args.get("age", default=0, type=int)
     week_offset = request.args.get("week", default=0, type=int)  # Décalage de semaine
 
-    # Clé de cache HTML basée sur les paramètres
-    html_cache_key = f"html_week{week_offset}_age{min_age}"
+    # Clé de cache HTML basée sur les paramètres + état de connexion
+    user_id = current_user.id if current_user.is_authenticated else 'guest'
+    html_cache_key = f"html_week{week_offset}_age{min_age}_user{user_id}"
     
     # Vérifier le cache HTML (instantané !)
     if html_cache_key in _html_cache:
