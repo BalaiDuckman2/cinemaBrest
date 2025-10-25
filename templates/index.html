@@ -892,6 +892,26 @@ async function addToCalendar(filmTitle, cinema, showtimeDate, showtimeTime, film
     }
 }
 
+// Supprimer une séance du calendrier
+async function removeFromCalendar(watchlistId) {
+    try {
+        const response = await fetch(`/remove-from-calendar/${watchlistId}`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            showNotification('🗑️ Retiré de votre calendrier', 'success');
+            // Recharger la watchlist pour mettre à jour les couleurs
+            await loadWatchlist();
+        } else {
+            showNotification('❌ Erreur lors de la suppression', 'error');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showNotification('❌ Erreur lors de la suppression', 'error');
+    }
+}
+
 // Watchlist en mémoire pour coloration rapide
 let userWatchlist = [];
 
@@ -941,15 +961,18 @@ function colorizeShowtimes() {
 async function handleShowtimeClick(filmTitle, cinema, showtimeDate, showtimeTime, filmUrl, filmPoster, showtimeVersion) {
     {% if current_user.is_authenticated %}
     // Vérifier si déjà dans le calendrier
-    const isInWatchlist = userWatchlist.some(item => 
+    const existingItem = userWatchlist.find(item => 
         item.film_title === filmTitle &&
         item.cinema === cinema &&
         item.showtime_date === showtimeDate &&
         item.showtime_time === showtimeTime
     );
     
-    if (isInWatchlist) {
-        showNotification('ℹ️ Déjà dans votre calendrier', 'info');
+    if (existingItem) {
+        // Supprimer du calendrier
+        if (confirm('🗑️ Retirer cette séance de votre calendrier ?')) {
+            await removeFromCalendar(existingItem.id);
+        }
     } else {
         // Ajouter au calendrier
         await addToCalendar(filmTitle, cinema, showtimeDate, showtimeTime, filmUrl, filmPoster, showtimeVersion);
