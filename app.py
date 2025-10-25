@@ -362,20 +362,31 @@ def add_to_calendar():
 @login_required
 def remove_from_calendar(watchlist_id):
     """Supprime une séance du calendrier."""
-    if db.remove_from_watchlist(watchlist_id, current_user.id):
-        flash('Séance supprimée de votre calendrier', 'success')
-    else:
-        flash('Erreur lors de la suppression', 'error')
+    success = db.remove_from_watchlist(watchlist_id, current_user.id)
     
-    return redirect(url_for('my_calendar'))
+    # Si appelé depuis la page calendrier (formulaire), rediriger
+    # Si appelé depuis AJAX (page d'accueil), retourner JSON
+    if request.form.get('redirect') == 'calendar':
+        if success:
+            flash('Séance supprimée de votre calendrier', 'success')
+        else:
+            flash('Erreur lors de la suppression', 'error')
+        return redirect(url_for('my_calendar'))
+    else:
+        # Réponse JSON pour AJAX
+        if success:
+            return jsonify({'success': True, 'message': 'Séance supprimée'}), 200
+        else:
+            return jsonify({'success': False, 'message': 'Erreur lors de la suppression'}), 400
 
 @app.route('/api/my-watchlist')
 @login_required
 def api_my_watchlist():
     """API pour récupérer la watchlist de l'utilisateur (pour coloration des horaires)."""
     watchlist = db.get_user_watchlist(current_user.id)
-    # Retourner seulement les clés nécessaires pour identifier les séances
+    # Retourner les clés nécessaires pour identifier et supprimer les séances
     simplified = [{
+        'id': item['id'],  # IMPORTANT pour la suppression
         'film_title': item['film_title'],
         'cinema': item['cinema'],
         'showtime_date': item['showtime_date'],

@@ -324,6 +324,7 @@ function showDayDetails(dateStr, day) {
             </div>
             <div class="flex-shrink-0">
                 <form action="/remove-from-calendar/${film.id}" method="POST" onsubmit="return confirm('Supprimer cette séance ?');">
+                    <input type="hidden" name="redirect" value="calendar">
                     <button type="submit" class="px-3 py-2 bg-red-600/30 hover:bg-red-600/50 border border-red-500/30 rounded text-red-200 text-sm transition">
                         🗑️ Supprimer
                     </button>
