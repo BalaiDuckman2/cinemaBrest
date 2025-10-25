@@ -126,8 +126,6 @@ class CinemaDatabase:
                 showtime_time TEXT NOT NULL,
                 showtime_version TEXT,
                 notes TEXT,
-                watched BOOLEAN DEFAULT 0,
-                watched_at TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
@@ -524,110 +522,6 @@ class CinemaDatabase:
         
         return deleted
     
-    def mark_as_watched(self, watchlist_id: int, user_id: int) -> bool:
-        """Marque une séance comme vue.
-        
-        Args:
-            watchlist_id: ID de l'entrée watchlist
-            user_id: ID de l'utilisateur (pour sécurité)
-            
-        Returns:
-            bool: True si marqué, False sinon
-        """
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-            UPDATE user_watchlist
-            SET watched = 1, watched_at = CURRENT_TIMESTAMP
-            WHERE id = ? AND user_id = ?
-        """, (watchlist_id, user_id))
-        
-        updated = cursor.rowcount > 0
-        conn.commit()
-        conn.close()
-        
-        return updated
-    
-    def mark_as_unwatched(self, watchlist_id: int, user_id: int) -> bool:
-        """Marque une séance comme non vue.
-        
-        Args:
-            watchlist_id: ID de l'entrée watchlist
-            user_id: ID de l'utilisateur (pour sécurité)
-            
-        Returns:
-            bool: True si marqué, False sinon
-        """
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-            UPDATE user_watchlist
-            SET watched = 0, watched_at = NULL
-            WHERE id = ? AND user_id = ?
-        """, (watchlist_id, user_id))
-        
-        updated = cursor.rowcount > 0
-        conn.commit()
-        conn.close()
-        
-        return updated
-    
-    def get_watch_stats(self, user_id: int) -> dict:
-        """Récupère les statistiques de visionnage d'un utilisateur.
-        
-        Args:
-            user_id: ID de l'utilisateur
-            
-        Returns:
-            dict: Statistiques (total, vus, à voir, etc.)
-        """
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        
-        # Total de séances
-        cursor.execute("""
-            SELECT COUNT(*) as total
-            FROM user_watchlist
-            WHERE user_id = ?
-        """, (user_id,))
-        total = cursor.fetchone()['total']
-        
-        # Séances vues
-        cursor.execute("""
-            SELECT COUNT(*) as watched
-            FROM user_watchlist
-            WHERE user_id = ? AND watched = 1
-        """, (user_id,))
-        watched = cursor.fetchone()['watched']
-        
-        # Séances à venir (non vues et date future)
-        cursor.execute("""
-            SELECT COUNT(*) as upcoming
-            FROM user_watchlist
-            WHERE user_id = ? AND COALESCE(watched, 0) = 0 AND showtime_date >= date('now')
-        """, (user_id,))
-        upcoming = cursor.fetchone()['upcoming']
-        
-        # Séances passées non vues
-        cursor.execute("""
-            SELECT COUNT(*) as missed
-            FROM user_watchlist
-            WHERE user_id = ? AND COALESCE(watched, 0) = 0 AND showtime_date < date('now')
-        """, (user_id,))
-        missed = cursor.fetchone()['missed']
-        
-        conn.close()
-        
-        return {
-            'total': total,
-            'watched': watched,
-            'unwatched': total - watched,
-            'upcoming': upcoming,
-            'missed': missed
-        }
-    
     def get_user_watchlist(self, user_id: int, start_date: str = None, 
                           end_date: str = None) -> List[dict]:
         """Récupère le calendrier d'un utilisateur.
@@ -646,7 +540,7 @@ class CinemaDatabase:
         query = """
             SELECT id, film_title, film_url, film_poster, cinema,
                    showtime_date, showtime_time, showtime_version, notes,
-                   watched, watched_at, created_at
+                   created_at
             FROM user_watchlist
             WHERE user_id = ?
         """

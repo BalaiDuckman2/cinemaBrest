@@ -369,47 +369,6 @@ def remove_from_calendar(watchlist_id):
     
     return redirect(url_for('my_calendar'))
 
-@app.route('/mark-as-watched/<int:watchlist_id>', methods=['POST'])
-@login_required
-def mark_as_watched(watchlist_id):
-    """Marque une séance comme vue."""
-    if db.mark_as_watched(watchlist_id, current_user.id):
-        return jsonify({'success': True, 'message': 'Film marqué comme vu ✓'})
-    return jsonify({'success': False, 'message': 'Erreur'}), 400
-
-@app.route('/mark-as-unwatched/<int:watchlist_id>', methods=['POST'])
-@login_required
-def mark_as_unwatched(watchlist_id):
-    """Marque une séance comme non vue."""
-    if db.mark_as_unwatched(watchlist_id, current_user.id):
-        return jsonify({'success': True, 'message': 'Film marqué comme non vu'})
-    return jsonify({'success': False, 'message': 'Erreur'}), 400
-
-@app.route('/history')
-@login_required
-@no_cache
-def history():
-    """Page d'historique des films vus."""
-    watchlist = db.get_user_watchlist(current_user.id)
-    stats = db.get_watch_stats(current_user.id)
-    
-    # Debug: afficher la watchlist
-    print(f"🔍 DEBUG - Total items in watchlist: {len(watchlist)}")
-    for item in watchlist:
-        print(f"  - {item.get('film_title')}: watched={item.get('watched')} (type: {type(item.get('watched'))})")
-    
-    # Séparer les films vus et non vus (1 = vu, 0 ou None = non vu)
-    watched_films = [item for item in watchlist if item.get('watched') == 1]
-    unwatched_films = [item for item in watchlist if item.get('watched') != 1]
-    
-    print(f"✅ Watched films: {len(watched_films)}")
-    print(f"⏳ Unwatched films: {len(unwatched_films)}")
-    
-    return render_template('history.html',
-                         watched_films=watched_films,
-                         unwatched_films=unwatched_films,
-                         stats=stats)
-
 @app.route('/api/my-watchlist')
 @login_required
 def api_my_watchlist():
