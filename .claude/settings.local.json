@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(python:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []

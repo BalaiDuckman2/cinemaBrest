@@ -423,7 +423,34 @@ def logout():
 @no_cache
 def my_calendar():
     """Page du calendrier personnel de l'utilisateur."""
+    # Supprimer automatiquement les séances passées
     watchlist = db.get_user_watchlist(current_user.id)
+
+    # Date et heure actuelles
+    now = datetime.now(timezone)
+    current_date_str = now.strftime('%Y-%m-%d')
+    current_time_str = now.strftime('%H:%M')
+
+    # Supprimer les séances passées
+    deleted_count = 0
+    for item in watchlist[:]:  # Copie de la liste pour itérer en toute sécurité
+        showtime_date = item['showtime_date']
+        showtime_time = item['showtime_time']
+
+        # Si la date est passée
+        if showtime_date < current_date_str:
+            db.remove_from_watchlist(item['id'], current_user.id)
+            watchlist.remove(item)
+            deleted_count += 1
+        # Si c'est aujourd'hui, vérifier l'heure
+        elif showtime_date == current_date_str and showtime_time < current_time_str:
+            db.remove_from_watchlist(item['id'], current_user.id)
+            watchlist.remove(item)
+            deleted_count += 1
+
+    if deleted_count > 0:
+        flash(f'🗑️ {deleted_count} séance{"s" if deleted_count > 1 else ""} passée{"s" if deleted_count > 1 else ""} supprimée{"s" if deleted_count > 1 else ""}', 'info')
+
     return render_template('calendar.html', watchlist=watchlist)
 
 @app.route('/add-to-calendar', methods=['POST'])

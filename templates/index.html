@@ -254,7 +254,7 @@
                                 {% for showtime in days_data[date.index] %}
                                 <div class="relative inline-block group">
                                     <button
-                                        onclick="handleShowtimeClick({{ film.title|tojson }}, {{ cinema_name|tojson }}, {{ date.date|tojson }}, {{ showtime.time|tojson }}, {{ film.url|tojson }}, {{ film.affiche|tojson }}, {{ showtime.version|tojson }})"
+                                        onclick='handleShowtimeClick({{ film.title|tojson }}, {{ cinema_name|tojson }}, {{ date.date|tojson }}, {{ showtime.time|tojson }}, {{ film.url|tojson }}, {{ film.affiche|tojson }}, {{ showtime.version|tojson }})'
                                         data-film="{{ film.title }}"
                                         data-cinema="{{ cinema_name }}"
                                         data-date="{{ date.date }}"
@@ -892,8 +892,8 @@ function renderFilms(films, dates) {
             for (let i = 0; i < 7; i++) {
                 const times = days[i] || [];
                 const dateInfo = dates[i]; // Récupérer la date correspondante
-                
-                if (times.length > 0) {
+
+                if (times.length > 0 && dateInfo) {
                     seancesHTML += `
                         <td class="px-2 py-3 text-center border-r border-white/5">
                             <div class="flex flex-wrap gap-1.5 justify-center">
@@ -904,22 +904,22 @@ function renderFilms(films, dates) {
                                     const versionDisplay = version ? ` (${version})` : '';
 
                                     // Échapper correctement avec JSON.stringify pour gérer tous les caractères spéciaux
-                                    const filmTitleEscaped = JSON.stringify(film.title);
-                                    const cinemaEscaped = JSON.stringify(cinema);
-                                    const dateEscaped = JSON.stringify(dateInfo.date);
-                                    const timeEscaped = JSON.stringify(time);
+                                    const filmTitleEscaped = JSON.stringify(film.title || '');
+                                    const cinemaEscaped = JSON.stringify(cinema || '');
+                                    const dateEscaped = JSON.stringify(dateInfo?.date || '');
+                                    const timeEscaped = JSON.stringify(time || '');
                                     const filmUrlEscaped = JSON.stringify(film.url || '');
                                     const filmPosterEscaped = JSON.stringify(film.affiche || '');
-                                    const versionEscaped = JSON.stringify(version);
+                                    const versionEscaped = JSON.stringify(version || '');
 
                                     return `<div class="relative inline-block group">
                                         <button
                                             onclick="handleShowtimeClick(${filmTitleEscaped}, ${cinemaEscaped}, ${dateEscaped}, ${timeEscaped}, ${filmUrlEscaped}, ${filmPosterEscaped}, ${versionEscaped})"
-                                            data-film="${film.title}"
-                                            data-cinema="${cinema}"
-                                            data-date="${dateInfo.date}"
-                                            data-time="${time}"
-                                            data-version="${version}"
+                                            data-film="${film.title || ''}"
+                                            data-cinema="${cinema || ''}"
+                                            data-date="${dateInfo?.date || ''}"
+                                            data-time="${time || ''}"
+                                            data-version="${version || ''}"
                                             class="showtime-slot bg-white/15 hover:bg-white/25 text-white px-2.5 py-1 rounded-lg text-xs font-medium border border-white/20 whitespace-nowrap transition cursor-pointer flex flex-col items-center gap-0.5">
                                             <span class="font-semibold">${time}</span>
                                             ${version ? `<span class="text-[10px] opacity-70">${version}</span>` : ''}
