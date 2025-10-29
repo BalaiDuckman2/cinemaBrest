@@ -6,3 +6,6 @@ Flask-Login
 Flask-Bcrypt
 Flask-WTF
 email-validator
+Flask-Limiter
+Flask-Compress
+Flask-Talisman

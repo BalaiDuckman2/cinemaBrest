@@ -1,5 +1,9 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, make_response
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_compress import Compress
+from flask_talisman import Talisman
 from datetime import timedelta
 from dotenv import load_dotenv
 from zoneinfo import ZoneInfo
@@ -47,18 +51,58 @@ def translate_day(weekday: int) -> str:
     days = ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"]
     return days[weekday] if 0 <= weekday < len(days) else "???"
 
+
+def generate_letterboxd_url(title: str, year: int = None) -> str:
+    """Génère une URL Letterboxd pour un film
+
+    Args:
+        title: Titre du film
+        year: Année de sortie (optionnel, pour affiner la recherche)
+
+    Returns:
+        URL de recherche Letterboxd
+    """
+    import urllib.parse
+
+    # Nettoyer le titre pour l'URL
+    # Remplacer les espaces par des tirets, enlever les caractères spéciaux
+    clean_title = title.lower()
+    clean_title = clean_title.replace("'", "")
+    clean_title = clean_title.replace("'", "")
+    clean_title = clean_title.replace(":", "")
+    clean_title = clean_title.replace(".", "")
+    clean_title = clean_title.replace(",", "")
+    clean_title = clean_title.replace("!", "")
+    clean_title = clean_title.replace("?", "")
+    clean_title = clean_title.replace("é", "e").replace("è", "e").replace("ê", "e")
+    clean_title = clean_title.replace("à", "a").replace("â", "a")
+    clean_title = clean_title.replace("ô", "o")
+    clean_title = clean_title.replace("ù", "u").replace("û", "u")
+    clean_title = clean_title.replace("ç", "c")
+    clean_title = clean_title.replace("  ", " ")
+    clean_title = clean_title.strip()
+
+    # URL encode pour gérer les espaces et caractères spéciaux
+    encoded_title = urllib.parse.quote(clean_title)
+
+    # Format Letterboxd : https://letterboxd.com/search/films/{titre}/
+    return f"https://letterboxd.com/search/films/{encoded_title}/"
+
+
 # Cache mémoire pour les semaines complètes (ultra-rapide)
 _week_cache = {}
 # NOTE: Vider le cache en redémarrant l'application si les versions ne s'affichent pas correctement
 
 def getShowtimesWeek(week_offset=0):
     """Récupère toutes les séances de la semaine en format tableau
-    
+
     Args:
         week_offset: Décalage en semaines (0=semaine actuelle, 1=suivante, -1=précédente)
     """
     # Vérifier le cache de semaine d'abord (instantané!)
-    cache_key = f"week_{week_offset}"
+    # Inclure la date actuelle dans la clé pour invalider le cache à minuit
+    current_date = datetime.now(timezone).date()
+    cache_key = f"week_{week_offset}_date_{current_date}"
     if cache_key in _week_cache:
         return _week_cache[cache_key]
     
@@ -91,7 +135,7 @@ def getShowtimesWeek(week_offset=0):
                 "affiche": movie.affiche,
                 "director": movie.director,
                 "wantToSee": movie.wantToSee,
-                "url": f"https://www.allocine.fr/film/fichefilm_gen_cfilm={movie.id}.html",
+                "url": generate_letterboxd_url(movie.title, movie.releaseYear),
                 "releaseYear": movie.releaseYear,
                 "filmAge": movie.filmAge,
                 "seances_table": {}  # Structure: {cinema_name: {day_index: [times]}}
@@ -212,6 +256,57 @@ print()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = getenv('SECRET_KEY', secrets.token_hex(32))
 
+# ═══════════════════════════════════════════════════════════
+# 🔒 CONFIGURATION PRODUCTION - SÉCURITÉ & PERFORMANCE
+# ═══════════════════════════════════════════════════════════
+
+# 1. Compression Gzip (réduit la taille des réponses de 70-80%)
+Compress(app)
+
+# 2. Rate Limiting (protection contre les abus)
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+)
+
+# 3. Headers de sécurité HTTPS (Flask-Talisman)
+# Désactivé en développement, activé automatiquement en production via FORCE_HTTPS
+if getenv('FORCE_HTTPS', 'false').lower() == 'true':
+    csp = {
+        'default-src': "'self'",
+        'script-src': [
+            "'self'",
+            "'unsafe-inline'",  # Nécessaire pour Tailwind CDN et scripts inline
+            "https://cdn.tailwindcss.com",
+            "https://cdn.jsdelivr.net",
+        ],
+        'style-src': [
+            "'self'",
+            "'unsafe-inline'",  # Nécessaire pour Tailwind
+            "https://cdn.tailwindcss.com",
+        ],
+        'img-src': [
+            "'self'",
+            "data:",  # Pour les images base64
+            "https://fr.web.img6.acsta.net",  # AlloCiné posters
+        ],
+        'font-src': ["'self'", "data:"],
+        'connect-src': ["'self'"],
+    }
+    
+    Talisman(
+        app,
+        force_https=True,
+        strict_transport_security=True,
+        content_security_policy=csp,
+        content_security_policy_nonce_in=['script-src'],
+    )
+    print("🔒 Mode HTTPS activé (Flask-Talisman)")
+else:
+    print("⚠️  Mode développement (HTTPS désactivé)")
+
 # Décorateur pour désactiver le cache navigateur
 def no_cache(view):
     """Désactive le cache HTTP pour éviter les problèmes après login/logout."""
@@ -246,12 +341,14 @@ def load_user(user_id):
 _html_cache = {}
 
 @app.route('/healthcheck')
+@limiter.exempt  # Pas de rate limiting pour le healthcheck
 def healthcheck():
     return 'ok'
 
 # ============ ROUTES D'AUTHENTIFICATION ============
 
 @app.route('/register', methods=['GET', 'POST'])
+@limiter.limit("5 per hour")  # 🔒 Protection contre les créations de comptes abusives
 def register():
     """Page d'inscription."""
     if current_user.is_authenticated:
@@ -279,6 +376,7 @@ def register():
     return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")  # 🔒 Protection contre les tentatives de brute-force
 @no_cache
 def login():
     """Page de connexion."""
@@ -329,6 +427,7 @@ def my_calendar():
     return render_template('calendar.html', watchlist=watchlist)
 
 @app.route('/add-to-calendar', methods=['POST'])
+@limiter.limit("30 per minute")  # 🔒 Protection contre l'ajout massif de séances
 @login_required
 def add_to_calendar():
     """Ajoute une séance au calendrier."""
@@ -407,6 +506,7 @@ def service_worker():
     return app.send_static_file('sw.js')
 
 @app.route('/api/films')
+@limiter.limit("60 per minute")
 def api_films():
     """API pour récupérer les films d'une semaine en JSON (pour chargement dynamique)"""
     min_age = request.args.get("age", default=0, type=int)
@@ -440,15 +540,16 @@ def home():
     min_age = request.args.get("age", default=0, type=int)
     week_offset = request.args.get("week", default=0, type=int)  # Décalage de semaine
 
-    # Clé de cache HTML basée sur les paramètres + état de connexion
+    # Clé de cache HTML basée sur les paramètres + état de connexion + date actuelle
     user_id = current_user.id if current_user.is_authenticated else 'guest'
-    html_cache_key = f"html_week{week_offset}_age{min_age}_user{user_id}"
-    
+    current_date = datetime.now(timezone).date()
+    html_cache_key = f"html_week{week_offset}_age{min_age}_user{user_id}_date{current_date}"
+
     # Vérifier le cache HTML (instantané !)
     if html_cache_key in _html_cache:
         return _html_cache[html_cache_key]
 
-    useragent = request.headers.get('User-Agent')
+    useragent = request.headers.get('User-Agent', '')
     Thread(target=monitoring.log, kwargs={
         'ip': request.environ.get("HTTP_X_FORWARDED_FOR", request.remote_addr),
         'useragent': useragent,
@@ -457,12 +558,12 @@ def home():
 
     # Toujours en vue semaine maintenant
     films_to_show, week_dates_display = getShowtimesWeek(week_offset)
-    
+
     # Filtrage des films par âge minimal
     if min_age > 0:
         films_to_show = [f for f in films_to_show if f.get("filmAge") and f["filmAge"] >= min_age]
 
-    if useragent.startswith("curl/"):
+    if useragent and useragent.startswith("curl/"):
         return handle_curl(films_to_show, f"Semaine {week_offset}")
 
     # Calculer la période de la semaine pour l'affichage
@@ -486,9 +587,10 @@ def home():
     
     return html_response
 
-# Démarrer le système de rafraîchissement automatique quotidien à 5h
-# Auto-refresh des données toutes les nuits à 5h
-auto_refresh = AutoRefresh(theaters, refresh_hour=5)
+# Démarrer le système de rafraîchissement automatique quotidien à minuit
+# Auto-refresh des données toutes les nuits à 00h
+# On passe les références des caches pour qu'ils soient vidés à minuit
+auto_refresh = AutoRefresh(theaters, refresh_hour=0, week_cache=_week_cache, html_cache=_html_cache)
 auto_refresh.start()
 
 if __name__ == '__main__':

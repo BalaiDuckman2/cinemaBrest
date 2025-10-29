@@ -14,7 +14,13 @@ data/
 
 # Python
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
 .venv
+venv/
+ENV/
 
 # Fichiers de test temporaires
 check_*.py

@@ -191,6 +191,16 @@ cinema-brest/
 
 ## 🛠️ Commandes utiles
 
+### Commandes Claude Code (Recommandé)
+Si vous utilisez Claude Code, des commandes automatisées sont disponibles :
+```
+/clean     # Nettoyer le projet (caches, temp files)
+/status    # Voir l'état du projet (stats, santé)
+/test      # Lancer tous les tests et validations
+```
+📖 Plus d'infos : [`.claude/README.md`](.claude/README.md)
+
+### Commandes Manuelles
 ```bash
 # Vider la base de données
 python clear_db.py

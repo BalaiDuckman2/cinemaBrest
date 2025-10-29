@@ -124,6 +124,62 @@
         </div>
     </div>
 
+    <!-- Filtre par Jour de la Semaine -->
+    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-4 sm:p-5 mb-6 sm:mb-8">
+        <label class="block text-white/90 text-xs sm:text-sm font-semibold mb-3 sm:mb-4">📆 Filtrer par jour</label>
+        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 sm:gap-3">
+            <label class="day-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="0" checked onchange="filterByDay()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+                <span class="day-name text-white/90 font-medium text-xs sm:text-sm">
+                    <span class="hidden sm:inline">Lundi</span>
+                    <span class="sm:hidden">Lun</span>
+                </span>
+            </label>
+            <label class="day-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="1" checked onchange="filterByDay()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+                <span class="day-name text-white/90 font-medium text-xs sm:text-sm">
+                    <span class="hidden sm:inline">Mardi</span>
+                    <span class="sm:hidden">Mar</span>
+                </span>
+            </label>
+            <label class="day-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="2" checked onchange="filterByDay()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+                <span class="day-name text-white/90 font-medium text-xs sm:text-sm">
+                    <span class="hidden sm:inline">Mercredi</span>
+                    <span class="sm:hidden">Mer</span>
+                </span>
+            </label>
+            <label class="day-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="3" checked onchange="filterByDay()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+                <span class="day-name text-white/90 font-medium text-xs sm:text-sm">
+                    <span class="hidden sm:inline">Jeudi</span>
+                    <span class="sm:hidden">Jeu</span>
+                </span>
+            </label>
+            <label class="day-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="4" checked onchange="filterByDay()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+                <span class="day-name text-white/90 font-medium text-xs sm:text-sm">
+                    <span class="hidden sm:inline">Vendredi</span>
+                    <span class="sm:hidden">Ven</span>
+                </span>
+            </label>
+            <label class="day-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="5" checked onchange="filterByDay()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+                <span class="day-name text-white/90 font-medium text-xs sm:text-sm">
+                    <span class="hidden sm:inline">Samedi</span>
+                    <span class="sm:hidden">Sam</span>
+                </span>
+            </label>
+            <label class="day-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="6" checked onchange="filterByDay()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+                <span class="day-name text-white/90 font-medium text-xs sm:text-sm">
+                    <span class="hidden sm:inline">Dimanche</span>
+                    <span class="sm:hidden">Dim</span>
+                </span>
+            </label>
+        </div>
+    </div>
+
     <!-- Liste des films -->
     <div id="filmsContainer" class="space-y-4 sm:space-y-8 transition-opacity duration-200">
     {% for film in films %}
@@ -140,7 +196,12 @@
             <div class="flex-1 space-y-3 sm:space-y-4">
                 <div>
                     <h3 class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
-                        <a href="{{ film.url }}" class="hover:text-indigo-400 transition">{{ film.title }}</a>
+                        <a href="{{ film.url }}" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-400 transition inline-flex items-center gap-2">
+                            {{ film.title }}
+                            <svg class="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                        </a>
                         {% if film.releaseYear %}
                         <span class="text-sm sm:text-base text-white/40 font-normal ml-2">({{ film.releaseYear }})</span>
                         {% endif %}
@@ -192,8 +253,8 @@
                             <div class="flex flex-wrap gap-1 sm:gap-1.5 justify-center">
                                 {% for showtime in days_data[date.index] %}
                                 <div class="relative inline-block group">
-                                    <button 
-                                        onclick="handleShowtimeClick('{{ film.title }}', '{{ cinema_name }}', '{{ date.date }}', '{{ showtime.time }}', '{{ film.url }}', '{{ film.affiche }}', '{{ showtime.version }}')"
+                                    <button
+                                        onclick="handleShowtimeClick({{ film.title|tojson }}, {{ cinema_name|tojson }}, {{ date.date|tojson }}, {{ showtime.time|tojson }}, {{ film.url|tojson }}, {{ film.affiche|tojson }}, {{ showtime.version|tojson }})"
                                         data-film="{{ film.title }}"
                                         data-cinema="{{ cinema_name }}"
                                         data-date="{{ date.date }}"
@@ -415,6 +476,9 @@ async function changeAgeFilter(minAge) {
         // Reconstruire le contenu HTML des films
         renderFilms(data.films, data.dates);
         
+        // Recharger la watchlist pour colorer les séances déjà ajoutées
+        await loadWatchlist();
+        
         container.style.opacity = '1';
         
         // Réappliquer les filtres et tri sauvegardés
@@ -463,13 +527,17 @@ async function changeWeek(offset) {
         
         renderFilms(data.films, data.dates);
         
+        // Recharger la watchlist pour colorer les séances déjà ajoutées
+        await loadWatchlist();
+        
         // Mettre à jour le bouton "Aujourd'hui"
         updateTodayButton();
         
         container.style.opacity = '1';
-        
+
         restoreCinemaPreferences();
-        
+        restoreDayPreferences();
+
         const savedSearch = localStorage.getItem('searchTerm');
         if (savedSearch) {
             document.getElementById('searchInput').value = savedSearch;
@@ -560,6 +628,74 @@ function filterByCinema() {
     });
 }
 
+// Fonction de filtre par jour de la semaine
+function filterByDay() {
+    const checkboxes = document.querySelectorAll('.day-checkbox-label input[type="checkbox"]');
+    const selectedDays = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => parseInt(cb.value));
+
+    // Sauvegarder dans localStorage
+    localStorage.setItem('selectedDays', JSON.stringify(selectedDays));
+
+    // Mettre en surbrillance les jours sélectionnés
+    checkboxes.forEach(checkbox => {
+        const label = checkbox.closest('.day-checkbox-label');
+        if (checkbox.checked) {
+            label.classList.add('bg-white/15', 'border-white/30');
+        } else {
+            label.classList.remove('bg-white/15', 'border-white/30');
+        }
+    });
+
+    // Filtrer les colonnes de dates dans le tableau
+    const dateHeaders = document.querySelectorAll('.date-header');
+    dateHeaders.forEach((header, index) => {
+        if (selectedDays.includes(index)) {
+            header.style.display = '';
+        } else {
+            header.style.display = 'none';
+        }
+    });
+
+    // Filtrer les cellules de séances pour chaque jour
+    document.querySelectorAll('.cinema-row').forEach(row => {
+        const cells = row.querySelectorAll('.showtime-cell');
+        let hasVisibleCell = false;
+
+        cells.forEach((cell, index) => {
+            if (selectedDays.includes(index)) {
+                cell.style.display = '';
+                // Vérifier si cette cellule a des séances
+                const showtimes = cell.querySelectorAll('.showtime-slot');
+                if (showtimes.length > 0) {
+                    hasVisibleCell = true;
+                }
+            } else {
+                cell.style.display = 'none';
+            }
+        });
+
+        // Masquer la ligne du cinéma si aucun jour sélectionné n'a de séances
+        if (!hasVisibleCell) {
+            row.style.display = 'none';
+        } else {
+            row.style.display = '';
+        }
+    });
+
+    // Masquer les films qui n'ont plus de lignes visibles
+    document.querySelectorAll('.film-item').forEach(filmItem => {
+        const visibleRows = filmItem.querySelectorAll('.cinema-row:not([style*="display: none"])');
+
+        if (visibleRows.length === 0) {
+            filmItem.style.display = 'none';
+        } else {
+            filmItem.style.display = '';
+        }
+    });
+}
+
 // Fonction de filtre par version (VO/VF)
 let currentVersionFilter = 'all';
 
@@ -630,25 +766,51 @@ function filterByVersion(version) {
 // Restaurer les préférences de cinéma au chargement
 function restoreCinemaPreferences() {
     const savedCinemas = localStorage.getItem('selectedCinemas');
-    
+
     if (savedCinemas) {
         try {
             const selectedCinemas = JSON.parse(savedCinemas);
             const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
-            
+
             checkboxes.forEach(checkbox => {
                 checkbox.checked = false;
             });
-            
+
             checkboxes.forEach(checkbox => {
                 if (selectedCinemas.includes(checkbox.value)) {
                     checkbox.checked = true;
                 }
             });
-            
+
             filterByCinema();
         } catch (e) {
             console.error('Erreur lors de la restauration des préférences:', e);
+        }
+    }
+}
+
+function restoreDayPreferences() {
+    const savedDays = localStorage.getItem('selectedDays');
+
+    if (savedDays) {
+        try {
+            const selectedDays = JSON.parse(savedDays);
+            const checkboxes = document.querySelectorAll('.day-checkbox-label input[type="checkbox"]');
+
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+
+            checkboxes.forEach(checkbox => {
+                const dayValue = parseInt(checkbox.value);
+                if (selectedDays.includes(dayValue)) {
+                    checkbox.checked = true;
+                }
+            });
+
+            filterByDay();
+        } catch (e) {
+            console.error('Erreur lors de la restauration des préférences de jours:', e);
         }
     }
 }
@@ -729,11 +891,41 @@ function renderFilms(films, dates) {
             
             for (let i = 0; i < 7; i++) {
                 const times = days[i] || [];
+                const dateInfo = dates[i]; // Récupérer la date correspondante
+                
                 if (times.length > 0) {
                     seancesHTML += `
                         <td class="px-2 py-3 text-center border-r border-white/5">
                             <div class="flex flex-wrap gap-1.5 justify-center">
-                                ${times.map(time => `<span class="bg-white/15 hover:bg-white/20 text-white px-2.5 py-1 rounded-lg text-xs font-medium border border-white/20 whitespace-nowrap transition">${time}</span>`).join('')}
+                                ${times.map(timeObj => {
+                                    // timeObj peut être soit une string (ancien format) soit un objet {time, version}
+                                    const time = typeof timeObj === 'string' ? timeObj : timeObj.time;
+                                    const version = typeof timeObj === 'object' && timeObj.version ? timeObj.version : '';
+                                    const versionDisplay = version ? ` (${version})` : '';
+
+                                    // Échapper correctement avec JSON.stringify pour gérer tous les caractères spéciaux
+                                    const filmTitleEscaped = JSON.stringify(film.title);
+                                    const cinemaEscaped = JSON.stringify(cinema);
+                                    const dateEscaped = JSON.stringify(dateInfo.date);
+                                    const timeEscaped = JSON.stringify(time);
+                                    const filmUrlEscaped = JSON.stringify(film.url || '');
+                                    const filmPosterEscaped = JSON.stringify(film.affiche || '');
+                                    const versionEscaped = JSON.stringify(version);
+
+                                    return `<div class="relative inline-block group">
+                                        <button
+                                            onclick="handleShowtimeClick(${filmTitleEscaped}, ${cinemaEscaped}, ${dateEscaped}, ${timeEscaped}, ${filmUrlEscaped}, ${filmPosterEscaped}, ${versionEscaped})"
+                                            data-film="${film.title}"
+                                            data-cinema="${cinema}"
+                                            data-date="${dateInfo.date}"
+                                            data-time="${time}"
+                                            data-version="${version}"
+                                            class="showtime-slot bg-white/15 hover:bg-white/25 text-white px-2.5 py-1 rounded-lg text-xs font-medium border border-white/20 whitespace-nowrap transition cursor-pointer flex flex-col items-center gap-0.5">
+                                            <span class="font-semibold">${time}</span>
+                                            ${version ? `<span class="text-[10px] opacity-70">${version}</span>` : ''}
+                                        </button>
+                                    </div>`;
+                                }).join('')}
                             </div>
                         </td>`;
                 } else {
@@ -759,7 +951,12 @@ function renderFilms(films, dates) {
                     <div class="flex-1 space-y-4">
                         <div>
                             <h3 class="text-2xl md:text-3xl font-bold text-white mb-2">
-                                <a href="${film.url || '#'}" class="hover:text-indigo-400 transition">${film.title || ''}</a>
+                                <a href="${film.url || '#'}" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-400 transition inline-flex items-center gap-2">
+                                    ${film.title || ''}
+                                    <svg class="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                    </svg>
+                                </a>
                                 ${releaseYear ? `<span class="text-base text-white/40 font-normal ml-2">(${releaseYear})</span>` : ''}
                             </h3>
                             ${releaseYear && filmAge ? `
@@ -836,7 +1033,10 @@ window.addEventListener('load', () => {
     
     // Restaurer les préférences de cinéma
     restoreCinemaPreferences();
-    
+
+    // Restaurer les préférences de jours
+    restoreDayPreferences();
+
     // Restaurer la recherche
     const searchInput = document.getElementById('searchInput');
     const savedSearch = localStorage.getItem('searchTerm');
@@ -870,14 +1070,14 @@ async function addToCalendar(filmTitle, cinema, showtimeDate, showtimeTime, film
         formData.append('film_url', filmUrl || '');
         formData.append('film_poster', filmPoster || '');
         formData.append('showtime_version', showtimeVersion || '');
-        
+
         const response = await fetch('/add-to-calendar', {
             method: 'POST',
             body: formData
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             // Afficher une notification de succès
             showNotification('✅ Ajouté à votre calendrier !', 'success');
@@ -961,13 +1161,13 @@ function colorizeShowtimes() {
 async function handleShowtimeClick(filmTitle, cinema, showtimeDate, showtimeTime, filmUrl, filmPoster, showtimeVersion) {
     {% if current_user.is_authenticated %}
     // Vérifier si déjà dans le calendrier
-    const existingItem = userWatchlist.find(item => 
+    const existingItem = userWatchlist.find(item =>
         item.film_title === filmTitle &&
         item.cinema === cinema &&
         item.showtime_date === showtimeDate &&
         item.showtime_time === showtimeTime
     );
-    
+
     if (existingItem) {
         // Supprimer du calendrier
         if (confirm('🗑️ Retirer cette séance de votre calendrier ?')) {
@@ -1011,7 +1211,51 @@ function showNotification(message, type = 'info') {
 // Charger la watchlist au démarrage
 document.addEventListener('DOMContentLoaded', () => {
     loadWatchlist();
+    setupMidnightRefresh();
 });
+
+// Fonction pour détecter le changement de jour et recharger la page
+function setupMidnightRefresh() {
+    // Stocker la date actuelle au chargement de la page
+    let currentDate = new Date().toDateString();
+
+    // Vérifier toutes les 30 secondes si on a changé de jour
+    setInterval(() => {
+        const newDate = new Date().toDateString();
+
+        if (newDate !== currentDate) {
+            console.log('🌙 Minuit passé, rechargement de la page pour la nouvelle journée...');
+
+            // Si on est sur la semaine actuelle (week_offset=0), recharger complètement
+            if (currentWeekOffset === 0) {
+                // Recharger la page pour récupérer les nouvelles données du jour
+                window.location.reload();
+            }
+
+            // Mettre à jour la date de référence
+            currentDate = newDate;
+        }
+    }, 30000); // Vérifier toutes les 30 secondes
+
+    // Vérifier également à la minute exacte de minuit
+    const now = new Date();
+    const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0) - now;
+
+    setTimeout(() => {
+        console.log('🌙 Minuit ! Rechargement de la page...');
+        if (currentWeekOffset === 0) {
+            window.location.reload();
+        }
+
+        // Reconfigurer le timer pour le prochain minuit
+        setInterval(() => {
+            if (currentWeekOffset === 0) {
+                console.log('🌙 Minuit ! Rechargement de la page...');
+                window.location.reload();
+            }
+        }, 24 * 60 * 60 * 1000); // Toutes les 24 heures
+    }, msUntilMidnight);
+}
 </script>
 
 {% endblock %}

@@ -12,16 +12,20 @@ logger = logging.getLogger(__name__)
 
 
 class AutoRefresh:
-    def __init__(self, theaters, refresh_hour: int = 5):
+    def __init__(self, theaters, refresh_hour: int = 5, week_cache=None, html_cache=None):
         """
         Initialize auto-refresh system
-        
+
         Args:
             theaters: Liste des cinémas à rafraîchir
             refresh_hour: Heure du rafraîchissement quotidien (défaut: 5h du matin)
+            week_cache: Dictionnaire du cache de semaines (optionnel)
+            html_cache: Dictionnaire du cache HTML (optionnel)
         """
         self.theaters = theaters
         self.refresh_hour = refresh_hour
+        self.week_cache = week_cache
+        self.html_cache = html_cache
         self.running = False
         self.thread = None
         
@@ -75,6 +79,25 @@ class AutoRefresh:
     def _refresh_all(self):
         """Rafraîchit les données pour les 2 prochains mois (60 jours)"""
         logger.info("🔄 Début du rafraîchissement automatique (2 mois de données)...")
+        logger.info("🗑️  Vidage des caches mémoire...")
+
+        # Vider le cache mémoire de l'API
+        try:
+            from modules.api import _memory_cache
+            _memory_cache.clear()
+            logger.info("✓ Cache mémoire API vidé")
+        except Exception as e:
+            logger.warning(f"⚠️  Impossible de vider le cache API: {e}")
+
+        # Vider les caches de l'application (week_cache et html_cache)
+        if self.week_cache is not None:
+            self.week_cache.clear()
+            logger.info("✓ Cache de semaines vidé")
+
+        if self.html_cache is not None:
+            self.html_cache.clear()
+            logger.info("✓ Cache HTML vidé")
+
         start_time = time.time()
         
         # Rafraîchir les 60 prochains jours (environ 2 mois)

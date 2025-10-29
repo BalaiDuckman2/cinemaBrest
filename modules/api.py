@@ -11,14 +11,22 @@ def _get_cache_key(cinema_id: str, date_str: str) -> str:
 
 class Movie:
     def __init__(self, data) -> None:
+        # Vérifier que data n'est pas None
+        if data is None:
+            raise ValueError("Movie data cannot be None")
+
+        # Vérifier que les champs obligatoires existent
+        if not isinstance(data, dict):
+            raise ValueError(f"Movie data must be a dict, got {type(data)}")
+
         self.data = data
-        self.title = data["title"]
-        self.id = data['internalId']
-        self.allocineId = data['internalId']  # Alias pour la BDD
-        self.runtime = data["runtime"]
-        self.synopsis = data["synopsis"]
-        self.genres = [genre['translate'] for genre in data["genres"]]
-        self.wantToSee = data['stats']["wantToSeeCount"]
+        self.title = data.get("title", "Film sans titre")
+        self.id = data.get('internalId', 0)
+        self.allocineId = data.get('internalId', 0)  # Alias pour la BDD
+        self.runtime = data.get("runtime", 0)
+        self.synopsis = data.get("synopsis", "Pas de synopsis disponible")
+        self.genres = [genre['translate'] for genre in data.get("genres", [])]
+        self.wantToSee = data.get('stats', {}).get("wantToSeeCount", 0)
         try:
             self.affiche = data["poster"]["url"]
             self.poster = data["poster"]["url"]  # Alias pour la BDD
@@ -29,31 +37,35 @@ class Movie:
         self.cast = []
 
         # Noms des acteurs
-        for actor in data["cast"]["edges"]:
-            if actor["node"]["actor"] == None: continue
+        try:
+            cast_edges = data.get("cast", {}).get("edges", [])
+            for actor in cast_edges:
+                if not actor or not actor.get("node") or not actor["node"].get("actor"):
+                    continue
 
-            if actor["node"]["actor"]["lastName"] == None:
-                actor["node"]["actor"]["lastName"] = ""
-                
-            if actor["node"]["actor"]["firstName"] == None:
-                actor["node"]["actor"]["firstName"] = ""
+                actor_data = actor["node"]["actor"]
+                last_name = actor_data.get("lastName") or ""
+                first_name = actor_data.get("firstName") or ""
 
-            name = f'{actor["node"]["actor"]["firstName"]} {actor["node"]["actor"]["lastName"]}'
-            name = name.lstrip()
-            self.cast.append(name)
+                name = f'{first_name} {last_name}'.strip()
+                if name:
+                    self.cast.append(name)
+        except Exception as e:
+            print(f"⚠️  Erreur lors du parsing du casting: {e}")
 
         # Nom du réalisateur
-        if len(data["credits"]) == 0:
+        try:
+            credits = data.get("credits", [])
+            if not credits or len(credits) == 0:
+                self.director = "Inconnu"
+            else:
+                person = credits[0].get("person", {})
+                last_name = person.get("lastName") or ""
+                first_name = person.get("firstName") or ""
+                self.director = f'{first_name} {last_name}'.strip() or "Inconnu"
+        except Exception as e:
+            print(f"⚠️  Erreur lors du parsing du réalisateur: {e}")
             self.director = "Inconnu"
-        else:
-            if data["credits"][0]["person"]["lastName"] == None:
-                data["credits"][0]["person"]["lastName"] = ""
-                
-            if data["credits"][0]["person"]["firstName"] == None:
-                data["credits"][0]["person"]["firstName"] = ""
-
-            self.director = f'{data["credits"][0]["person"]["firstName"]} {data["credits"][0]["person"]["lastName"]}'
-            self.director = self.director.lstrip()
         
         # Date de sortie et calcul de l'âge du film
         self.releaseDate = None
@@ -221,14 +233,28 @@ class Theater:
             raise Exception(f"API Error: {data}")
         
         for movie in data['results']:
-            inst = Movie(movie["movie"])
+            # Vérifier que les données du film sont valides
+            if not movie or not movie.get("movie"):
+                print(f"⚠️  Film ignoré (données manquantes) pour {self.name} - {datestr}")
+                continue
+
+            try:
+                inst = Movie(movie["movie"])
+            except (ValueError, KeyError, TypeError) as e:
+                print(f"⚠️  Film ignoré (erreur de parsing): {e}")
+                continue
+
             # Récupération de toutes les versions disponibles (l'API a changé)
             movie_showtimes = []
             for key in movie["showtimes"].keys():
                 movie_showtimes.extend(movie["showtimes"].get(key, []))
 
             for showtime_data in movie_showtimes:
-                showtimes.append(Showtime(showtime_data, self, inst))
+                try:
+                    showtimes.append(Showtime(showtime_data, self, inst))
+                except Exception as e:
+                    print(f"⚠️  Séance ignorée pour {inst.title}: {e}")
+                    continue
         
         # Gérer la pagination
         if int(data['pagination']['page']) < int(data['pagination']["totalPages"]):
