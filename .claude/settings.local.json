@@ -3,9 +3,37 @@
     "allow": [
       "Bash(python:*)",
       "Bash(awk:*)",
-      "Bash(pkill:*)"
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "mcp__chrome-devtools__new_page",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__chrome-devtools__evaluate_script",
+      "mcp__chrome-devtools__list_network_requests",
+      "Bash(powershell.exe -c \"[System.Media.SystemSounds]::Asterisk.Play\\(\\)\")",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__resize_page",
+      "Bash(timeout:*)",
+      "Bash(powershell:*)",
+      "Bash(set PYTHONIOENCODING=utf-8:*)",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__press_key"
     ],
     "deny": [],
     "ask": []
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "notify-send 'Claude terminé ❇️'"
+          }
+        ]
+      }
+    ]
   }
 }
