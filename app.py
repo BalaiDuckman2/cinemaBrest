@@ -30,9 +30,12 @@ try:
     theaters = [Theater(data["node"]) for data in
                 requests.get("https://www.allocine.fr/_/localization_city/Brest", timeout=10).json()["values"]["theaters"]]
     
-    theaters += [Theater(data["node"]) for data in 
+    theaters += [Theater(data["node"]) for data in
                  requests.get("https://www.allocine.fr/_/localization_city/Landerneau", timeout=10).json()["values"]["theaters"]]
-    
+
+    theaters += [Theater(data["node"]) for data in
+                 requests.get("https://www.allocine.fr/_/localization_city/Lannion", timeout=10).json()["values"]["theaters"]]
+
     print(f"✓ {len(theaters)} cinémas chargés")
 except Exception as e:
     print(f"❌ Erreur lors du chargement des cinémas: {e}")

@@ -4,7 +4,9 @@
       "Bash(python:*)",
       "Bash(awk:*)",
       "Bash(tasklist:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File publish-docker.ps1)",
+      "Bash(docker push:*)"
     ],
     "deny": [],
     "ask": []

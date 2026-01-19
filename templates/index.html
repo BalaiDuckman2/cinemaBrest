@@ -126,7 +126,12 @@
 
     <!-- Filtre par Cinéma -->
     <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-4 sm:p-5 mb-6 sm:mb-8">
-        <label class="block text-white/90 text-xs sm:text-sm font-semibold mb-3 sm:mb-4">🎭 Filtrer par cinéma</label>
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <label class="text-white/90 text-xs sm:text-sm font-semibold">🎭 Filtrer par cinéma</label>
+            <button onclick="toggleAllCinemas()" class="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors duration-200">
+                Tout sélectionner/désélectionner
+            </button>
+        </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
             <label class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
                 <input type="checkbox" value="Les Studios" checked onchange="filterByCinema()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
@@ -147,6 +152,10 @@
             <label class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
                 <input type="checkbox" value="Ciné Galaxy" checked onchange="filterByCinema()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
                 <span class="cinema-name text-white/90 font-medium text-xs sm:text-sm">Ciné Galaxy</span>
+            </label>
+            <label class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="Les Baladins" checked onchange="filterByCinema()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+                <span class="cinema-name text-white/90 font-medium text-xs sm:text-sm">Les Baladins</span>
             </label>
         </div>
     </div>
@@ -611,15 +620,118 @@ function searchFilms() {
     }
 }
 
+// Variables globales pour les filtres
+let currentTimeSlotFilter = 'all';
+
+// Fonction utilitaire pour vérifier si un horaire est dans une tranche
+function isInTimeSlot(time, slot) {
+    // Extraire l'heure (format: "14:30" ou "14h30")
+    const hourMatch = time.match(/^(\d{1,2})[h:]?(\d{2})?/);
+    if (!hourMatch) return false;
+
+    const hour = parseInt(hourMatch[1]);
+
+    switch(slot) {
+        case 'morning':
+            return hour < 12;
+        case 'afternoon':
+            return hour >= 12 && hour < 18;
+        case 'evening':
+            return hour >= 18 && hour < 22;
+        case 'night':
+            return hour >= 22;
+        default:
+            return true;
+    }
+}
+
+// Fonction centralisée pour appliquer tous les filtres
+function applyAllFilters() {
+    const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
+    const selectedCinemas = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    const versionFilter = currentVersionFilter || 'all';
+    const timeSlotFilter = currentTimeSlotFilter || 'all';
+
+    // Pour chaque film
+    document.querySelectorAll('.film-item').forEach(filmItem => {
+        let hasVisibleRow = false;
+
+        // Pour chaque ligne de cinéma dans ce film
+        filmItem.querySelectorAll('.cinema-row').forEach(row => {
+            const cinemaName = row.dataset.cinema;
+
+            // Vérifier si le cinéma est sélectionné
+            const isCinemaSelected = selectedCinemas.includes(cinemaName);
+
+            if (!isCinemaSelected) {
+                row.style.display = 'none';
+                return;
+            }
+
+            // Vérifier les séances selon les filtres de version ET de créneau horaire
+            let hasVisibleShowtime = false;
+            const showtimeSlots = row.querySelectorAll('.showtime-slot');
+
+            showtimeSlots.forEach(slot => {
+                const slotVersion = slot.dataset.version || '';
+                const slotTime = slot.dataset.time || '';
+                let showSlot = true;
+
+                // Appliquer le filtre de version
+                if (versionFilter !== 'all') {
+                    if (versionFilter === 'VF' && slotVersion !== 'VF') {
+                        showSlot = false;
+                    } else if (versionFilter === 'VO' && !slotVersion.includes('VO') && !slotVersion.includes('VOST')) {
+                        showSlot = false;
+                    }
+                }
+
+                // Appliquer le filtre de créneau horaire
+                if (showSlot && timeSlotFilter !== 'all') {
+                    if (!isInTimeSlot(slotTime, timeSlotFilter)) {
+                        showSlot = false;
+                    }
+                }
+
+                // Afficher ou masquer la séance
+                if (showSlot) {
+                    slot.parentElement.style.display = '';
+                    hasVisibleShowtime = true;
+                } else {
+                    slot.parentElement.style.display = 'none';
+                }
+            });
+
+            // Afficher/masquer la ligne selon si elle a des séances visibles
+            if (hasVisibleShowtime) {
+                row.style.display = '';
+                hasVisibleRow = true;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Afficher/masquer le film selon si au moins une ligne est visible
+        if (hasVisibleRow) {
+            filmItem.style.display = '';
+        } else {
+            filmItem.style.display = 'none';
+        }
+    });
+}
+
 // Fonction de filtre par cinéma
 function filterByCinema() {
     const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
     const selectedCinemas = Array.from(checkboxes)
         .filter(cb => cb.checked)
         .map(cb => cb.value);
-    
+
     localStorage.setItem('selectedCinemas', JSON.stringify(selectedCinemas));
-    
+
     checkboxes.forEach(checkbox => {
         const label = checkbox.closest('.cinema-checkbox-label');
         if (checkbox.checked) {
@@ -628,25 +740,20 @@ function filterByCinema() {
             label.classList.remove('bg-white/15', 'border-white/30');
         }
     });
-    
-    document.querySelectorAll('.cinema-row').forEach(row => {
-        const cinemaName = row.dataset.cinema;
-        if (selectedCinemas.includes(cinemaName)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
+
+    applyAllFilters();
+}
+
+// Fonction pour tout sélectionner/désélectionner
+function toggleAllCinemas() {
+    const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = !allChecked;
     });
-    
-    document.querySelectorAll('.film-item').forEach(filmItem => {
-        const visibleRows = filmItem.querySelectorAll('.cinema-row:not([style*="display: none"])');
-        
-        if (visibleRows.length === 0) {
-            filmItem.style.display = 'none';
-        } else {
-            filmItem.style.display = '';
-        }
-    });
+
+    filterByCinema();
 }
 
 // Fonction de filtre par jour de la semaine
@@ -746,86 +853,9 @@ function filterByDay(selectedDay) {
 
 // Fonction de filtre par créneau horaire
 function filterByTimeSlot(timeSlot) {
-    // Sauvegarder dans localStorage
+    currentTimeSlotFilter = timeSlot;
     localStorage.setItem('timeSlotFilter', timeSlot);
-
-    const filmCards = document.querySelectorAll('.film-card, .film-item');
-
-    filmCards.forEach(card => {
-        if (timeSlot === 'all') {
-            // Afficher tous les horaires
-            const showtimeSlots = card.querySelectorAll('.showtime-slot');
-            showtimeSlots.forEach(slot => {
-                slot.parentElement.style.display = '';
-            });
-
-            const cinemaRows = card.querySelectorAll('.cinema-row');
-            cinemaRows.forEach(row => {
-                row.style.display = '';
-            });
-
-            card.style.display = '';
-        } else {
-            // Filtrer selon la tranche horaire
-            const showtimeSlots = card.querySelectorAll('.showtime-slot');
-
-            showtimeSlots.forEach(slot => {
-                const time = slot.dataset.time;
-
-                if (time && isInTimeSlot(time, timeSlot)) {
-                    slot.parentElement.style.display = '';
-                } else {
-                    slot.parentElement.style.display = 'none';
-                }
-            });
-
-            // Masquer les lignes de cinéma qui n'ont plus de séances visibles
-            const cinemaRows = card.querySelectorAll('.cinema-row');
-            let hasVisibleRow = false;
-
-            cinemaRows.forEach(row => {
-                const visibleSlots = Array.from(row.querySelectorAll('.showtime-slot')).filter(slot => {
-                    return slot.parentElement.style.display !== 'none';
-                });
-
-                if (visibleSlots.length > 0) {
-                    row.style.display = '';
-                    hasVisibleRow = true;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            // Masquer le film si aucune ligne de cinéma n'est visible
-            if (hasVisibleRow) {
-                card.style.display = '';
-            } else {
-                card.style.display = 'none';
-            }
-        }
-    });
-}
-
-// Fonction utilitaire pour vérifier si un horaire est dans une tranche
-function isInTimeSlot(time, slot) {
-    // Extraire l'heure (format: "14:30" ou "14h30")
-    const hourMatch = time.match(/^(\d{1,2})[h:]?(\d{2})?/);
-    if (!hourMatch) return false;
-
-    const hour = parseInt(hourMatch[1]);
-
-    switch(slot) {
-        case 'morning':
-            return hour < 12;
-        case 'afternoon':
-            return hour >= 12 && hour < 18;
-        case 'evening':
-            return hour >= 18 && hour < 22;
-        case 'night':
-            return hour >= 22;
-        default:
-            return true;
-    }
+    applyAllFilters();
 }
 
 // Fonction de filtre par version (VO/VF)
@@ -834,65 +864,7 @@ let currentVersionFilter = 'all';
 function filterByVersion(version) {
     currentVersionFilter = version;
     localStorage.setItem('versionFilter', version);
-    
-    const filmCards = document.querySelectorAll('.film-card, .film-item');
-    
-    filmCards.forEach(card => {
-        if (version === 'all') {
-            // Afficher toutes les séances et toutes les lignes cinéma
-            const showtimeSlots = card.querySelectorAll('.showtime-slot');
-            showtimeSlots.forEach(slot => {
-                slot.parentElement.style.display = '';
-            });
-            
-            const cinemaRows = card.querySelectorAll('.cinema-row');
-            cinemaRows.forEach(row => {
-                row.style.display = '';
-            });
-            
-            card.style.display = '';
-        } else {
-            // Filtrer les séances selon la version
-            const showtimeSlots = card.querySelectorAll('.showtime-slot');
-            
-            showtimeSlots.forEach(slot => {
-                const slotVersion = slot.dataset.version || '';
-                
-                if (version === 'VF' && slotVersion === 'VF') {
-                    slot.parentElement.style.display = '';
-                } else if (version === 'VO' && (slotVersion.includes('VO') || slotVersion.includes('VOST'))) {
-                    slot.parentElement.style.display = '';
-                } else {
-                    slot.parentElement.style.display = 'none';
-                }
-            });
-            
-            // Masquer les lignes de cinéma qui n'ont plus de séances visibles
-            const cinemaRows = card.querySelectorAll('.cinema-row');
-            let hasVisibleRow = false;
-            
-            cinemaRows.forEach(row => {
-                const visibleSlots = row.querySelectorAll('.showtime-slot[style=""], .showtime-slot:not([style*="display: none"])');
-                const actuallyVisible = Array.from(visibleSlots).filter(slot => {
-                    return slot.parentElement.style.display !== 'none';
-                });
-                
-                if (actuallyVisible.length > 0) {
-                    row.style.display = '';
-                    hasVisibleRow = true;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-            
-            // Masquer le film si aucune ligne de cinéma n'est visible
-            if (hasVisibleRow) {
-                card.style.display = '';
-            } else {
-                card.style.display = 'none';
-            }
-        }
-    });
+    applyAllFilters();
 }
 
 // Restaurer les préférences de cinéma au chargement
