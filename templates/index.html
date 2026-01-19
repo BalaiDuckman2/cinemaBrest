@@ -88,7 +88,34 @@
                     <option value="0" {% if min_age == 0 %}selected{% endif %}>Tous les films</option>
                     <option value="1" {% if min_age == 1 %}selected{% endif %}>+ 1 an</option>
                     <option value="5" {% if min_age == 5 %}selected{% endif %}>+ 5 ans</option>
-                    <option value="30" {% if min_age == 30 %}selected{% endif %}>+ 30 ans</option>
+                    <option value="20" {% if min_age == 20 %}selected{% endif %}>+ 20 ans</option>
+                </select>
+            </div>
+
+            <!-- Filtre d'horaire -->
+            <div>
+                <label for="timeSlotSelect" class="block text-white/90 text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2">🕐 Horaires</label>
+                <select id="timeSlotSelect" onchange="filterByTimeSlot(this.value)" class="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition cursor-pointer hover:bg-white/15">
+                    <option value="all" selected>Tous les horaires</option>
+                    <option value="morning">Matin (avant 12h)</option>
+                    <option value="afternoon">Après-midi (12h-18h)</option>
+                    <option value="evening">Soirée (18h-22h)</option>
+                    <option value="night">Nuit (après 22h)</option>
+                </select>
+            </div>
+
+            <!-- Filtre par jour -->
+            <div>
+                <label for="daySelect" class="block text-white/90 text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2">📆 Jour</label>
+                <select id="daySelect" onchange="filterByDay(this.value)" class="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition cursor-pointer hover:bg-white/15">
+                    <option value="all" selected>Tous les jours</option>
+                    <option value="0">Lundi</option>
+                    <option value="1">Mardi</option>
+                    <option value="2">Mercredi</option>
+                    <option value="3">Jeudi</option>
+                    <option value="4">Vendredi</option>
+                    <option value="5">Samedi</option>
+                    <option value="6">Dimanche</option>
                 </select>
             </div>
         </div>
@@ -124,61 +151,6 @@
         </div>
     </div>
 
-    <!-- Filtre par Jour de la Semaine -->
-    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-4 sm:p-5 mb-6 sm:mb-8">
-        <label class="block text-white/90 text-xs sm:text-sm font-semibold mb-3 sm:mb-4">📆 Filtrer par jour</label>
-        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 sm:gap-3">
-            <label class="day-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
-                <input type="checkbox" value="0" checked onchange="filterByDay()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
-                <span class="day-name text-white/90 font-medium text-xs sm:text-sm">
-                    <span class="hidden sm:inline">Lundi</span>
-                    <span class="sm:hidden">Lun</span>
-                </span>
-            </label>
-            <label class="day-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
-                <input type="checkbox" value="1" checked onchange="filterByDay()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
-                <span class="day-name text-white/90 font-medium text-xs sm:text-sm">
-                    <span class="hidden sm:inline">Mardi</span>
-                    <span class="sm:hidden">Mar</span>
-                </span>
-            </label>
-            <label class="day-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
-                <input type="checkbox" value="2" checked onchange="filterByDay()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
-                <span class="day-name text-white/90 font-medium text-xs sm:text-sm">
-                    <span class="hidden sm:inline">Mercredi</span>
-                    <span class="sm:hidden">Mer</span>
-                </span>
-            </label>
-            <label class="day-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
-                <input type="checkbox" value="3" checked onchange="filterByDay()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
-                <span class="day-name text-white/90 font-medium text-xs sm:text-sm">
-                    <span class="hidden sm:inline">Jeudi</span>
-                    <span class="sm:hidden">Jeu</span>
-                </span>
-            </label>
-            <label class="day-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
-                <input type="checkbox" value="4" checked onchange="filterByDay()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
-                <span class="day-name text-white/90 font-medium text-xs sm:text-sm">
-                    <span class="hidden sm:inline">Vendredi</span>
-                    <span class="sm:hidden">Ven</span>
-                </span>
-            </label>
-            <label class="day-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
-                <input type="checkbox" value="5" checked onchange="filterByDay()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
-                <span class="day-name text-white/90 font-medium text-xs sm:text-sm">
-                    <span class="hidden sm:inline">Samedi</span>
-                    <span class="sm:hidden">Sam</span>
-                </span>
-            </label>
-            <label class="day-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
-                <input type="checkbox" value="6" checked onchange="filterByDay()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
-                <span class="day-name text-white/90 font-medium text-xs sm:text-sm">
-                    <span class="hidden sm:inline">Dimanche</span>
-                    <span class="sm:hidden">Dim</span>
-                </span>
-            </label>
-        </div>
-    </div>
 
     <!-- Liste des films -->
     <div id="filmsContainer" class="space-y-4 sm:space-y-8 transition-opacity duration-200">
@@ -359,7 +331,28 @@ window.addEventListener('DOMContentLoaded', function() {
     if (isCompactView) {
         applyCompactView();
     }
-    
+
+    // Restaurer le filtre de version
+    const savedVersion = localStorage.getItem('versionFilter');
+    if (savedVersion) {
+        document.getElementById('versionSelect').value = savedVersion;
+        filterByVersion(savedVersion);
+    }
+
+    // Restaurer le filtre d'horaire
+    const savedTimeSlot = localStorage.getItem('timeSlotFilter');
+    if (savedTimeSlot) {
+        document.getElementById('timeSlotSelect').value = savedTimeSlot;
+        filterByTimeSlot(savedTimeSlot);
+    }
+
+    // Restaurer le filtre de jour
+    const savedDay = localStorage.getItem('selectedDay');
+    if (savedDay) {
+        document.getElementById('daySelect').value = savedDay;
+        filterByDay(savedDay);
+    }
+
     // Afficher le bouton "Aujourd'hui" si on n'est pas sur la semaine actuelle
     updateTodayButton();
 });
@@ -496,7 +489,21 @@ async function changeAgeFilter(minAge) {
         } else {
             sortFilms('popularity');
         }
-        
+
+        // Restaurer le filtre d'horaire
+        const savedTimeSlot = localStorage.getItem('timeSlotFilter');
+        if (savedTimeSlot) {
+            document.getElementById('timeSlotSelect').value = savedTimeSlot;
+            filterByTimeSlot(savedTimeSlot);
+        }
+
+        // Restaurer le filtre de jour
+        const savedDay = localStorage.getItem('selectedDay');
+        if (savedDay) {
+            document.getElementById('daySelect').value = savedDay;
+            filterByDay(savedDay);
+        }
+
     } catch (error) {
         console.error('Erreur lors du changement de filtre:', error);
         alert('Erreur lors du chargement des données');
@@ -550,7 +557,21 @@ async function changeWeek(offset) {
         } else {
             sortFilms('popularity');
         }
-        
+
+        // Restaurer le filtre d'horaire
+        const savedTimeSlot = localStorage.getItem('timeSlotFilter');
+        if (savedTimeSlot) {
+            document.getElementById('timeSlotSelect').value = savedTimeSlot;
+            filterByTimeSlot(savedTimeSlot);
+        }
+
+        // Restaurer le filtre de jour
+        const savedDay = localStorage.getItem('selectedDay');
+        if (savedDay) {
+            document.getElementById('daySelect').value = savedDay;
+            filterByDay(savedDay);
+        }
+
     } catch (error) {
         console.error('Erreur lors du changement de semaine:', error);
         alert('Erreur lors du chargement des données');
@@ -629,59 +650,86 @@ function filterByCinema() {
 }
 
 // Fonction de filtre par jour de la semaine
-function filterByDay() {
-    const checkboxes = document.querySelectorAll('.day-checkbox-label input[type="checkbox"]');
-    const selectedDays = Array.from(checkboxes)
-        .filter(cb => cb.checked)
-        .map(cb => parseInt(cb.value));
-
+function filterByDay(selectedDay) {
     // Sauvegarder dans localStorage
-    localStorage.setItem('selectedDays', JSON.stringify(selectedDays));
+    localStorage.setItem('selectedDay', selectedDay);
 
-    // Mettre en surbrillance les jours sélectionnés
-    checkboxes.forEach(checkbox => {
-        const label = checkbox.closest('.day-checkbox-label');
-        if (checkbox.checked) {
-            label.classList.add('bg-white/15', 'border-white/30');
-        } else {
-            label.classList.remove('bg-white/15', 'border-white/30');
-        }
-    });
+    // Si "tous les jours" est sélectionné, tout afficher
+    if (selectedDay === 'all') {
+        document.querySelectorAll('.film-item table').forEach(table => {
+            // Afficher tous les en-têtes
+            table.querySelectorAll('thead th').forEach(th => {
+                th.style.display = '';
+            });
 
-    // Filtrer les colonnes de dates dans le tableau
-    const dateHeaders = document.querySelectorAll('.date-header');
-    dateHeaders.forEach((header, index) => {
-        if (selectedDays.includes(index)) {
-            header.style.display = '';
-        } else {
-            header.style.display = 'none';
-        }
-    });
+            // Afficher toutes les cellules
+            table.querySelectorAll('tbody tr.cinema-row').forEach(row => {
+                row.querySelectorAll('td').forEach(td => {
+                    td.style.display = '';
+                });
+                row.style.display = '';
+            });
+        });
 
-    // Filtrer les cellules de séances pour chaque jour
-    document.querySelectorAll('.cinema-row').forEach(row => {
-        const cells = row.querySelectorAll('.showtime-cell');
-        let hasVisibleCell = false;
+        // Afficher tous les films
+        document.querySelectorAll('.film-item').forEach(filmItem => {
+            filmItem.style.display = '';
+        });
+        return;
+    }
 
-        cells.forEach((cell, index) => {
-            if (selectedDays.includes(index)) {
-                cell.style.display = '';
-                // Vérifier si cette cellule a des séances
-                const showtimes = cell.querySelectorAll('.showtime-slot');
-                if (showtimes.length > 0) {
-                    hasVisibleCell = true;
-                }
+    const dayIndex = parseInt(selectedDay);
+
+    // Parcourir tous les tableaux de films
+    document.querySelectorAll('.film-item table').forEach(table => {
+        // Filtrer les en-têtes de colonnes (th) - ignorer la première colonne (Cinéma)
+        const headerCells = table.querySelectorAll('thead th');
+        headerCells.forEach((th, index) => {
+            if (index === 0) {
+                th.style.display = ''; // Toujours afficher la colonne "Cinéma"
+                return;
+            }
+
+            const cellDayIndex = index - 1; // Ajuster l'index (0 = lundi, 1 = mardi, etc.)
+            if (cellDayIndex === dayIndex) {
+                th.style.display = '';
             } else {
-                cell.style.display = 'none';
+                th.style.display = 'none';
             }
         });
 
-        // Masquer la ligne du cinéma si aucun jour sélectionné n'a de séances
-        if (!hasVisibleCell) {
-            row.style.display = 'none';
-        } else {
-            row.style.display = '';
-        }
+        // Filtrer les cellules de chaque ligne de cinéma
+        const cinemaRows = table.querySelectorAll('tbody tr.cinema-row');
+        cinemaRows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            let hasVisibleShowtimes = false;
+
+            cells.forEach((td, index) => {
+                if (index === 0) {
+                    td.style.display = ''; // Toujours afficher la colonne "Cinéma"
+                    return;
+                }
+
+                const cellDayIndex = index - 1;
+                if (cellDayIndex === dayIndex) {
+                    td.style.display = '';
+                    // Vérifier si cette cellule contient des séances
+                    const showtimes = td.querySelectorAll('.showtime-slot');
+                    if (showtimes.length > 0) {
+                        hasVisibleShowtimes = true;
+                    }
+                } else {
+                    td.style.display = 'none';
+                }
+            });
+
+            // Masquer la ligne si elle n'a pas de séances visibles
+            if (!hasVisibleShowtimes) {
+                row.style.display = 'none';
+            } else {
+                row.style.display = '';
+            }
+        });
     });
 
     // Masquer les films qui n'ont plus de lignes visibles
@@ -694,6 +742,90 @@ function filterByDay() {
             filmItem.style.display = '';
         }
     });
+}
+
+// Fonction de filtre par créneau horaire
+function filterByTimeSlot(timeSlot) {
+    // Sauvegarder dans localStorage
+    localStorage.setItem('timeSlotFilter', timeSlot);
+
+    const filmCards = document.querySelectorAll('.film-card, .film-item');
+
+    filmCards.forEach(card => {
+        if (timeSlot === 'all') {
+            // Afficher tous les horaires
+            const showtimeSlots = card.querySelectorAll('.showtime-slot');
+            showtimeSlots.forEach(slot => {
+                slot.parentElement.style.display = '';
+            });
+
+            const cinemaRows = card.querySelectorAll('.cinema-row');
+            cinemaRows.forEach(row => {
+                row.style.display = '';
+            });
+
+            card.style.display = '';
+        } else {
+            // Filtrer selon la tranche horaire
+            const showtimeSlots = card.querySelectorAll('.showtime-slot');
+
+            showtimeSlots.forEach(slot => {
+                const time = slot.dataset.time;
+
+                if (time && isInTimeSlot(time, timeSlot)) {
+                    slot.parentElement.style.display = '';
+                } else {
+                    slot.parentElement.style.display = 'none';
+                }
+            });
+
+            // Masquer les lignes de cinéma qui n'ont plus de séances visibles
+            const cinemaRows = card.querySelectorAll('.cinema-row');
+            let hasVisibleRow = false;
+
+            cinemaRows.forEach(row => {
+                const visibleSlots = Array.from(row.querySelectorAll('.showtime-slot')).filter(slot => {
+                    return slot.parentElement.style.display !== 'none';
+                });
+
+                if (visibleSlots.length > 0) {
+                    row.style.display = '';
+                    hasVisibleRow = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Masquer le film si aucune ligne de cinéma n'est visible
+            if (hasVisibleRow) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        }
+    });
+}
+
+// Fonction utilitaire pour vérifier si un horaire est dans une tranche
+function isInTimeSlot(time, slot) {
+    // Extraire l'heure (format: "14:30" ou "14h30")
+    const hourMatch = time.match(/^(\d{1,2})[h:]?(\d{2})?/);
+    if (!hourMatch) return false;
+
+    const hour = parseInt(hourMatch[1]);
+
+    switch(slot) {
+        case 'morning':
+            return hour < 12;
+        case 'afternoon':
+            return hour >= 12 && hour < 18;
+        case 'evening':
+            return hour >= 18 && hour < 22;
+        case 'night':
+            return hour >= 22;
+        default:
+            return true;
+    }
 }
 
 // Fonction de filtre par version (VO/VF)
@@ -790,25 +922,15 @@ function restoreCinemaPreferences() {
 }
 
 function restoreDayPreferences() {
-    const savedDays = localStorage.getItem('selectedDays');
+    const savedDay = localStorage.getItem('selectedDay');
 
-    if (savedDays) {
+    if (savedDay) {
         try {
-            const selectedDays = JSON.parse(savedDays);
-            const checkboxes = document.querySelectorAll('.day-checkbox-label input[type="checkbox"]');
-
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = false;
-            });
-
-            checkboxes.forEach(checkbox => {
-                const dayValue = parseInt(checkbox.value);
-                if (selectedDays.includes(dayValue)) {
-                    checkbox.checked = true;
-                }
-            });
-
-            filterByDay();
+            const daySelect = document.getElementById('daySelect');
+            if (daySelect) {
+                daySelect.value = savedDay;
+                filterByDay(savedDay);
+            }
         } catch (e) {
             console.error('Erreur lors de la restauration des préférences de jours:', e);
         }
@@ -1056,6 +1178,13 @@ window.addEventListener('load', () => {
     if (savedVersion) {
         document.getElementById('versionSelect').value = savedVersion;
         filterByVersion(savedVersion);
+    }
+
+    // Restaurer le filtre d'horaire
+    const savedTimeSlot = localStorage.getItem('timeSlotFilter');
+    if (savedTimeSlot) {
+        document.getElementById('timeSlotSelect').value = savedTimeSlot;
+        filterByTimeSlot(savedTimeSlot);
     }
 });
 
