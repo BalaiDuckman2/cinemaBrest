@@ -279,6 +279,18 @@ Prometheus metrics exposed at `/metrics`:
 5. Commit with descriptive message
 6. Push and create PR
 
+## Notifications
+
+À la fin des tâches longues, notifiez avec :
+```bash
+powershell.exe -c "[System.Media.SystemSounds]::Asterisk.Play()"
+```
+
+Pour input requis :
+```bash
+powershell.exe -c "[System.Media.SystemSounds]::Question.Play()"
+```
+
 ## Additional Documentation
 
 - [README.md](README.md) - User-facing documentation and installation

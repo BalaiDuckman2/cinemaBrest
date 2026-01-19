@@ -116,7 +116,6 @@
                 <div class="flex md:flex-col items-center justify-end gap-2">
                     <!-- Supprimer -->
                     <form method="POST" action="{{ url_for('remove_from_calendar', watchlist_id=item.id) }}" onsubmit="return confirm('Supprimer cette séance de votre calendrier ?')">
-                        <input type="hidden" name="redirect" value="calendar">
                         <button type="submit" class="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500/50 rounded-lg text-red-200 hover:text-red-100 text-sm font-medium transition whitespace-nowrap">
                             🗑️ Supprimer
                         </button>
