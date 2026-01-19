@@ -3,53 +3,159 @@
 {% block body %}
 
 <!-- Bouton retour en haut -->
-<button id="scrollTopBtn" onclick="scrollToTop()" class="fixed bottom-4 right-4 md:bottom-8 md:right-8 bg-indigo-600 hover:bg-indigo-700 text-white p-3 md:p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-50 opacity-0 pointer-events-none">
+<button id="scrollTopBtn" onclick="scrollToTop()"
+    class="fixed bottom-4 right-4 md:bottom-8 md:right-8 bg-indigo-600 hover:bg-indigo-700 text-white p-3 md:p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-50 opacity-0 pointer-events-none">
     <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
     </svg>
 </button>
 
 <div class="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-7xl">
-    
+
     <!-- Navigation entre semaines -->
     <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-3 sm:p-5 mb-4 sm:mb-6">
         <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
             <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-center">
-                <button onclick="changeWeek(-1)" class="px-3 sm:px-6 py-2 sm:py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium transition-all duration-200 hover:-translate-x-1">
+                <button onclick="changeWeek(-1)"
+                    class="px-3 sm:px-6 py-2 sm:py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium transition-all duration-200 hover:-translate-x-1">
                     <span class="hidden sm:inline">← Précédent</span>
                     <span class="sm:hidden">←</span>
                 </button>
-                <div id="weekPeriod" class="px-3 sm:px-8 py-2 sm:py-2.5 bg-indigo-600/20 border border-indigo-500/30 rounded-lg sm:rounded-xl text-white text-xs sm:text-base font-semibold text-center flex-1 sm:flex-none">
+                <div id="weekPeriod"
+                    class="px-3 sm:px-8 py-2 sm:py-2.5 bg-indigo-600/20 border border-indigo-500/30 rounded-lg sm:rounded-xl text-white text-xs sm:text-base font-semibold text-center flex-1 sm:flex-none">
                     <span class="hidden sm:inline">📅 </span>{{ week_period }}
                 </div>
-                <button onclick="changeWeek(1)" class="px-3 sm:px-6 py-2 sm:py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium transition-all duration-200 hover:translate-x-1">
+                <button onclick="changeWeek(1)"
+                    class="px-3 sm:px-6 py-2 sm:py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium transition-all duration-200 hover:translate-x-1">
                     <span class="hidden sm:inline">Suivant →</span>
                     <span class="sm:hidden">→</span>
                 </button>
             </div>
-            <button id="todayBtn" onclick="goToToday()" class="hidden px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 border border-indigo-500 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium transition-all duration-200 hover:scale-105 shadow-lg">
+            <button id="todayBtn" onclick="goToToday()"
+                class="hidden px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 border border-indigo-500 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium transition-all duration-200 hover:scale-105 shadow-lg">
                 <span class="hidden sm:inline">🎬 Aujourd'hui</span>
                 <span class="sm:hidden">Aujourd'hui</span>
             </button>
         </div>
     </div>
 
-    <!-- Filtres -->
-    <div class="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20 rounded-xl md:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 shadow-xl">
+    <!-- Barre de recherche et filtres compacts sur mobile -->
+    <div class="md:hidden mb-4">
+        <!-- Recherche toujours visible sur mobile -->
+        <div class="flex gap-2">
+            <div class="flex-1 relative">
+                <input type="text" id="searchInputMobile" oninput="syncSearch(this.value)" placeholder="Rechercher..."
+                    class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <button onclick="toggleMobileFilters()" id="mobileFilterBtn"
+                class="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm font-medium transition hover:bg-white/15 flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                <span id="filterBadge"
+                    class="hidden bg-indigo-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+            </button>
+        </div>
+        <p id="searchResultsMobile" class="text-xs text-white/70 mt-1.5 font-medium"></p>
+    </div>
+
+    <!-- Filtres collapsibles sur mobile -->
+    <div id="mobileFiltersPanel"
+        class="hidden md:hidden bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-3 mb-4 space-y-3">
+        <div class="grid grid-cols-2 gap-2">
+            <select id="sortSelectMobile" onchange="syncSort(this.value)"
+                class="px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs focus:outline-none">
+                <option value="popularity">Popularité</option>
+                <option value="alphabetical">A→Z</option>
+                <option value="year-desc">+ Récent</option>
+                <option value="year-asc">+ Ancien</option>
+                <option value="showtimes">Nb séances</option>
+            </select>
+            <select id="versionSelectMobile" onchange="syncVersion(this.value)"
+                class="px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs focus:outline-none">
+                <option value="all">Toutes versions</option>
+                <option value="VF">VF</option>
+                <option value="VO">VO/VOST</option>
+            </select>
+            <select id="daySelectMobile" onchange="syncDay(this.value)"
+                class="px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs focus:outline-none">
+                <option value="all">Tous les jours</option>
+                <option value="0">Lundi</option>
+                <option value="1">Mardi</option>
+                <option value="2">Mercredi</option>
+                <option value="3">Jeudi</option>
+                <option value="4">Vendredi</option>
+                <option value="5">Samedi</option>
+                <option value="6">Dimanche</option>
+            </select>
+            <select id="timeSlotSelectMobile" onchange="syncTimeSlot(this.value)"
+                class="px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs focus:outline-none">
+                <option value="all">Tous horaires</option>
+                <option value="morning">Matin</option>
+                <option value="afternoon">Après-midi</option>
+                <option value="evening">Soirée</option>
+                <option value="night">Nuit</option>
+            </select>
+        </div>
+        <!-- Cinémas en chips -->
+        <div class="flex flex-wrap gap-1.5">
+            <label
+                class="cinema-chip flex items-center gap-1 px-2 py-1 bg-white/10 border border-white/20 rounded-full text-[11px] text-white cursor-pointer transition">
+                <input type="checkbox" value="Les Studios" checked onchange="filterByCinema()"
+                    class="w-3 h-3 rounded accent-indigo-500">
+                Studios
+            </label>
+            <label
+                class="cinema-chip flex items-center gap-1 px-2 py-1 bg-white/10 border border-white/20 rounded-full text-[11px] text-white cursor-pointer transition">
+                <input type="checkbox" value="CGR Brest Le Celtic" checked onchange="filterByCinema()"
+                    class="w-3 h-3 rounded accent-indigo-500">
+                CGR
+            </label>
+            <label
+                class="cinema-chip flex items-center gap-1 px-2 py-1 bg-white/10 border border-white/20 rounded-full text-[11px] text-white cursor-pointer transition">
+                <input type="checkbox" value="Multiplexe Liberté" checked onchange="filterByCinema()"
+                    class="w-3 h-3 rounded accent-indigo-500">
+                Liberté
+            </label>
+            <label
+                class="cinema-chip flex items-center gap-1 px-2 py-1 bg-white/10 border border-white/20 rounded-full text-[11px] text-white cursor-pointer transition">
+                <input type="checkbox" value="Pathé Capucins" checked onchange="filterByCinema()"
+                    class="w-3 h-3 rounded accent-indigo-500">
+                Pathé
+            </label>
+            <label
+                class="cinema-chip flex items-center gap-1 px-2 py-1 bg-white/10 border border-white/20 rounded-full text-[11px] text-white cursor-pointer transition">
+                <input type="checkbox" value="Ciné Galaxy" checked onchange="filterByCinema()"
+                    class="w-3 h-3 rounded accent-indigo-500">
+                Galaxy
+            </label>
+        </div>
+    </div>
+
+    <!-- Filtres Desktop (inchangés) -->
+    <div
+        class="hidden md:block bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20 rounded-2xl p-6 mb-6 shadow-xl">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-white/90 text-sm sm:text-base font-semibold">🎯 Filtres & Recherche</h3>
-            <button onclick="toggleViewMode()" class="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/15 border border-white/20 rounded-lg text-white text-xs sm:text-sm font-medium transition">
+            <h3 class="text-white/90 text-base font-semibold">🎯 Filtres & Recherche</h3>
+            <button onclick="toggleViewMode()"
+                class="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/15 border border-white/20 rounded-lg text-white text-sm font-medium transition">
                 <svg id="viewIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
                 <span id="viewModeText">Vue compacte</span>
             </button>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-            <!-- Tri -->
+        <div class="grid grid-cols-3 gap-4">
             <div>
-                <label for="sortSelect" class="block text-white/90 text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2">📊 Trier par</label>
-                <select id="sortSelect" onchange="sortFilms(this.value)" class="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition cursor-pointer hover:bg-white/15">
+                <label for="sortSelect" class="block text-white/90 text-sm font-semibold mb-2">📊 Trier par</label>
+                <select id="sortSelect" onchange="sortFilms(this.value)"
+                    class="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 transition cursor-pointer hover:bg-white/15">
                     <option value="popularity" selected>⭐ Popularité</option>
                     <option value="alphabetical">🔤 Alphabétique (A→Z)</option>
                     <option value="year-desc">📅 Plus récent</option>
@@ -57,45 +163,37 @@
                     <option value="showtimes">🎬 Nombre de séances</option>
                 </select>
             </div>
-
-            <!-- Version VO/VF -->
             <div>
-                <label for="versionSelect" class="block text-white/90 text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2">🎬 Version</label>
-                <select id="versionSelect" onchange="filterByVersion(this.value)" class="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition cursor-pointer hover:bg-white/15">
+                <label for="versionSelect" class="block text-white/90 text-sm font-semibold mb-2">🎬 Version</label>
+                <select id="versionSelect" onchange="filterByVersion(this.value)"
+                    class="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 transition cursor-pointer hover:bg-white/15">
                     <option value="all" selected>Toutes</option>
                     <option value="VF">VF uniquement</option>
                     <option value="VO">VO/VOST uniquement</option>
                 </select>
             </div>
-
-            <!-- Recherche -->
             <div>
-                <label for="searchInput" class="block text-white/90 text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2">🔍 Recherche</label>
-                <input type="text" 
-                       id="searchInput" 
-                       oninput="searchFilms()" 
-                       placeholder="Rechercher un film..." 
-                       class="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition hover:bg-white/15">
+                <label for="searchInput" class="block text-white/90 text-sm font-semibold mb-2">🔍 Recherche</label>
+                <input type="text" id="searchInput" oninput="searchFilms()" placeholder="Rechercher un film..."
+                    class="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white text-base font-medium placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition hover:bg-white/15">
             </div>
         </div>
-        
-        <!-- Filtres supplémentaires (ligne 2) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mt-3 sm:mt-4">
-            <!-- Films Classiques -->
+        <div class="grid grid-cols-3 gap-4 mt-4">
             <div>
-                <label for="ageSelect" class="block text-white/90 text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2">📅 Films classiques</label>
-                <select id="ageSelect" onchange="changeAgeFilter(parseInt(this.value))" class="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition cursor-pointer hover:bg-white/15">
-                    <option value="0" {% if min_age == 0 %}selected{% endif %}>Tous les films</option>
-                    <option value="1" {% if min_age == 1 %}selected{% endif %}>+ 1 an</option>
-                    <option value="5" {% if min_age == 5 %}selected{% endif %}>+ 5 ans</option>
-                    <option value="20" {% if min_age == 20 %}selected{% endif %}>+ 20 ans</option>
+                <label for="ageSelect" class="block text-white/90 text-sm font-semibold mb-2">📅 Films
+                    classiques</label>
+                <select id="ageSelect" onchange="changeAgeFilter(parseInt(this.value))"
+                    class="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 transition cursor-pointer hover:bg-white/15">
+                    <option value="0" {% if min_age==0 %}selected{% endif %}>Tous les films</option>
+                    <option value="1" {% if min_age==1 %}selected{% endif %}>+ 1 an</option>
+                    <option value="5" {% if min_age==5 %}selected{% endif %}>+ 5 ans</option>
+                    <option value="20" {% if min_age==20 %}selected{% endif %}>+ 20 ans</option>
                 </select>
             </div>
-
-            <!-- Filtre d'horaire -->
             <div>
-                <label for="timeSlotSelect" class="block text-white/90 text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2">🕐 Horaires</label>
-                <select id="timeSlotSelect" onchange="filterByTimeSlot(this.value)" class="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition cursor-pointer hover:bg-white/15">
+                <label for="timeSlotSelect" class="block text-white/90 text-sm font-semibold mb-2">🕐 Horaires</label>
+                <select id="timeSlotSelect" onchange="filterByTimeSlot(this.value)"
+                    class="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 transition cursor-pointer hover:bg-white/15">
                     <option value="all" selected>Tous les horaires</option>
                     <option value="morning">Matin (avant 12h)</option>
                     <option value="afternoon">Après-midi (12h-18h)</option>
@@ -103,11 +201,10 @@
                     <option value="night">Nuit (après 22h)</option>
                 </select>
             </div>
-
-            <!-- Filtre par jour -->
             <div>
-                <label for="daySelect" class="block text-white/90 text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2">📆 Jour</label>
-                <select id="daySelect" onchange="filterByDay(this.value)" class="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition cursor-pointer hover:bg-white/15">
+                <label for="daySelect" class="block text-white/90 text-sm font-semibold mb-2">📆 Jour</label>
+                <select id="daySelect" onchange="filterByDay(this.value)"
+                    class="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 transition cursor-pointer hover:bg-white/15">
                     <option value="all" selected>Tous les jours</option>
                     <option value="0">Lundi</option>
                     <option value="1">Mardi</option>
@@ -119,894 +216,1434 @@
                 </select>
             </div>
         </div>
-        
-        <!-- Résultats de recherche -->
-        <p id="searchResults" class="text-xs sm:text-sm text-white/70 mt-2 sm:mt-3 font-medium"></p>
+        <p id="searchResults" class="text-sm text-white/70 mt-3 font-medium"></p>
     </div>
 
     <!-- Filtre par Cinéma -->
     <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-4 sm:p-5 mb-6 sm:mb-8">
         <div class="flex items-center justify-between mb-3 sm:mb-4">
             <label class="text-white/90 text-xs sm:text-sm font-semibold">🎭 Filtrer par cinéma</label>
-            <button onclick="toggleAllCinemas()" class="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors duration-200">
+            <button onclick="toggleAllCinemas()"
+                class="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors duration-200">
                 Tout sélectionner/désélectionner
             </button>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
-            <label class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
-                <input type="checkbox" value="Les Studios" checked onchange="filterByCinema()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+            <label
+                class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="Les Studios" checked onchange="filterByCinema()"
+                    class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
                 <span class="cinema-name text-white/90 font-medium text-xs sm:text-sm">Les Studios</span>
             </label>
-            <label class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
-                <input type="checkbox" value="CGR Brest Le Celtic" checked onchange="filterByCinema()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+            <label
+                class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="CGR Brest Le Celtic" checked onchange="filterByCinema()"
+                    class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
                 <span class="cinema-name text-white/90 font-medium text-xs sm:text-sm">CGR Brest Le Celtic</span>
             </label>
-            <label class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
-                <input type="checkbox" value="Multiplexe Liberté" checked onchange="filterByCinema()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+            <label
+                class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="Multiplexe Liberté" checked onchange="filterByCinema()"
+                    class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
                 <span class="cinema-name text-white/90 font-medium text-xs sm:text-sm">Multiplexe Liberté</span>
             </label>
-            <label class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
-                <input type="checkbox" value="Pathé Capucins" checked onchange="filterByCinema()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+            <label
+                class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="Pathé Capucins" checked onchange="filterByCinema()"
+                    class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
                 <span class="cinema-name text-white/90 font-medium text-xs sm:text-sm">Pathé Capucins</span>
             </label>
-            <label class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
-                <input type="checkbox" value="Ciné Galaxy" checked onchange="filterByCinema()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+            <label
+                class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="Ciné Galaxy" checked onchange="filterByCinema()"
+                    class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
                 <span class="cinema-name text-white/90 font-medium text-xs sm:text-sm">Ciné Galaxy</span>
             </label>
-            <label class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
-                <input type="checkbox" value="Les Baladins" checked onchange="filterByCinema()" class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+            <label
+                class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="Les Baladins" checked onchange="filterByCinema()"
+                    class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
                 <span class="cinema-name text-white/90 font-medium text-xs sm:text-sm">Les Baladins</span>
             </label>
         </div>
     </div>
 
 
-    <!-- Liste des films -->
-    <div id="filmsContainer" class="space-y-4 sm:space-y-8 transition-opacity duration-200">
-    {% for film in films %}
-    <div class="film-item bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-300" 
-         data-title="{{ film.title }}" 
-         data-year="{{ film.releaseYear or 0 }}"
-         data-popularity="{{ film.wantToSee or 0 }}"
-         data-showtimes="{{ film.total_showtimes or 0 }}">
-        
-        <!-- En-tête du film -->
-        <div class="flex flex-col md:flex-row gap-4 sm:gap-6 p-4 sm:p-6">
-            <img src="{{ film.affiche }}" alt="{{ film.title }}" class="w-full md:w-48 h-auto rounded-lg sm:rounded-xl shadow-lg object-cover">
-            
-            <div class="flex-1 space-y-3 sm:space-y-4">
-                <div>
-                    <h3 class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
-                        <a href="{{ film.url }}" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-400 transition inline-flex items-center gap-2">
-                            {{ film.title }}
-                            <svg class="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                            </svg>
-                        </a>
+    <!-- Vue Mobile (grille 2 colonnes) -->
+    <div id="mobileFilmsContainer" class="md:hidden">
+        <div class="grid grid-cols-2 gap-3">
+            {% for film in films %}
+            <div class="film-mobile-card cursor-pointer" onclick="openFilmDrawer({{ loop.index0 }})"
+                data-title="{{ film.title }}" data-year="{{ film.releaseYear or 0 }}"
+                data-popularity="{{ film.wantToSee or 0 }}" data-showtimes="{{ film.total_showtimes or 0 }}"
+                data-index="{{ loop.index0 }}">
+                <div class="relative">
+                    <img src="{{ film.affiche }}" alt="{{ film.title }}"
+                        class="w-full h-56 object-cover rounded-lg shadow-lg">
+                    <div
+                        class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 rounded-b-lg">
+                        <p class="text-sm text-white font-medium line-clamp-2">{{ film.title }}</p>
                         {% if film.releaseYear %}
-                        <span class="text-sm sm:text-base text-white/40 font-normal ml-2">({{ film.releaseYear }})</span>
+                        <p class="text-xs text-white/60">{{ film.releaseYear }}</p>
                         {% endif %}
-                    </h3>
-                    {% if film.releaseYear and film.filmAge %}
-                    <span class="inline-flex items-center gap-1.5 sm:gap-2 bg-white/10 text-white/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium border border-white/10">
-                        <span class="opacity-60">📅</span> Il y a {{ film.filmAge }} ans
-                    </span>
-                    {% endif %}
+                    </div>
                 </div>
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
-                    <p class="text-white/70"><span class="font-semibold text-white/90">Réalisateur:</span> {{ film.director }}</p>
-                    <p class="text-white/70"><span class="font-semibold text-white/90">Durée:</span> {{ film.duree }}</p>
-                    <p class="text-white/70 sm:col-span-2"><span class="font-semibold text-white/90">Genre:</span> {{ film.genres }}</p>
-                    <p class="text-white/70 sm:col-span-2"><span class="font-semibold text-white/90">Casting:</span> {{ film.casting }}</p>
-                </div>
-                
-                {% if film.synopsis %}
-                <p class="text-white/60 text-xs sm:text-sm leading-relaxed line-clamp-3">{{ film.synopsis }}</p>
-                {% endif %}
             </div>
+            {% endfor %}
         </div>
 
-        <!-- Tableau des séances -->
-        <div class="overflow-x-auto -mx-4 sm:mx-0">
-            <table class="w-full border-collapse min-w-max">
-                <thead>
-                    <tr class="bg-white/5">
-                        <th class="px-2 sm:px-4 py-3 sm:py-4 text-left text-white/90 font-semibold border-r border-white/10 text-xs sm:text-sm sticky left-0 bg-gray-900/90 backdrop-blur-sm z-10">Cinéma</th>
-                        {% for date in dates %}
-                        <th class="px-2 sm:px-3 py-3 sm:py-4 text-center border-r border-white/5 min-w-[80px] sm:min-w-[100px]">
-                            <div class="text-white/50 text-[10px] sm:text-xs font-normal">{{ date.jour }}</div>
-                            <div class="text-lg sm:text-xl font-bold text-white/90 my-0.5 sm:my-1">{{ date.chiffre }}</div>
-                            <div class="text-white/50 text-[10px] sm:text-xs font-normal">{{ date.mois }}</div>
-                        </th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for cinema_name, days_data in film.seances_table.items() %}
-                    <tr class="cinema-row border-t border-white/5 hover:bg-white/5 transition" data-cinema="{{ cinema_name }}">
-                        <td class="px-2 sm:px-4 py-2 sm:py-3 text-white/85 font-medium border-r border-white/10 text-xs sm:text-sm sticky left-0 bg-gray-900/90 backdrop-blur-sm z-10">
-                            {{ cinema_name }}
-                        </td>
-                        {% for date in dates %}
-                        <td class="px-1 sm:px-2 py-2 sm:py-3 text-center border-r border-white/5">
-                            {% if date.index in days_data %}
-                            <div class="flex flex-wrap gap-1 sm:gap-1.5 justify-center">
-                                {% for showtime in days_data[date.index] %}
-                                <div class="relative inline-block group">
-                                    <button
-                                        onclick="handleShowtimeClick({{ film.title|tojson }}, {{ cinema_name|tojson }}, {{ date.date|tojson }}, {{ showtime.time|tojson }}, {{ film.url|tojson }}, {{ film.affiche|tojson }}, {{ showtime.version|tojson }})"
-                                        data-film="{{ film.title }}"
-                                        data-cinema="{{ cinema_name }}"
-                                        data-date="{{ date.date }}"
-                                        data-time="{{ showtime.time }}"
-                                        data-version="{{ showtime.version }}"
-                                        class="showtime-slot bg-white/15 hover:bg-white/25 text-white px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium border border-white/20 whitespace-nowrap transition cursor-pointer flex flex-col items-center gap-0.5">
-                                        <span class="font-semibold">{{ showtime.time }}</span>
-                                        <span class="text-[8px] sm:text-[10px] opacity-70">{{ showtime.version }}</span>
-                                    </button>
-                                </div>
-                                {% endfor %}
-                            </div>
-                            {% else %}
-                            <span class="text-white/20 text-xs sm:text-sm">—</span>
-                            {% endif %}
-                        </td>
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <!-- Message si aucun film après filtrage -->
+        <div id="mobileNoResults" class="hidden text-center py-8 text-white/60">
+            Aucun film ne correspond à vos filtres
         </div>
     </div>
-    {% endfor %}
+
+    <!-- Bottom Sheet / Drawer pour mobile -->
+    <div id="filmDrawer"
+        class="fixed inset-x-0 bottom-0 transform translate-y-full transition-transform duration-300 ease-out z-50 md:hidden">
+        <div class="bg-gray-900 rounded-t-2xl max-h-[85vh] overflow-hidden shadow-2xl border-t border-white/10">
+            <!-- Handle bar et bouton fermer -->
+            <div class="sticky top-0 bg-gray-900 pt-3 pb-2 z-10 flex items-center justify-between px-4">
+                <div class="w-8"></div>
+                <div class="w-12 h-1 bg-white/30 rounded-full cursor-pointer" onclick="closeFilmDrawer()"></div>
+                <button onclick="closeFilmDrawer()"
+                    class="w-8 h-8 flex items-center justify-center text-white/50 hover:text-white/80 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Contenu du drawer -->
+            <div id="drawerContent" class="px-4 pb-8 overflow-y-auto max-h-[calc(85vh-50px)]">
+                <!-- Rempli dynamiquement par JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Backdrop pour le drawer -->
+    <div id="drawerBackdrop" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden" onclick="closeFilmDrawer()"></div>
+
+    <!-- Liste des films (Desktop) -->
+    <div id="filmsContainer" class="hidden md:block space-y-4 sm:space-y-8 transition-opacity duration-200">
+        {% for film in films %}
+        <div class="film-item bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-300"
+            data-title="{{ film.title }}" data-year="{{ film.releaseYear or 0 }}"
+            data-popularity="{{ film.wantToSee or 0 }}" data-showtimes="{{ film.total_showtimes or 0 }}">
+
+            <!-- En-tête du film -->
+            <div class="flex flex-col md:flex-row gap-4 sm:gap-6 p-4 sm:p-6">
+                <img src="{{ film.affiche }}" alt="{{ film.title }}"
+                    class="w-full md:w-48 h-auto rounded-lg sm:rounded-xl shadow-lg object-cover">
+
+                <div class="flex-1 space-y-3 sm:space-y-4">
+                    <div>
+                        <h3 class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
+                            <a href="{{ film.url }}" target="_blank" rel="noopener noreferrer"
+                                class="hover:text-indigo-400 transition inline-flex items-center gap-2">
+                                {{ film.title }}
+                                <svg class="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+                            {% if film.releaseYear %}
+                            <span class="text-sm sm:text-base text-white/40 font-normal ml-2">({{ film.releaseYear
+                                }})</span>
+                            {% endif %}
+                        </h3>
+                        {% if film.releaseYear and film.filmAge %}
+                        <span
+                            class="inline-flex items-center gap-1.5 sm:gap-2 bg-white/10 text-white/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium border border-white/10">
+                            <span class="opacity-60">📅</span> Il y a {{ film.filmAge }} ans
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
+                        <p class="text-white/70"><span class="font-semibold text-white/90">Réalisateur:</span> {{
+                            film.director }}</p>
+                        <p class="text-white/70"><span class="font-semibold text-white/90">Durée:</span> {{ film.duree
+                            }}</p>
+                        <p class="text-white/70 sm:col-span-2"><span class="font-semibold text-white/90">Genre:</span>
+                            {{ film.genres }}</p>
+                        <p class="text-white/70 sm:col-span-2"><span class="font-semibold text-white/90">Casting:</span>
+                            {{ film.casting }}</p>
+                    </div>
+
+                    {% if film.synopsis %}
+                    <p class="text-white/60 text-xs sm:text-sm leading-relaxed line-clamp-3">{{ film.synopsis }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tableau des séances -->
+            <div class="overflow-x-auto -mx-4 sm:mx-0">
+                <table class="w-full border-collapse min-w-max">
+                    <thead>
+                        <tr class="bg-white/5">
+                            <th
+                                class="px-2 sm:px-4 py-3 sm:py-4 text-left text-white/90 font-semibold border-r border-white/10 text-xs sm:text-sm sticky left-0 bg-gray-900/90 backdrop-blur-sm z-10">
+                                Cinéma</th>
+                            {% for date in dates %}
+                            <th
+                                class="px-2 sm:px-3 py-3 sm:py-4 text-center border-r border-white/5 min-w-[80px] sm:min-w-[100px]">
+                                <div class="text-white/50 text-[10px] sm:text-xs font-normal">{{ date.jour }}</div>
+                                <div class="text-lg sm:text-xl font-bold text-white/90 my-0.5 sm:my-1">{{ date.chiffre
+                                    }}</div>
+                                <div class="text-white/50 text-[10px] sm:text-xs font-normal">{{ date.mois }}</div>
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cinema_name, days_data in film.seances_table.items() %}
+                        <tr class="cinema-row border-t border-white/5 hover:bg-white/5 transition"
+                            data-cinema="{{ cinema_name }}">
+                            <td
+                                class="px-2 sm:px-4 py-2 sm:py-3 text-white/85 font-medium border-r border-white/10 text-xs sm:text-sm sticky left-0 bg-gray-900/90 backdrop-blur-sm z-10">
+                                {{ cinema_name }}
+                            </td>
+                            {% for date in dates %}
+                            <td class="px-1 sm:px-2 py-2 sm:py-3 text-center border-r border-white/5">
+                                {% if date.index in days_data %}
+                                <div class="flex flex-wrap gap-1 sm:gap-1.5 justify-center">
+                                    {% for showtime in days_data[date.index] %}
+                                    <div class="relative inline-block group">
+                                        <button
+                                            onclick="handleShowtimeClick({{ film.title|tojson }}, {{ cinema_name|tojson }}, {{ date.date|tojson }}, {{ showtime.time|tojson }}, {{ film.url|tojson }}, {{ film.affiche|tojson }}, {{ showtime.version|tojson }})"
+                                            data-film="{{ film.title }}" data-cinema="{{ cinema_name }}"
+                                            data-date="{{ date.date }}" data-time="{{ showtime.time }}"
+                                            data-version="{{ showtime.version }}"
+                                            class="showtime-slot bg-white/15 hover:bg-white/25 text-white px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium border border-white/20 whitespace-nowrap transition cursor-pointer flex flex-col items-center gap-0.5">
+                                            <span class="font-semibold">{{ showtime.time }}</span>
+                                            <span class="text-[8px] sm:text-[10px] opacity-70">{{ showtime.version
+                                                }}</span>
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <span class="text-white/20 text-xs sm:text-sm">—</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 
 </div>
 
 <style>
-/* Styles pour les select dropdowns */
-select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
-    background-position: right 0.5rem center;
-    background-repeat: no-repeat;
-    background-size: 1.5em 1.5em;
-    padding-right: 2.5rem;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-}
+    /* Styles pour les select dropdowns */
+    select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
 
-select option {
-    background-color: #1f2937;
-    color: white;
-}
+    select option {
+        background-color: #1f2937;
+        color: white;
+    }
+
+    /* Masquer la scrollbar sur le carousel mobile */
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Animation du drawer */
+    #filmDrawer {
+        will-change: transform;
+    }
+
+    /* Drawer ouvert */
+    #filmDrawer.drawer-open {
+        transform: translateY(0) !important;
+    }
+
+    /* Empêcher le scroll du body quand le drawer est ouvert */
+    body.drawer-active {
+        overflow: hidden;
+    }
 </style>
 
 <script>
-// Fonction pour remonter en haut avec défilement smooth
-function scrollToTop() {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
-}
+    // Données des films pour le drawer mobile
+    const filmsData = {{ films| tojson | safe }};
+    const datesData = {{ dates| tojson | safe }};
 
-// Gérer l'affichage du bouton scroll to top
-const scrollTopBtn = document.getElementById('scrollTopBtn');
+    // État du drawer
+    let currentDrawerFilmIndex = null;
+    let drawerTouchStartY = 0;
+    let drawerTouchCurrentY = 0;
 
-window.addEventListener('scroll', function() {
-    if (window.scrollY > 300) {
-        scrollTopBtn.classList.remove('opacity-0', 'pointer-events-none');
-        scrollTopBtn.classList.add('opacity-100');
-    } else {
-        scrollTopBtn.classList.add('opacity-0', 'pointer-events-none');
-        scrollTopBtn.classList.remove('opacity-100');
-    }
-});
+    // Ouvrir le drawer avec les informations du film
+    function openFilmDrawer(filmIndex) {
+        const film = filmsData[filmIndex];
+        if (!film) return;
 
-// Variable globale pour suivre la semaine actuelle
-let currentWeekOffset = {{ week_offset }};
-let currentMinAge = {{ min_age }};
-let isLoading = false;
-let isCompactView = localStorage.getItem('compactView') === 'true';
+        currentDrawerFilmIndex = filmIndex;
 
-// Initialiser les préférences sauvegardées au chargement
-window.addEventListener('DOMContentLoaded', function() {
-    // Restaurer le filtre d'âge sauvegardé
-    const savedMinAge = localStorage.getItem('minAge');
-    if (savedMinAge !== null) {
-        document.getElementById('ageSelect').value = savedMinAge;
-    }
-    
-    // Restaurer le tri sauvegardé
-    const savedSort = localStorage.getItem('sortBy');
-    if (savedSort) {
-        document.getElementById('sortSelect').value = savedSort;
-        sortFilms(savedSort);
-    }
-    
-    // Restaurer les cinémas sélectionnés
-    const savedCinemas = localStorage.getItem('selectedCinemas');
-    if (savedCinemas) {
-        const cinemasList = JSON.parse(savedCinemas);
-        document.querySelectorAll('.cinema-checkbox-label input').forEach(checkbox => {
-            checkbox.checked = cinemasList.includes(checkbox.value);
-        });
-        filterByCinema();
-    }
-    
-    // Restaurer la vue compacte/étendue
-    if (isCompactView) {
-        applyCompactView();
-    }
+        // Construire le HTML du drawer
+        const drawerContent = document.getElementById('drawerContent');
 
-    // Restaurer le filtre de version
-    const savedVersion = localStorage.getItem('versionFilter');
-    if (savedVersion) {
-        document.getElementById('versionSelect').value = savedVersion;
-        filterByVersion(savedVersion);
-    }
+        // En-tête avec affiche et titre
+        let html = `
+        <div class="flex gap-4 mb-4">
+            <img src="${film.affiche || ''}" alt="${film.title}" class="w-24 h-36 object-cover rounded-lg shadow-lg flex-shrink-0">
+            <div class="flex-1 min-w-0">
+                <h3 class="text-xl font-bold text-white leading-tight">${film.title}</h3>
+                <p class="text-white/60 text-sm mt-1">${film.releaseYear ? film.releaseYear + ' · ' : ''}${film.duree || ''}</p>
+                ${film.filmAge ? `<span class="inline-block mt-2 bg-white/10 text-white/70 px-2 py-1 rounded text-xs">Il y a ${film.filmAge} ans</span>` : ''}
+                <a href="${film.url || '#'}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 mt-2 text-indigo-400 text-sm hover:text-indigo-300">
+                    Voir sur Letterboxd
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    `;
 
-    // Restaurer le filtre d'horaire
-    const savedTimeSlot = localStorage.getItem('timeSlotFilter');
-    if (savedTimeSlot) {
-        document.getElementById('timeSlotSelect').value = savedTimeSlot;
-        filterByTimeSlot(savedTimeSlot);
-    }
+        // Séances groupées par cinéma (accordion)
+        html += '<div class="space-y-2 mb-4">';
+        html += '<h4 class="text-white/80 text-sm font-semibold mb-2">🎬 Séances</h4>';
 
-    // Restaurer le filtre de jour
-    const savedDay = localStorage.getItem('selectedDay');
-    if (savedDay) {
-        document.getElementById('daySelect').value = savedDay;
-        filterByDay(savedDay);
-    }
+        const seancesTable = film.seances_table || {};
 
-    // Afficher le bouton "Aujourd'hui" si on n'est pas sur la semaine actuelle
-    updateTodayButton();
-});
-
-// Fonction pour retourner à la semaine actuelle
-function goToToday() {
-    if (currentWeekOffset !== 0) {
-        changeWeek(-currentWeekOffset);
-    }
-}
-
-// Mettre à jour l'affichage du bouton "Aujourd'hui"
-function updateTodayButton() {
-    const todayBtn = document.getElementById('todayBtn');
-    if (currentWeekOffset !== 0) {
-        todayBtn.classList.remove('hidden');
-    } else {
-        todayBtn.classList.add('hidden');
-    }
-}
-
-// Toggle entre vue compacte et étendue
-function toggleViewMode() {
-    isCompactView = !isCompactView;
-    localStorage.setItem('compactView', isCompactView);
-    
-    if (isCompactView) {
-        applyCompactView();
-    } else {
-        applyExtendedView();
-    }
-}
-
-// Appliquer la vue compacte
-function applyCompactView() {
-    const viewIcon = document.getElementById('viewIcon');
-    const viewModeText = document.getElementById('viewModeText');
-    
-    viewModeText.textContent = 'Vue étendue';
-    viewIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>';
-    
-    document.querySelectorAll('.film-item').forEach(film => {
-        // Cacher l'image, synopsis et infos détaillées
-        const img = film.querySelector('img');
-        const synopsis = film.querySelector('.line-clamp-3');
-        const filmInfo = film.querySelector('.grid.grid-cols-1');
-        const filmAge = film.querySelector('.inline-flex');
-        
-        if (img) img.classList.add('hidden');
-        if (synopsis) synopsis.classList.add('hidden');
-        if (filmInfo) filmInfo.classList.add('hidden');
-        if (filmAge) filmAge.classList.add('hidden');
-        
-        // Réduire le padding
-        const header = film.querySelector('.flex.flex-col');
-        if (header) {
-            header.classList.remove('p-4', 'sm:p-6', 'gap-4', 'sm:gap-6');
-            header.classList.add('p-2', 'sm:p-3');
+        // Récupérer les cinémas sélectionnés dans le filtre
+        const savedCinemas = localStorage.getItem('selectedCinemas');
+        let selectedCinemas = ['Les Studios', 'CGR Brest Le Celtic', 'Multiplexe Liberté', 'Pathé Capucins', 'Ciné Galaxy'];
+        if (savedCinemas) {
+            try {
+                selectedCinemas = JSON.parse(savedCinemas);
+            } catch (e) { }
         }
-    });
-}
 
-// Appliquer la vue étendue
-function applyExtendedView() {
-    const viewIcon = document.getElementById('viewIcon');
-    const viewModeText = document.getElementById('viewModeText');
-    
-    viewModeText.textContent = 'Vue compacte';
-    viewIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>';
-    
-    document.querySelectorAll('.film-item').forEach(film => {
-        // Réafficher tout
-        const img = film.querySelector('img');
-        const synopsis = film.querySelector('.line-clamp-3');
-        const filmInfo = film.querySelector('.grid.grid-cols-1');
-        const filmAge = film.querySelector('.inline-flex');
-        
-        if (img) img.classList.remove('hidden');
-        if (synopsis) synopsis.classList.remove('hidden');
-        if (filmInfo) filmInfo.classList.remove('hidden');
-        if (filmAge) filmAge.classList.remove('hidden');
-        
-        // Restaurer le padding
-        const header = film.querySelector('.flex.flex-col');
-        if (header) {
-            header.classList.remove('p-2', 'sm:p-3');
-            header.classList.add('p-4', 'sm:p-6', 'gap-4', 'sm:gap-6');
-        }
-    });
-}
+        // Filtrer les cinémas selon le filtre actif
+        const cinemaNames = Object.keys(seancesTable).filter(cinema => selectedCinemas.includes(cinema));
 
-// Fonction pour changer le filtre d'âge dynamiquement
-async function changeAgeFilter(minAge) {
-    if (isLoading) return;
-    
-    isLoading = true;
-    currentMinAge = minAge;
-    
-    // Sauvegarder le filtre d'âge dans localStorage
-    localStorage.setItem('minAge', minAge);
-    
-    try {
-        const container = document.getElementById('filmsContainer');
-        container.style.opacity = '0.5';
-        
-        // Récupérer les données via l'API
-        const response = await fetch(`/api/films?week=${currentWeekOffset}&age=${currentMinAge}`);
-        const data = await response.json();
-        
-        // Mettre à jour l'URL sans recharger la page
-        const newUrl = currentMinAge > 0 ? `/?week=${currentWeekOffset}&age=${currentMinAge}` : `/?week=${currentWeekOffset}`;
-        window.history.pushState({week: currentWeekOffset, age: currentMinAge}, '', newUrl);
-        
-        // Reconstruire le contenu HTML des films
-        renderFilms(data.films, data.dates);
-        
-        // Recharger la watchlist pour colorer les séances déjà ajoutées
-        await loadWatchlist();
-        
-        container.style.opacity = '1';
-        
-        // Réappliquer les filtres et tri sauvegardés
-        restoreCinemaPreferences();
-        
-        const savedSearch = localStorage.getItem('searchTerm');
-        if (savedSearch) {
-            document.getElementById('searchInput').value = savedSearch;
-            searchFilms();
-        }
-        
-        const savedSort = localStorage.getItem('sortType');
-        if (savedSort) {
-            sortFilms(savedSort);
+        if (cinemaNames.length === 0) {
+            html += '<p class="text-white/50 text-sm">Aucune séance disponible</p>';
         } else {
-            sortFilms('popularity');
-        }
+            cinemaNames.forEach((cinemaName, cinemaIndex) => {
+                const daysData = seancesTable[cinemaName];
 
-        // Restaurer le filtre d'horaire
-        const savedTimeSlot = localStorage.getItem('timeSlotFilter');
-        if (savedTimeSlot) {
-            document.getElementById('timeSlotSelect').value = savedTimeSlot;
-            filterByTimeSlot(savedTimeSlot);
-        }
+                html += `
+                <details class="bg-white/5 rounded-lg border border-white/10 group" ${cinemaIndex === 0 ? 'open' : ''}>
+                    <summary class="p-3 text-white font-medium cursor-pointer flex items-center justify-between hover:bg-white/5 rounded-lg">
+                        <span class="text-sm">${cinemaName}</span>
+                        <svg class="w-4 h-4 text-white/50 transform transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </summary>
+                    <div class="px-3 pb-3 space-y-2">
+            `;
 
-        // Restaurer le filtre de jour
-        const savedDay = localStorage.getItem('selectedDay');
-        if (savedDay) {
-            document.getElementById('daySelect').value = savedDay;
-            filterByDay(savedDay);
-        }
+                // Grouper par jour
+                datesData.forEach((dateInfo, dayIndex) => {
+                    const showtimes = daysData[dayIndex] || [];
+                    if (showtimes.length > 0) {
+                        html += `
+                        <div class="border-t border-white/5 pt-2 first:border-0 first:pt-0">
+                            <p class="text-white/60 text-xs mb-1.5">${dateInfo.jour} ${dateInfo.chiffre} ${dateInfo.mois}</p>
+                            <div class="flex flex-wrap gap-1.5">
+                    `;
 
-    } catch (error) {
-        console.error('Erreur lors du changement de filtre:', error);
-        alert('Erreur lors du chargement des données');
-        container.style.opacity = '1';
-    } finally {
-        isLoading = false;
-    }
-}
+                        showtimes.forEach(showtime => {
+                            const time = typeof showtime === 'string' ? showtime : showtime.time;
+                            const version = typeof showtime === 'object' && showtime.version ? showtime.version : '';
 
-// Fonction pour changer de semaine dynamiquement
-async function changeWeek(offset) {
-    if (isLoading) return;
-    
-    isLoading = true;
-    currentWeekOffset += offset;
-    
-    try {
-        const container = document.getElementById('filmsContainer');
-        container.style.opacity = '0.5';
-        
-        const response = await fetch(`/api/films?week=${currentWeekOffset}&age=${currentMinAge}`);
-        const data = await response.json();
-        
-        document.getElementById('weekPeriod').innerHTML = `<span class="hidden sm:inline">📅 </span>${data.week_period}`;
-        
-        const newUrl = `/?week=${currentWeekOffset}&age=${currentMinAge}`;
-        window.history.pushState({week: currentWeekOffset}, '', newUrl);
-        
-        renderFilms(data.films, data.dates);
-        
-        // Recharger la watchlist pour colorer les séances déjà ajoutées
-        await loadWatchlist();
-        
-        // Mettre à jour le bouton "Aujourd'hui"
-        updateTodayButton();
-        
-        container.style.opacity = '1';
+                            // Échapper les données pour l'onclick
+                            const filmTitleEscaped = JSON.stringify(film.title);
+                            const cinemaEscaped = JSON.stringify(cinemaName);
+                            const dateEscaped = JSON.stringify(dateInfo.date);
+                            const timeEscaped = JSON.stringify(time);
+                            const filmUrlEscaped = JSON.stringify(film.url || '');
+                            const filmPosterEscaped = JSON.stringify(film.affiche || '');
+                            const versionEscaped = JSON.stringify(version);
 
-        restoreCinemaPreferences();
-        restoreDayPreferences();
+                            html += `
+                            <button
+                                onclick="handleShowtimeClick(${filmTitleEscaped}, ${cinemaEscaped}, ${dateEscaped}, ${timeEscaped}, ${filmUrlEscaped}, ${filmPosterEscaped}, ${versionEscaped})"
+                                data-film="${film.title}"
+                                data-cinema="${cinemaName}"
+                                data-date="${dateInfo.date}"
+                                data-time="${time}"
+                                data-version="${version}"
+                                class="showtime-slot bg-white/15 hover:bg-white/25 text-white px-2.5 py-1.5 rounded-lg text-xs font-medium border border-white/20 transition flex flex-col items-center">
+                                <span class="font-semibold">${time}</span>
+                                ${version ? `<span class="text-[10px] opacity-70">${version}</span>` : ''}
+                            </button>
+                        `;
+                        });
 
-        const savedSearch = localStorage.getItem('searchTerm');
-        if (savedSearch) {
-            document.getElementById('searchInput').value = savedSearch;
-            searchFilms();
-        }
-        
-        const savedSort = localStorage.getItem('sortType');
-        if (savedSort) {
-            sortFilms(savedSort);
-        } else {
-            sortFilms('popularity');
-        }
-
-        // Restaurer le filtre d'horaire
-        const savedTimeSlot = localStorage.getItem('timeSlotFilter');
-        if (savedTimeSlot) {
-            document.getElementById('timeSlotSelect').value = savedTimeSlot;
-            filterByTimeSlot(savedTimeSlot);
-        }
-
-        // Restaurer le filtre de jour
-        const savedDay = localStorage.getItem('selectedDay');
-        if (savedDay) {
-            document.getElementById('daySelect').value = savedDay;
-            filterByDay(savedDay);
-        }
-
-    } catch (error) {
-        console.error('Erreur lors du changement de semaine:', error);
-        alert('Erreur lors du chargement des données');
-        container.style.opacity = '1';
-    } finally {
-        isLoading = false;
-    }
-}
-
-// Fonction de recherche de films en temps réel
-function searchFilms() {
-    const input = document.getElementById('searchInput');
-    const filter = input.value.toLowerCase().trim();
-    const filmItems = document.querySelectorAll('.film-item');
-    const resultsText = document.getElementById('searchResults');
-    
-    localStorage.setItem('searchTerm', input.value);
-    
-    let visibleCount = 0;
-    
-    filmItems.forEach(filmItem => {
-        const filmText = filmItem.textContent.toLowerCase();
-        
-        if (filter === '' || filmText.includes(filter)) {
-            filmItem.style.display = '';
-            visibleCount++;
-        } else {
-            filmItem.style.display = 'none';
-        }
-    });
-    
-    if (filter === '') {
-        resultsText.textContent = '';
-    } else {
-        resultsText.textContent = `${visibleCount} film(s) trouvé(s)`;
-        resultsText.style.color = visibleCount > 0 ? '#4caf50' : '#f44336';
-    }
-}
-
-// Variables globales pour les filtres
-let currentTimeSlotFilter = 'all';
-
-// Fonction utilitaire pour vérifier si un horaire est dans une tranche
-function isInTimeSlot(time, slot) {
-    // Extraire l'heure (format: "14:30" ou "14h30")
-    const hourMatch = time.match(/^(\d{1,2})[h:]?(\d{2})?/);
-    if (!hourMatch) return false;
-
-    const hour = parseInt(hourMatch[1]);
-
-    switch(slot) {
-        case 'morning':
-            return hour < 12;
-        case 'afternoon':
-            return hour >= 12 && hour < 18;
-        case 'evening':
-            return hour >= 18 && hour < 22;
-        case 'night':
-            return hour >= 22;
-        default:
-            return true;
-    }
-}
-
-// Fonction centralisée pour appliquer tous les filtres
-function applyAllFilters() {
-    const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
-    const selectedCinemas = Array.from(checkboxes)
-        .filter(cb => cb.checked)
-        .map(cb => cb.value);
-
-    const versionFilter = currentVersionFilter || 'all';
-    const timeSlotFilter = currentTimeSlotFilter || 'all';
-
-    // Pour chaque film
-    document.querySelectorAll('.film-item').forEach(filmItem => {
-        let hasVisibleRow = false;
-
-        // Pour chaque ligne de cinéma dans ce film
-        filmItem.querySelectorAll('.cinema-row').forEach(row => {
-            const cinemaName = row.dataset.cinema;
-
-            // Vérifier si le cinéma est sélectionné
-            const isCinemaSelected = selectedCinemas.includes(cinemaName);
-
-            if (!isCinemaSelected) {
-                row.style.display = 'none';
-                return;
-            }
-
-            // Vérifier les séances selon les filtres de version ET de créneau horaire
-            let hasVisibleShowtime = false;
-            const showtimeSlots = row.querySelectorAll('.showtime-slot');
-
-            showtimeSlots.forEach(slot => {
-                const slotVersion = slot.dataset.version || '';
-                const slotTime = slot.dataset.time || '';
-                let showSlot = true;
-
-                // Appliquer le filtre de version
-                if (versionFilter !== 'all') {
-                    if (versionFilter === 'VF' && slotVersion !== 'VF') {
-                        showSlot = false;
-                    } else if (versionFilter === 'VO' && !slotVersion.includes('VO') && !slotVersion.includes('VOST')) {
-                        showSlot = false;
+                        html += '</div></div>';
                     }
-                }
-
-                // Appliquer le filtre de créneau horaire
-                if (showSlot && timeSlotFilter !== 'all') {
-                    if (!isInTimeSlot(slotTime, timeSlotFilter)) {
-                        showSlot = false;
-                    }
-                }
-
-                // Afficher ou masquer la séance
-                if (showSlot) {
-                    slot.parentElement.style.display = '';
-                    hasVisibleShowtime = true;
-                } else {
-                    slot.parentElement.style.display = 'none';
-                }
-            });
-
-            // Afficher/masquer la ligne selon si elle a des séances visibles
-            if (hasVisibleShowtime) {
-                row.style.display = '';
-                hasVisibleRow = true;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        // Afficher/masquer le film selon si au moins une ligne est visible
-        if (hasVisibleRow) {
-            filmItem.style.display = '';
-        } else {
-            filmItem.style.display = 'none';
-        }
-    });
-}
-
-// Fonction de filtre par cinéma
-function filterByCinema() {
-    const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
-    const selectedCinemas = Array.from(checkboxes)
-        .filter(cb => cb.checked)
-        .map(cb => cb.value);
-
-    localStorage.setItem('selectedCinemas', JSON.stringify(selectedCinemas));
-
-    checkboxes.forEach(checkbox => {
-        const label = checkbox.closest('.cinema-checkbox-label');
-        if (checkbox.checked) {
-            label.classList.add('bg-white/15', 'border-white/30');
-        } else {
-            label.classList.remove('bg-white/15', 'border-white/30');
-        }
-    });
-
-    applyAllFilters();
-}
-
-// Fonction pour tout sélectionner/désélectionner
-function toggleAllCinemas() {
-    const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
-    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = !allChecked;
-    });
-
-    filterByCinema();
-}
-
-// Fonction de filtre par jour de la semaine
-function filterByDay(selectedDay) {
-    // Sauvegarder dans localStorage
-    localStorage.setItem('selectedDay', selectedDay);
-
-    // Si "tous les jours" est sélectionné, tout afficher
-    if (selectedDay === 'all') {
-        document.querySelectorAll('.film-item table').forEach(table => {
-            // Afficher tous les en-têtes
-            table.querySelectorAll('thead th').forEach(th => {
-                th.style.display = '';
-            });
-
-            // Afficher toutes les cellules
-            table.querySelectorAll('tbody tr.cinema-row').forEach(row => {
-                row.querySelectorAll('td').forEach(td => {
-                    td.style.display = '';
                 });
-                row.style.display = '';
-            });
-        });
 
-        // Afficher tous les films
-        document.querySelectorAll('.film-item').forEach(filmItem => {
-            filmItem.style.display = '';
-        });
-        return;
+                html += '</div></details>';
+            });
+        }
+
+        html += '</div>';
+
+        // Infos secondaires
+        html += `
+        <div class="border-t border-white/10 pt-4 space-y-2 text-sm">
+            ${film.director ? `<p class="text-white/70"><span class="text-white/90 font-medium">Réalisateur:</span> ${film.director}</p>` : ''}
+            ${film.genres ? `<p class="text-white/70"><span class="text-white/90 font-medium">Genre:</span> ${film.genres}</p>` : ''}
+            ${film.casting ? `<p class="text-white/70"><span class="text-white/90 font-medium">Casting:</span> ${film.casting}</p>` : ''}
+            ${film.synopsis ? `<p class="text-white/60 text-xs mt-3 leading-relaxed">${film.synopsis}</p>` : ''}
+        </div>
+    `;
+
+        drawerContent.innerHTML = html;
+
+        // Colorer les séances déjà dans le calendrier
+        colorizeShowtimes();
+
+        // Ouvrir le drawer
+        const drawer = document.getElementById('filmDrawer');
+        const backdrop = document.getElementById('drawerBackdrop');
+
+        drawer.classList.add('drawer-open');
+        backdrop.classList.remove('hidden');
+        document.body.classList.add('drawer-active');
+
+        // Setup swipe to close
+        setupDrawerSwipe();
     }
 
-    const dayIndex = parseInt(selectedDay);
+    // Fermer le drawer
+    function closeFilmDrawer() {
+        const drawer = document.getElementById('filmDrawer');
+        const backdrop = document.getElementById('drawerBackdrop');
 
-    // Parcourir tous les tableaux de films
-    document.querySelectorAll('.film-item table').forEach(table => {
-        // Filtrer les en-têtes de colonnes (th) - ignorer la première colonne (Cinéma)
-        const headerCells = table.querySelectorAll('thead th');
-        headerCells.forEach((th, index) => {
-            if (index === 0) {
-                th.style.display = ''; // Toujours afficher la colonne "Cinéma"
-                return;
-            }
+        drawer.classList.remove('drawer-open');
+        backdrop.classList.add('hidden');
+        document.body.classList.remove('drawer-active');
 
-            const cellDayIndex = index - 1; // Ajuster l'index (0 = lundi, 1 = mardi, etc.)
-            if (cellDayIndex === dayIndex) {
-                th.style.display = '';
+        currentDrawerFilmIndex = null;
+    }
+
+    // Gérer le swipe pour fermer le drawer
+    function setupDrawerSwipe() {
+        const drawer = document.getElementById('filmDrawer');
+        const drawerInner = drawer.querySelector('.bg-gray-900');
+
+        drawerInner.addEventListener('touchstart', handleDrawerTouchStart, { passive: true });
+        drawerInner.addEventListener('touchmove', handleDrawerTouchMove, { passive: false });
+        drawerInner.addEventListener('touchend', handleDrawerTouchEnd, { passive: true });
+    }
+
+    function handleDrawerTouchStart(e) {
+        drawerTouchStartY = e.touches[0].clientY;
+        drawerTouchCurrentY = drawerTouchStartY;
+    }
+
+    function handleDrawerTouchMove(e) {
+        const drawerContent = document.getElementById('drawerContent');
+        // Ne pas permettre le swipe si on est en train de scroller dans le contenu
+        if (drawerContent.scrollTop > 0) return;
+
+        drawerTouchCurrentY = e.touches[0].clientY;
+        const deltaY = drawerTouchCurrentY - drawerTouchStartY;
+
+        // Seulement permettre le swipe vers le bas
+        if (deltaY > 0) {
+            e.preventDefault();
+            const drawer = document.getElementById('filmDrawer');
+            drawer.style.transform = `translateY(${deltaY}px)`;
+        }
+    }
+
+    function handleDrawerTouchEnd(e) {
+        const deltaY = drawerTouchCurrentY - drawerTouchStartY;
+        const drawer = document.getElementById('filmDrawer');
+
+        // Si on a swipé assez loin (>100px), fermer le drawer
+        if (deltaY > 100) {
+            closeFilmDrawer();
+        }
+
+        // Reset la position
+        drawer.style.transform = '';
+        drawerTouchStartY = 0;
+        drawerTouchCurrentY = 0;
+    }
+
+    // Fermer le drawer avec la touche Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && currentDrawerFilmIndex !== null) {
+            closeFilmDrawer();
+        }
+    });
+
+    // Toggle panneau de filtres mobile
+    let mobileFiltersOpen = false;
+
+    function toggleMobileFilters() {
+        const panel = document.getElementById('mobileFiltersPanel');
+        const btn = document.getElementById('mobileFilterBtn');
+        mobileFiltersOpen = !mobileFiltersOpen;
+
+        if (mobileFiltersOpen) {
+            panel.classList.remove('hidden');
+            btn.classList.add('bg-indigo-600/50', 'border-indigo-500');
+        } else {
+            panel.classList.add('hidden');
+            btn.classList.remove('bg-indigo-600/50', 'border-indigo-500');
+        }
+    }
+
+    // Synchroniser recherche mobile/desktop
+    function syncSearch(value) {
+        const desktopInput = document.getElementById('searchInput');
+        const mobileInput = document.getElementById('searchInputMobile');
+        const mobileResults = document.getElementById('searchResultsMobile');
+        const desktopResults = document.getElementById('searchResults');
+
+        if (desktopInput) desktopInput.value = value;
+        if (mobileInput) mobileInput.value = value;
+
+        // Appeler la fonction de recherche existante
+        localStorage.setItem('searchTerm', value);
+        const filter = value.toLowerCase().trim();
+        const filmItems = document.querySelectorAll('.film-item');
+        const mobileFilmItems = document.querySelectorAll('.film-mobile-card');
+
+        let visibleCount = 0;
+
+        filmItems.forEach(filmItem => {
+            const filmTitle = (filmItem.dataset.title || '').toLowerCase();
+            if (filter === '' || filmTitle.includes(filter)) {
+                filmItem.style.display = '';
+                visibleCount++;
             } else {
-                th.style.display = 'none';
+                filmItem.style.display = 'none';
             }
         });
 
-        // Filtrer les cellules de chaque ligne de cinéma
-        const cinemaRows = table.querySelectorAll('tbody tr.cinema-row');
-        cinemaRows.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            let hasVisibleShowtimes = false;
+        mobileFilmItems.forEach(filmItem => {
+            const filmTitle = (filmItem.dataset.title || '').toLowerCase();
+            if (filter === '' || filmTitle.includes(filter)) {
+                filmItem.style.display = '';
+            } else {
+                filmItem.style.display = 'none';
+            }
+        });
 
-            cells.forEach((td, index) => {
-                if (index === 0) {
-                    td.style.display = ''; // Toujours afficher la colonne "Cinéma"
+        const resultText = filter === '' ? '' : `${visibleCount} film(s)`;
+        if (mobileResults) mobileResults.textContent = resultText;
+        if (desktopResults) {
+            desktopResults.textContent = resultText;
+            desktopResults.style.color = visibleCount > 0 ? '#4caf50' : '#f44336';
+        }
+    }
+
+    // Synchroniser tri mobile/desktop
+    function syncSort(value) {
+        const desktopSelect = document.getElementById('sortSelect');
+        const mobileSelect = document.getElementById('sortSelectMobile');
+
+        if (desktopSelect) desktopSelect.value = value;
+        if (mobileSelect) mobileSelect.value = value;
+
+        sortFilms(value);
+    }
+
+    // Synchroniser version mobile/desktop
+    function syncVersion(value) {
+        const desktopSelect = document.getElementById('versionSelect');
+        const mobileSelect = document.getElementById('versionSelectMobile');
+
+        if (desktopSelect) desktopSelect.value = value;
+        if (mobileSelect) mobileSelect.value = value;
+
+        filterByVersion(value);
+    }
+
+    // Synchroniser jour mobile/desktop
+    function syncDay(value) {
+        const desktopSelect = document.getElementById('daySelect');
+        const mobileSelect = document.getElementById('daySelectMobile');
+
+        if (desktopSelect) desktopSelect.value = value;
+        if (mobileSelect) mobileSelect.value = value;
+
+        filterByDay(value);
+    }
+
+    // Synchroniser horaires mobile/desktop
+    function syncTimeSlot(value) {
+        const desktopSelect = document.getElementById('timeSlotSelect');
+        const mobileSelect = document.getElementById('timeSlotSelectMobile');
+
+        if (desktopSelect) desktopSelect.value = value;
+        if (mobileSelect) mobileSelect.value = value;
+
+        filterByTimeSlot(value);
+    }
+
+    // Fonction pour remonter en haut avec défilement smooth
+    function scrollToTop() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    // Gérer l'affichage du bouton scroll to top
+    const scrollTopBtn = document.getElementById('scrollTopBtn');
+
+    window.addEventListener('scroll', function () {
+        if (window.scrollY > 300) {
+            scrollTopBtn.classList.remove('opacity-0', 'pointer-events-none');
+            scrollTopBtn.classList.add('opacity-100');
+        } else {
+            scrollTopBtn.classList.add('opacity-0', 'pointer-events-none');
+            scrollTopBtn.classList.remove('opacity-100');
+        }
+    });
+
+    // Variable globale pour suivre la semaine actuelle
+    let currentWeekOffset = {{ week_offset }};
+    let currentMinAge = {{ min_age }};
+    let isLoading = false;
+    let isCompactView = localStorage.getItem('compactView') === 'true';
+
+    // Initialiser les préférences sauvegardées au chargement
+    window.addEventListener('DOMContentLoaded', function () {
+        // Restaurer le filtre d'âge sauvegardé
+        const savedMinAge = localStorage.getItem('minAge');
+        if (savedMinAge !== null) {
+            document.getElementById('ageSelect').value = savedMinAge;
+        }
+
+        // Restaurer le tri sauvegardé
+        const savedSort = localStorage.getItem('sortBy');
+        if (savedSort) {
+            document.getElementById('sortSelect').value = savedSort;
+            sortFilms(savedSort);
+        }
+
+        // Restaurer les cinémas sélectionnés
+        const savedCinemas = localStorage.getItem('selectedCinemas');
+        if (savedCinemas) {
+            const cinemasList = JSON.parse(savedCinemas);
+            document.querySelectorAll('.cinema-checkbox-label input').forEach(checkbox => {
+                checkbox.checked = cinemasList.includes(checkbox.value);
+            });
+            filterByCinema();
+        }
+
+        // Restaurer la vue compacte/étendue
+        if (isCompactView) {
+            applyCompactView();
+        }
+
+        // Restaurer le filtre de version
+        const savedVersion = localStorage.getItem('versionFilter');
+        if (savedVersion) {
+            document.getElementById('versionSelect').value = savedVersion;
+            filterByVersion(savedVersion);
+        }
+
+        // Restaurer le filtre d'horaire
+        const savedTimeSlot = localStorage.getItem('timeSlotFilter');
+        if (savedTimeSlot) {
+            document.getElementById('timeSlotSelect').value = savedTimeSlot;
+            filterByTimeSlot(savedTimeSlot);
+        }
+
+        // Restaurer le filtre de jour
+        const savedDay = localStorage.getItem('selectedDay');
+        if (savedDay) {
+            document.getElementById('daySelect').value = savedDay;
+            filterByDay(savedDay);
+        }
+
+        // Afficher le bouton "Aujourd'hui" si on n'est pas sur la semaine actuelle
+        updateTodayButton();
+    });
+
+    // Fonction pour retourner à la semaine actuelle
+    function goToToday() {
+        if (currentWeekOffset !== 0) {
+            changeWeek(-currentWeekOffset);
+        }
+    }
+
+    // Mettre à jour l'affichage du bouton "Aujourd'hui"
+    function updateTodayButton() {
+        const todayBtn = document.getElementById('todayBtn');
+        if (currentWeekOffset !== 0) {
+            todayBtn.classList.remove('hidden');
+        } else {
+            todayBtn.classList.add('hidden');
+        }
+    }
+
+    // Toggle entre vue compacte et étendue
+    function toggleViewMode() {
+        isCompactView = !isCompactView;
+        localStorage.setItem('compactView', isCompactView);
+
+        if (isCompactView) {
+            applyCompactView();
+        } else {
+            applyExtendedView();
+        }
+    }
+
+    // Appliquer la vue compacte
+    function applyCompactView() {
+        const viewIcon = document.getElementById('viewIcon');
+        const viewModeText = document.getElementById('viewModeText');
+
+        viewModeText.textContent = 'Vue étendue';
+        viewIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>';
+
+        document.querySelectorAll('.film-item').forEach(film => {
+            // Cacher l'image, synopsis et infos détaillées
+            const img = film.querySelector('img');
+            const synopsis = film.querySelector('.line-clamp-3');
+            const filmInfo = film.querySelector('.grid.grid-cols-1');
+            const filmAge = film.querySelector('.inline-flex');
+
+            if (img) img.classList.add('hidden');
+            if (synopsis) synopsis.classList.add('hidden');
+            if (filmInfo) filmInfo.classList.add('hidden');
+            if (filmAge) filmAge.classList.add('hidden');
+
+            // Réduire le padding
+            const header = film.querySelector('.flex.flex-col');
+            if (header) {
+                header.classList.remove('p-4', 'sm:p-6', 'gap-4', 'sm:gap-6');
+                header.classList.add('p-2', 'sm:p-3');
+            }
+        });
+    }
+
+    // Appliquer la vue étendue
+    function applyExtendedView() {
+        const viewIcon = document.getElementById('viewIcon');
+        const viewModeText = document.getElementById('viewModeText');
+
+        viewModeText.textContent = 'Vue compacte';
+        viewIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>';
+
+        document.querySelectorAll('.film-item').forEach(film => {
+            // Réafficher tout
+            const img = film.querySelector('img');
+            const synopsis = film.querySelector('.line-clamp-3');
+            const filmInfo = film.querySelector('.grid.grid-cols-1');
+            const filmAge = film.querySelector('.inline-flex');
+
+            if (img) img.classList.remove('hidden');
+            if (synopsis) synopsis.classList.remove('hidden');
+            if (filmInfo) filmInfo.classList.remove('hidden');
+            if (filmAge) filmAge.classList.remove('hidden');
+
+            // Restaurer le padding
+            const header = film.querySelector('.flex.flex-col');
+            if (header) {
+                header.classList.remove('p-2', 'sm:p-3');
+                header.classList.add('p-4', 'sm:p-6', 'gap-4', 'sm:gap-6');
+            }
+        });
+    }
+
+    // Fonction pour changer le filtre d'âge dynamiquement
+    async function changeAgeFilter(minAge) {
+        if (isLoading) return;
+
+        isLoading = true;
+        currentMinAge = minAge;
+
+        // Sauvegarder le filtre d'âge dans localStorage
+        localStorage.setItem('minAge', minAge);
+
+        try {
+            const container = document.getElementById('filmsContainer');
+            container.style.opacity = '0.5';
+
+            // Récupérer les données via l'API
+            const response = await fetch(`/api/films?week=${currentWeekOffset}&age=${currentMinAge}`);
+            const data = await response.json();
+
+            // Mettre à jour l'URL sans recharger la page
+            const newUrl = currentMinAge > 0 ? `/?week=${currentWeekOffset}&age=${currentMinAge}` : `/?week=${currentWeekOffset}`;
+            window.history.pushState({ week: currentWeekOffset, age: currentMinAge }, '', newUrl);
+
+            // Reconstruire le contenu HTML des films
+            renderFilms(data.films, data.dates);
+
+            // Recharger la watchlist pour colorer les séances déjà ajoutées
+            await loadWatchlist();
+
+            container.style.opacity = '1';
+
+            // Réappliquer les filtres et tri sauvegardés
+            restoreCinemaPreferences();
+
+            const savedSearch = localStorage.getItem('searchTerm');
+            if (savedSearch) {
+                document.getElementById('searchInput').value = savedSearch;
+                searchFilms();
+            }
+
+            const savedSort = localStorage.getItem('sortType');
+            if (savedSort) {
+                sortFilms(savedSort);
+            } else {
+                sortFilms('popularity');
+            }
+
+            // Restaurer le filtre d'horaire
+            const savedTimeSlot = localStorage.getItem('timeSlotFilter');
+            if (savedTimeSlot) {
+                document.getElementById('timeSlotSelect').value = savedTimeSlot;
+                filterByTimeSlot(savedTimeSlot);
+            }
+
+            // Restaurer le filtre de jour
+            const savedDay = localStorage.getItem('selectedDay');
+            if (savedDay) {
+                document.getElementById('daySelect').value = savedDay;
+                filterByDay(savedDay);
+            }
+
+        } catch (error) {
+            console.error('Erreur lors du changement de filtre:', error);
+            alert('Erreur lors du chargement des données');
+            container.style.opacity = '1';
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    // Fonction pour changer de semaine dynamiquement
+    async function changeWeek(offset) {
+        if (isLoading) return;
+
+        isLoading = true;
+        currentWeekOffset += offset;
+
+        try {
+            const container = document.getElementById('filmsContainer');
+            container.style.opacity = '0.5';
+
+            const response = await fetch(`/api/films?week=${currentWeekOffset}&age=${currentMinAge}`);
+            const data = await response.json();
+
+            document.getElementById('weekPeriod').innerHTML = `<span class="hidden sm:inline">📅 </span>${data.week_period}`;
+
+            const newUrl = `/?week=${currentWeekOffset}&age=${currentMinAge}`;
+            window.history.pushState({ week: currentWeekOffset }, '', newUrl);
+
+            renderFilms(data.films, data.dates);
+
+            // Recharger la watchlist pour colorer les séances déjà ajoutées
+            await loadWatchlist();
+
+            // Mettre à jour le bouton "Aujourd'hui"
+            updateTodayButton();
+
+            container.style.opacity = '1';
+
+            restoreCinemaPreferences();
+            restoreDayPreferences();
+
+            const savedSearch = localStorage.getItem('searchTerm');
+            if (savedSearch) {
+                document.getElementById('searchInput').value = savedSearch;
+                searchFilms();
+            }
+
+            const savedSort = localStorage.getItem('sortType');
+            if (savedSort) {
+                sortFilms(savedSort);
+            } else {
+                sortFilms('popularity');
+            }
+
+            // Restaurer le filtre d'horaire
+            const savedTimeSlot = localStorage.getItem('timeSlotFilter');
+            if (savedTimeSlot) {
+                document.getElementById('timeSlotSelect').value = savedTimeSlot;
+                filterByTimeSlot(savedTimeSlot);
+            }
+
+            // Restaurer le filtre de jour
+            const savedDay = localStorage.getItem('selectedDay');
+            if (savedDay) {
+                document.getElementById('daySelect').value = savedDay;
+                filterByDay(savedDay);
+            }
+
+        } catch (error) {
+            console.error('Erreur lors du changement de semaine:', error);
+            alert('Erreur lors du chargement des données');
+            container.style.opacity = '1';
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    // Fonction de recherche de films en temps réel
+    function searchFilms() {
+        const input = document.getElementById('searchInput');
+        const filter = input.value.toLowerCase().trim();
+        const filmItems = document.querySelectorAll('.film-item');
+        const mobileFilmItems = document.querySelectorAll('.film-mobile-card');
+        const resultsText = document.getElementById('searchResults');
+
+        localStorage.setItem('searchTerm', input.value);
+
+        let visibleCount = 0;
+
+        // Filtrer la vue desktop
+        filmItems.forEach(filmItem => {
+            const filmTitle = (filmItem.dataset.title || '').toLowerCase();
+
+            if (filter === '' || filmTitle.includes(filter)) {
+                filmItem.style.display = '';
+                visibleCount++;
+            } else {
+                filmItem.style.display = 'none';
+            }
+        });
+
+        // Filtrer la vue mobile
+        mobileFilmItems.forEach(filmItem => {
+            const filmTitle = (filmItem.dataset.title || '').toLowerCase();
+
+            if (filter === '' || filmTitle.includes(filter)) {
+                filmItem.style.display = '';
+            } else {
+                filmItem.style.display = 'none';
+            }
+        });
+
+        // Afficher le message "aucun résultat" sur mobile si nécessaire
+        const mobileNoResults = document.getElementById('mobileNoResults');
+        if (mobileNoResults) {
+            const visibleMobileFilms = Array.from(mobileFilmItems).filter(f => f.style.display !== 'none');
+            if (visibleMobileFilms.length === 0 && filter !== '') {
+                mobileNoResults.classList.remove('hidden');
+            } else {
+                mobileNoResults.classList.add('hidden');
+            }
+        }
+
+        if (filter === '') {
+            resultsText.textContent = '';
+        } else {
+            resultsText.textContent = `${visibleCount} film(s) trouvé(s)`;
+            resultsText.style.color = visibleCount > 0 ? '#4caf50' : '#f44336';
+        }
+    }
+
+    // Variables globales pour les filtres
+    let currentTimeSlotFilter = 'all';
+
+    // Fonction utilitaire pour vérifier si un horaire est dans une tranche
+    function isInTimeSlot(time, slot) {
+        // Extraire l'heure (format: "14:30" ou "14h30")
+        const hourMatch = time.match(/^(\d{1,2})[h:]?(\d{2})?/);
+        if (!hourMatch) return false;
+
+        const hour = parseInt(hourMatch[1]);
+
+        switch (slot) {
+            case 'morning':
+                return hour < 12;
+            case 'afternoon':
+                return hour >= 12 && hour < 18;
+            case 'evening':
+                return hour >= 18 && hour < 22;
+            case 'night':
+                return hour >= 22;
+            default:
+                return true;
+        }
+    }
+
+    // Fonction centralisée pour appliquer tous les filtres
+    function applyAllFilters() {
+        const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
+        const selectedCinemas = Array.from(checkboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+
+        const versionFilter = currentVersionFilter || 'all';
+        const timeSlotFilter = currentTimeSlotFilter || 'all';
+
+        // Pour chaque film
+        document.querySelectorAll('.film-item').forEach(filmItem => {
+            let hasVisibleRow = false;
+
+            // Pour chaque ligne de cinéma dans ce film
+            filmItem.querySelectorAll('.cinema-row').forEach(row => {
+                const cinemaName = row.dataset.cinema;
+
+                // Vérifier si le cinéma est sélectionné
+                const isCinemaSelected = selectedCinemas.includes(cinemaName);
+
+                if (!isCinemaSelected) {
+                    row.style.display = 'none';
                     return;
                 }
 
-                const cellDayIndex = index - 1;
-                if (cellDayIndex === dayIndex) {
-                    td.style.display = '';
-                    // Vérifier si cette cellule contient des séances
-                    const showtimes = td.querySelectorAll('.showtime-slot');
-                    if (showtimes.length > 0) {
-                        hasVisibleShowtimes = true;
+                // Vérifier les séances selon les filtres de version ET de créneau horaire
+                let hasVisibleShowtime = false;
+                const showtimeSlots = row.querySelectorAll('.showtime-slot');
+
+                showtimeSlots.forEach(slot => {
+                    const slotVersion = slot.dataset.version || '';
+                    const slotTime = slot.dataset.time || '';
+                    let showSlot = true;
+
+                    // Appliquer le filtre de version
+                    if (versionFilter !== 'all') {
+                        if (versionFilter === 'VF' && slotVersion !== 'VF') {
+                            showSlot = false;
+                        } else if (versionFilter === 'VO' && !slotVersion.includes('VO') && !slotVersion.includes('VOST')) {
+                            showSlot = false;
+                        }
                     }
+
+                    // Appliquer le filtre de créneau horaire
+                    if (showSlot && timeSlotFilter !== 'all') {
+                        if (!isInTimeSlot(slotTime, timeSlotFilter)) {
+                            showSlot = false;
+                        }
+                    }
+
+                    // Afficher ou masquer la séance
+                    if (showSlot) {
+                        slot.parentElement.style.display = '';
+                        hasVisibleShowtime = true;
+                    } else {
+                        slot.parentElement.style.display = 'none';
+                    }
+                });
+
+                // Afficher/masquer la ligne selon si elle a des séances visibles
+                if (hasVisibleShowtime) {
+                    row.style.display = '';
+                    hasVisibleRow = true;
                 } else {
-                    td.style.display = 'none';
+                    row.style.display = 'none';
                 }
             });
 
-            // Masquer la ligne si elle n'a pas de séances visibles
-            if (!hasVisibleShowtimes) {
-                row.style.display = 'none';
+            // Afficher/masquer le film selon si au moins une ligne est visible
+            if (hasVisibleRow) {
+                filmItem.style.display = '';
             } else {
-                row.style.display = '';
+                filmItem.style.display = 'none';
             }
         });
-    });
+    }
 
-    // Masquer les films qui n'ont plus de lignes visibles
-    document.querySelectorAll('.film-item').forEach(filmItem => {
-        const visibleRows = filmItem.querySelectorAll('.cinema-row:not([style*="display: none"])');
+    // Fonction de filtre par cinéma
+    function filterByCinema() {
+        const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
+        const selectedCinemas = Array.from(checkboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
 
-        if (visibleRows.length === 0) {
-            filmItem.style.display = 'none';
-        } else {
-            filmItem.style.display = '';
+        localStorage.setItem('selectedCinemas', JSON.stringify(selectedCinemas));
+
+        checkboxes.forEach(checkbox => {
+            const label = checkbox.closest('.cinema-checkbox-label');
+            if (checkbox.checked) {
+                label.classList.add('bg-white/15', 'border-white/30');
+            } else {
+                label.classList.remove('bg-white/15', 'border-white/30');
+            }
+        });
+
+        // Filtrer la vue desktop
+        document.querySelectorAll('.cinema-row').forEach(row => {
+            const cinemaName = row.dataset.cinema;
+            if (selectedCinemas.includes(cinemaName)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        document.querySelectorAll('.film-item').forEach(filmItem => {
+            const visibleRows = filmItem.querySelectorAll('.cinema-row:not([style*="display: none"])');
+
+            if (visibleRows.length === 0) {
+                filmItem.style.display = 'none';
+            } else {
+                filmItem.style.display = '';
+            }
+        });
+
+        // Filtrer la vue mobile (masquer les films sans séances dans les cinémas sélectionnés)
+        document.querySelectorAll('.film-mobile-card').forEach(card => {
+            const filmIndex = parseInt(card.dataset.index);
+            const film = filmsData[filmIndex];
+
+            if (!film || !film.seances_table) {
+                card.style.display = 'none';
+                return;
+            }
+
+            // Vérifier si le film a des séances dans les cinémas sélectionnés
+            const hasShowtimesInSelectedCinemas = Object.keys(film.seances_table).some(cinema =>
+                selectedCinemas.includes(cinema)
+            );
+
+            if (hasShowtimesInSelectedCinemas) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Afficher le message "aucun résultat" sur mobile si nécessaire
+        const mobileNoResults = document.getElementById('mobileNoResults');
+        if (mobileNoResults) {
+            const mobileFilmItems = document.querySelectorAll('.film-mobile-card');
+            const visibleMobileFilms = Array.from(mobileFilmItems).filter(f => f.style.display !== 'none');
+            if (visibleMobileFilms.length === 0) {
+                mobileNoResults.classList.remove('hidden');
+            } else {
+                mobileNoResults.classList.add('hidden');
+            }
         }
-    });
-}
+    }
 
-// Fonction de filtre par créneau horaire
-function filterByTimeSlot(timeSlot) {
-    currentTimeSlotFilter = timeSlot;
-    localStorage.setItem('timeSlotFilter', timeSlot);
-    applyAllFilters();
-}
+    // Fonction pour tout sélectionner/désélectionner
+    function toggleAllCinemas() {
+        const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
 
-// Fonction de filtre par version (VO/VF)
-let currentVersionFilter = 'all';
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = !allChecked;
+        });
 
-function filterByVersion(version) {
-    currentVersionFilter = version;
-    localStorage.setItem('versionFilter', version);
-    applyAllFilters();
-}
+        filterByCinema();
+    }
 
-// Restaurer les préférences de cinéma au chargement
-function restoreCinemaPreferences() {
-    const savedCinemas = localStorage.getItem('selectedCinemas');
+    // Fonction de filtre par jour de la semaine
+    function filterByDay(selectedDay) {
+        // Sauvegarder dans localStorage
+        localStorage.setItem('selectedDay', selectedDay);
 
-    if (savedCinemas) {
-        try {
-            const selectedCinemas = JSON.parse(savedCinemas);
-            const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
+        // Si "tous les jours" est sélectionné, tout afficher
+        if (selectedDay === 'all') {
+            document.querySelectorAll('.film-item table').forEach(table => {
+                // Afficher tous les en-têtes
+                table.querySelectorAll('thead th').forEach(th => {
+                    th.style.display = '';
+                });
 
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = false;
+                // Afficher toutes les cellules
+                table.querySelectorAll('tbody tr.cinema-row').forEach(row => {
+                    row.querySelectorAll('td').forEach(td => {
+                        td.style.display = '';
+                    });
+                    row.style.display = '';
+                });
             });
 
-            checkboxes.forEach(checkbox => {
-                if (selectedCinemas.includes(checkbox.value)) {
-                    checkbox.checked = true;
+            // Afficher tous les films
+            document.querySelectorAll('.film-item').forEach(filmItem => {
+                filmItem.style.display = '';
+            });
+            return;
+        }
+
+        const dayIndex = parseInt(selectedDay);
+
+        // Parcourir tous les tableaux de films
+        document.querySelectorAll('.film-item table').forEach(table => {
+            // Filtrer les en-têtes de colonnes (th) - ignorer la première colonne (Cinéma)
+            const headerCells = table.querySelectorAll('thead th');
+            headerCells.forEach((th, index) => {
+                if (index === 0) {
+                    th.style.display = ''; // Toujours afficher la colonne "Cinéma"
+                    return;
+                }
+
+                const cellDayIndex = index - 1; // Ajuster l'index (0 = lundi, 1 = mardi, etc.)
+                if (cellDayIndex === dayIndex) {
+                    th.style.display = '';
+                } else {
+                    th.style.display = 'none';
                 }
             });
 
-            filterByCinema();
-        } catch (e) {
-            console.error('Erreur lors de la restauration des préférences:', e);
-        }
-    }
-}
+            // Filtrer les cellules de chaque ligne de cinéma
+            const cinemaRows = table.querySelectorAll('tbody tr.cinema-row');
+            cinemaRows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let hasVisibleShowtimes = false;
 
-function restoreDayPreferences() {
-    const savedDay = localStorage.getItem('selectedDay');
+                cells.forEach((td, index) => {
+                    if (index === 0) {
+                        td.style.display = ''; // Toujours afficher la colonne "Cinéma"
+                        return;
+                    }
 
-    if (savedDay) {
-        try {
-            const daySelect = document.getElementById('daySelect');
-            if (daySelect) {
-                daySelect.value = savedDay;
-                filterByDay(savedDay);
+                    const cellDayIndex = index - 1;
+                    if (cellDayIndex === dayIndex) {
+                        td.style.display = '';
+                        // Vérifier si cette cellule contient des séances
+                        const showtimes = td.querySelectorAll('.showtime-slot');
+                        if (showtimes.length > 0) {
+                            hasVisibleShowtimes = true;
+                        }
+                    } else {
+                        td.style.display = 'none';
+                    }
+                });
+
+                // Masquer la ligne si elle n'a pas de séances visibles
+                if (!hasVisibleShowtimes) {
+                    row.style.display = 'none';
+                } else {
+                    row.style.display = '';
+                }
+            });
+        });
+
+        // Masquer les films qui n'ont plus de lignes visibles
+        document.querySelectorAll('.film-item').forEach(filmItem => {
+            const visibleRows = filmItem.querySelectorAll('.cinema-row:not([style*="display: none"])');
+
+            if (visibleRows.length === 0) {
+                filmItem.style.display = 'none';
+            } else {
+                filmItem.style.display = '';
             }
-        } catch (e) {
-            console.error('Erreur lors de la restauration des préférences de jours:', e);
+        });
+    }
+
+    // Fonction de filtre par créneau horaire
+    function filterByTimeSlot(timeSlot) {
+        currentTimeSlotFilter = timeSlot;
+        localStorage.setItem('timeSlotFilter', timeSlot);
+        applyAllFilters();
+    }
+
+    // Fonction de filtre par version (VO/VF)
+    let currentVersionFilter = 'all';
+
+    function filterByVersion(version) {
+        currentVersionFilter = version;
+        localStorage.setItem('versionFilter', version);
+        applyAllFilters();
+    }
+
+    // Restaurer les préférences de cinéma au chargement
+    function restoreCinemaPreferences() {
+        const savedCinemas = localStorage.getItem('selectedCinemas');
+
+        if (savedCinemas) {
+            try {
+                const selectedCinemas = JSON.parse(savedCinemas);
+                const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
+
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+
+                checkboxes.forEach(checkbox => {
+                    if (selectedCinemas.includes(checkbox.value)) {
+                        checkbox.checked = true;
+                    }
+                });
+
+                filterByCinema();
+            } catch (e) {
+                console.error('Erreur lors de la restauration des préférences:', e);
+            }
         }
     }
-}
 
-// Variable pour mémoriser le tri actuel
-let currentSort = 'popularity';
+    function restoreDayPreferences() {
+        const savedDay = localStorage.getItem('selectedDay');
 
-// Fonction de tri des films
-function sortFilms(sortType) {
-    const container = document.getElementById('filmsContainer');
-    const films = Array.from(container.querySelectorAll('.film-item'));
-    
-    // Sauvegarder le tri dans localStorage
-    localStorage.setItem('sortBy', sortType);
-    currentSort = sortType;
-    localStorage.setItem('sortType', sortType);
-    
-    // Mettre à jour la valeur du select
-    document.getElementById('sortSelect').value = sortType;
-    
-    currentSort = sortType;
-    
-    films.sort((a, b) => {
-        switch(sortType) {
-            case 'popularity':
-                return parseInt(b.dataset.popularity) - parseInt(a.dataset.popularity);
-            
-            case 'alphabetical':
-                return a.dataset.title.localeCompare(b.dataset.title);
-            
-            case 'year-desc':
-                return parseInt(b.dataset.year) - parseInt(a.dataset.year);
-            
-            case 'year-asc':
-                return parseInt(a.dataset.year) - parseInt(b.dataset.year);
-            
-            case 'showtimes':
-                return parseInt(b.dataset.showtimes) - parseInt(a.dataset.showtimes);
-            
-            default:
-                return 0;
+        if (savedDay) {
+            try {
+                const daySelect = document.getElementById('daySelect');
+                if (daySelect) {
+                    daySelect.value = savedDay;
+                    filterByDay(savedDay);
+                }
+            } catch (e) {
+                console.error('Erreur lors de la restauration des préférences de jours:', e);
+            }
         }
-    });
-    
-    films.forEach(film => container.appendChild(film));
-    
-    container.style.opacity = '0.7';
-    setTimeout(() => {
-        container.style.opacity = '1';
-    }, 150);
-}
-
-// Fonction pour générer le HTML d'un film
-function renderFilms(films, dates) {
-    const container = document.getElementById('filmsContainer');
-    
-    if (films.length === 0) {
-        container.innerHTML = '<div class="text-center py-16 text-white/60">Aucun film trouvé pour cette semaine</div>';
-        return;
     }
-    
-    container.innerHTML = films.map(film => {
-        const datesHeader = dates.map(date => `
+
+    // Variable pour mémoriser le tri actuel
+    let currentSort = 'popularity';
+
+    // Fonction de tri des films
+    function sortFilms(sortType) {
+        const container = document.getElementById('filmsContainer');
+        const films = Array.from(container.querySelectorAll('.film-item'));
+
+        // Sauvegarder le tri dans localStorage
+        localStorage.setItem('sortBy', sortType);
+        currentSort = sortType;
+        localStorage.setItem('sortType', sortType);
+
+        // Mettre à jour la valeur du select
+        document.getElementById('sortSelect').value = sortType;
+
+        currentSort = sortType;
+
+        // Fonction de comparaison
+        const compareFunc = (a, b) => {
+            switch (sortType) {
+                case 'popularity':
+                    return parseInt(b.dataset.popularity) - parseInt(a.dataset.popularity);
+                case 'alphabetical':
+                    return a.dataset.title.localeCompare(b.dataset.title);
+                case 'year-desc':
+                    return parseInt(b.dataset.year) - parseInt(a.dataset.year);
+                case 'year-asc':
+                    return parseInt(a.dataset.year) - parseInt(b.dataset.year);
+                case 'showtimes':
+                    return parseInt(b.dataset.showtimes) - parseInt(a.dataset.showtimes);
+                default:
+                    return 0;
+            }
+        };
+
+        // Trier la vue desktop
+        films.sort(compareFunc);
+        films.forEach(film => container.appendChild(film));
+
+        // Trier la vue mobile
+        const mobileContainer = document.getElementById('mobileFilmsContainer');
+        if (mobileContainer) {
+            const mobileCarousel = mobileContainer.querySelector('.flex.overflow-x-auto');
+            const mobileFilms = Array.from(mobileCarousel.querySelectorAll('.film-mobile-card'));
+            mobileFilms.sort(compareFunc);
+            mobileFilms.forEach(film => mobileCarousel.appendChild(film));
+        }
+
+        container.style.opacity = '0.7';
+        setTimeout(() => {
+            container.style.opacity = '1';
+        }, 150);
+    }
+
+    // Fonction pour générer le HTML d'un film
+    function renderFilms(films, dates) {
+        // Mettre à jour les données globales pour le drawer mobile
+        filmsData.length = 0;
+        films.forEach(f => filmsData.push(f));
+        datesData.length = 0;
+        dates.forEach(d => datesData.push(d));
+
+        const container = document.getElementById('filmsContainer');
+        const mobileContainer = document.getElementById('mobileFilmsContainer');
+
+        if (films.length === 0) {
+            container.innerHTML = '<div class="text-center py-16 text-white/60">Aucun film trouvé pour cette semaine</div>';
+            if (mobileContainer) {
+                mobileContainer.querySelector('.flex.overflow-x-auto').innerHTML = '';
+                document.getElementById('mobileNoResults').classList.remove('hidden');
+            }
+            return;
+        }
+
+        // Mettre à jour la vue mobile (carousel)
+        if (mobileContainer) {
+            const mobileCarousel = mobileContainer.querySelector('.flex.overflow-x-auto');
+            mobileCarousel.innerHTML = films.map((film, index) => `
+            <div class="film-mobile-card flex-shrink-0 w-28 cursor-pointer snap-start"
+                 onclick="openFilmDrawer(${index})"
+                 data-title="${film.title || ''}"
+                 data-year="${film.releaseYear || 0}"
+                 data-popularity="${film.wantToSee || 0}"
+                 data-showtimes="${film.total_showtimes || 0}"
+                 data-index="${index}">
+                <div class="relative">
+                    <img src="${film.affiche || ''}" alt="${film.title}" class="w-full h-40 object-cover rounded-lg shadow-lg">
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 rounded-b-lg">
+                        <p class="text-xs text-white font-medium truncate">${film.title}</p>
+                        ${film.releaseYear ? `<p class="text-[10px] text-white/60">${film.releaseYear}</p>` : ''}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+            document.getElementById('mobileNoResults').classList.add('hidden');
+        }
+
+        // Vue desktop
+        container.innerHTML = films.map(film => {
+            const datesHeader = dates.map(date => `
             <th class="px-3 py-4 text-center border-r border-white/5">
                 <div class="text-white/50 text-xs font-normal">${date.jour}</div>
                 <div class="text-xl font-bold text-white/90 my-1">${date.chiffre}</div>
                 <div class="text-white/50 text-xs font-normal">${date.mois}</div>
             </th>
         `).join('');
-        
-        let seancesHTML = '';
-        for (const [cinema, days] of Object.entries(film.seances_table || {})) {
-            seancesHTML += `
+
+            let seancesHTML = '';
+            for (const [cinema, days] of Object.entries(film.seances_table || {})) {
+                seancesHTML += `
                 <tr class="cinema-row border-t border-white/5 hover:bg-white/5 transition" data-cinema="${cinema}">
                     <td class="px-4 py-3 text-white/85 font-medium border-r border-white/10 whitespace-nowrap text-sm">
                         ${cinema}
                     </td>`;
-            
-            for (let i = 0; i < 7; i++) {
-                const times = days[i] || [];
-                const dateInfo = dates[i]; // Récupérer la date correspondante
-                
-                if (times.length > 0) {
-                    seancesHTML += `
+
+                for (let i = 0; i < 7; i++) {
+                    const times = days[i] || [];
+                    const dateInfo = dates[i]; // Récupérer la date correspondante
+
+                    if (times.length > 0) {
+                        seancesHTML += `
                         <td class="px-2 py-3 text-center border-r border-white/5">
                             <div class="flex flex-wrap gap-1.5 justify-center">
                                 ${times.map(timeObj => {
-                                    // timeObj peut être soit une string (ancien format) soit un objet {time, version}
-                                    const time = typeof timeObj === 'string' ? timeObj : timeObj.time;
-                                    const version = typeof timeObj === 'object' && timeObj.version ? timeObj.version : '';
-                                    const versionDisplay = version ? ` (${version})` : '';
+                            // timeObj peut être soit une string (ancien format) soit un objet {time, version}
+                            const time = typeof timeObj === 'string' ? timeObj : timeObj.time;
+                            const version = typeof timeObj === 'object' && timeObj.version ? timeObj.version : '';
+                            const versionDisplay = version ? ` (${version})` : '';
 
-                                    // Échapper correctement avec JSON.stringify pour gérer tous les caractères spéciaux
-                                    const filmTitleEscaped = JSON.stringify(film.title);
-                                    const cinemaEscaped = JSON.stringify(cinema);
-                                    const dateEscaped = JSON.stringify(dateInfo.date);
-                                    const timeEscaped = JSON.stringify(time);
-                                    const filmUrlEscaped = JSON.stringify(film.url || '');
-                                    const filmPosterEscaped = JSON.stringify(film.affiche || '');
-                                    const versionEscaped = JSON.stringify(version);
+                            // Échapper correctement avec JSON.stringify pour gérer tous les caractères spéciaux
+                            const filmTitleEscaped = JSON.stringify(film.title);
+                            const cinemaEscaped = JSON.stringify(cinema);
+                            const dateEscaped = JSON.stringify(dateInfo.date);
+                            const timeEscaped = JSON.stringify(time);
+                            const filmUrlEscaped = JSON.stringify(film.url || '');
+                            const filmPosterEscaped = JSON.stringify(film.affiche || '');
+                            const versionEscaped = JSON.stringify(version);
 
-                                    return `<div class="relative inline-block group">
+                            return `<div class="relative inline-block group">
                                         <button
                                             onclick="handleShowtimeClick(${filmTitleEscaped}, ${cinemaEscaped}, ${dateEscaped}, ${timeEscaped}, ${filmUrlEscaped}, ${filmPosterEscaped}, ${versionEscaped})"
                                             data-film="${film.title}"
@@ -1019,20 +1656,20 @@ function renderFilms(films, dates) {
                                             ${version ? `<span class="text-[10px] opacity-70">${version}</span>` : ''}
                                         </button>
                                     </div>`;
-                                }).join('')}
+                        }).join('')}
                             </div>
                         </td>`;
-                } else {
-                    seancesHTML += `<td class="px-2 py-3 text-center border-r border-white/5"><span class="text-white/20 text-sm">—</span></td>`;
+                    } else {
+                        seancesHTML += `<td class="px-2 py-3 text-center border-r border-white/5"><span class="text-white/20 text-sm">—</span></td>`;
+                    }
                 }
+                seancesHTML += '</tr>';
             }
-            seancesHTML += '</tr>';
-        }
-        
-        const filmAge = film.filmAge || '';
-        const releaseYear = film.releaseYear || '';
-        
-        return `
+
+            const filmAge = film.filmAge || '';
+            const releaseYear = film.releaseYear || '';
+
+            return `
             <div class="film-item bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-300" 
                  data-title="${film.title || ''}" 
                  data-year="${releaseYear}"
@@ -1086,277 +1723,276 @@ function renderFilms(films, dates) {
                 </div>
             </div>
         `;
-    }).join('');
-    
-    // Réappliquer la vue compacte si nécessaire
-    if (isCompactView) {
-        setTimeout(() => applyCompactView(), 100);
-    }
-    
-    // Réappliquer le filtre par cinéma
-    filterByCinema();
-}
+        }).join('');
 
-// Gérer le bouton retour du navigateur
-window.addEventListener('popstate', (event) => {
-    if (event.state && event.state.week !== undefined) {
-        const offset = event.state.week - currentWeekOffset;
-        changeWeek(offset);
-    }
-});
-
-// Restaurer les préférences au chargement de la page
-window.addEventListener('load', () => {
-    // Restaurer le filtre d'âge
-    const savedMinAge = localStorage.getItem('minAge');
-    if (savedMinAge !== null) {
-        const minAge = parseInt(savedMinAge);
-        if (minAge !== currentMinAge) {
-            currentMinAge = minAge;
-            document.querySelectorAll('.age-filter').forEach(btn => {
-                btn.classList.remove('bg-white', 'text-gray-900', 'border-white');
-                btn.classList.add('bg-white/5', 'text-white/80', 'border-white/10');
-            });
-            const activeBtn = document.querySelector(`.age-filter[onclick="changeAgeFilter(${minAge})"]`);
-            if (activeBtn) {
-                activeBtn.classList.remove('bg-white/5', 'text-white/80', 'border-white/10');
-                activeBtn.classList.add('bg-white', 'text-gray-900', 'border-white');
-            }
+        // Réappliquer la vue compacte si nécessaire
+        if (isCompactView) {
+            setTimeout(() => applyCompactView(), 100);
         }
-    }
-    
-    // Restaurer les préférences de cinéma
-    restoreCinemaPreferences();
 
-    // Restaurer les préférences de jours
-    restoreDayPreferences();
-
-    // Restaurer la recherche
-    const searchInput = document.getElementById('searchInput');
-    const savedSearch = localStorage.getItem('searchTerm');
-    if (searchInput && savedSearch) {
-        searchInput.value = savedSearch;
-        searchFilms();
-    }
-    
-    // Restaurer le tri
-    const savedSort = localStorage.getItem('sortType');
-    if (savedSort) {
-        sortFilms(savedSort);
-    }
-    
-    // Restaurer le filtre de version
-    const savedVersion = localStorage.getItem('versionFilter');
-    if (savedVersion) {
-        document.getElementById('versionSelect').value = savedVersion;
-        filterByVersion(savedVersion);
+        // Réappliquer le filtre par cinéma
+        filterByCinema();
     }
 
-    // Restaurer le filtre d'horaire
-    const savedTimeSlot = localStorage.getItem('timeSlotFilter');
-    if (savedTimeSlot) {
-        document.getElementById('timeSlotSelect').value = savedTimeSlot;
-        filterByTimeSlot(savedTimeSlot);
-    }
-});
-
-// Fonction pour ajouter une séance au calendrier
-async function addToCalendar(filmTitle, cinema, showtimeDate, showtimeTime, filmUrl, filmPoster, showtimeVersion) {
-    try {
-        const formData = new FormData();
-        formData.append('film_title', filmTitle);
-        formData.append('cinema', cinema);
-        formData.append('showtime_date', showtimeDate);
-        formData.append('showtime_time', showtimeTime);
-        formData.append('film_url', filmUrl || '');
-        formData.append('film_poster', filmPoster || '');
-        formData.append('showtime_version', showtimeVersion || '');
-
-        const response = await fetch('/add-to-calendar', {
-            method: 'POST',
-            body: formData
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            // Afficher une notification de succès
-            showNotification('✅ Ajouté à votre calendrier !', 'success');
-            // Recharger la watchlist pour mettre à jour les couleurs
-            await loadWatchlist();
-        } else {
-            showNotification('⚠️ ' + data.message, 'warning');
-        }
-    } catch (error) {
-        console.error('Erreur:', error);
-        showNotification('❌ Erreur lors de l\'ajout', 'error');
-    }
-}
-
-// Supprimer une séance du calendrier
-async function removeFromCalendar(watchlistId) {
-    try {
-        const response = await fetch(`/remove-from-calendar/${watchlistId}`, {
-            method: 'POST'
-        });
-        
-        if (response.ok) {
-            showNotification('🗑️ Retiré de votre calendrier', 'success');
-            // Recharger la watchlist pour mettre à jour les couleurs
-            await loadWatchlist();
-        } else {
-            showNotification('❌ Erreur lors de la suppression', 'error');
-        }
-    } catch (error) {
-        console.error('Erreur:', error);
-        showNotification('❌ Erreur lors de la suppression', 'error');
-    }
-}
-
-// Watchlist en mémoire pour coloration rapide
-let userWatchlist = [];
-
-// Charger la watchlist de l'utilisateur
-async function loadWatchlist() {
-    {% if current_user.is_authenticated %}
-    try {
-        const response = await fetch('/api/my-watchlist');
-        if (response.ok) {
-            userWatchlist = await response.json();
-            colorizeShowtimes();
-        }
-    } catch (error) {
-        console.error('Erreur chargement watchlist:', error);
-    }
-    {% endif %}
-}
-
-// Colorer les horaires selon s'ils sont dans le calendrier
-function colorizeShowtimes() {
-    document.querySelectorAll('.showtime-slot').forEach(slot => {
-        const filmTitle = slot.dataset.film;
-        const cinema = slot.dataset.cinema;
-        const date = slot.dataset.date;
-        const time = slot.dataset.time;
-        
-        const isInWatchlist = userWatchlist.some(item => 
-            item.film_title === filmTitle &&
-            item.cinema === cinema &&
-            item.showtime_date === date &&
-            item.showtime_time === time
-        );
-        
-        if (isInWatchlist) {
-            // Horaire déjà dans le calendrier → Couleur verte
-            slot.classList.remove('bg-white/15', 'hover:bg-white/25', 'border-white/20');
-            slot.classList.add('bg-green-600/40', 'hover:bg-green-600/60', 'border-green-500/50', 'text-green-100');
-        } else {
-            // Horaire pas dans le calendrier → Couleur normale
-            slot.classList.remove('bg-green-600/40', 'hover:bg-green-600/60', 'border-green-500/50', 'text-green-100');
-            slot.classList.add('bg-white/15', 'hover:bg-white/25', 'border-white/20');
+    // Gérer le bouton retour du navigateur
+    window.addEventListener('popstate', (event) => {
+        if (event.state && event.state.week !== undefined) {
+            const offset = event.state.week - currentWeekOffset;
+            changeWeek(offset);
         }
     });
-}
 
-// Gérer le clic sur un horaire
-async function handleShowtimeClick(filmTitle, cinema, showtimeDate, showtimeTime, filmUrl, filmPoster, showtimeVersion) {
-    {% if current_user.is_authenticated %}
-    // Vérifier si déjà dans le calendrier
-    const existingItem = userWatchlist.find(item =>
-        item.film_title === filmTitle &&
-        item.cinema === cinema &&
-        item.showtime_date === showtimeDate &&
-        item.showtime_time === showtimeTime
-    );
-
-    if (existingItem) {
-        // Supprimer du calendrier
-        if (confirm('🗑️ Retirer cette séance de votre calendrier ?')) {
-            await removeFromCalendar(existingItem.id);
+    // Restaurer les préférences au chargement de la page
+    window.addEventListener('load', () => {
+        // Restaurer le filtre d'âge
+        const savedMinAge = localStorage.getItem('minAge');
+        if (savedMinAge !== null) {
+            const minAge = parseInt(savedMinAge);
+            if (minAge !== currentMinAge) {
+                currentMinAge = minAge;
+                document.querySelectorAll('.age-filter').forEach(btn => {
+                    btn.classList.remove('bg-white', 'text-gray-900', 'border-white');
+                    btn.classList.add('bg-white/5', 'text-white/80', 'border-white/10');
+                });
+                const activeBtn = document.querySelector(`.age-filter[onclick="changeAgeFilter(${minAge})"]`);
+                if (activeBtn) {
+                    activeBtn.classList.remove('bg-white/5', 'text-white/80', 'border-white/10');
+                    activeBtn.classList.add('bg-white', 'text-gray-900', 'border-white');
+                }
+            }
         }
-    } else {
-        // Ajouter au calendrier
-        await addToCalendar(filmTitle, cinema, showtimeDate, showtimeTime, filmUrl, filmPoster, showtimeVersion);
+
+        // Restaurer les préférences de cinéma
+        restoreCinemaPreferences();
+
+        // Restaurer les préférences de jours
+        restoreDayPreferences();
+
+        // Restaurer la recherche
+        const searchInput = document.getElementById('searchInput');
+        const savedSearch = localStorage.getItem('searchTerm');
+        if (searchInput && savedSearch) {
+            searchInput.value = savedSearch;
+            searchFilms();
+        }
+
+        // Restaurer le tri
+        const savedSort = localStorage.getItem('sortType');
+        if (savedSort) {
+            sortFilms(savedSort);
+        }
+
+        // Restaurer le filtre de version
+        const savedVersion = localStorage.getItem('versionFilter');
+        if (savedVersion) {
+            document.getElementById('versionSelect').value = savedVersion;
+            filterByVersion(savedVersion);
+        }
+
+        // Restaurer le filtre d'horaire
+        const savedTimeSlot = localStorage.getItem('timeSlotFilter');
+        if (savedTimeSlot) {
+            document.getElementById('timeSlotSelect').value = savedTimeSlot;
+            filterByTimeSlot(savedTimeSlot);
+        }
+    });
+
+    // Fonction pour ajouter une séance au calendrier
+    async function addToCalendar(filmTitle, cinema, showtimeDate, showtimeTime, filmUrl, filmPoster, showtimeVersion) {
+        try {
+            const formData = new FormData();
+            formData.append('film_title', filmTitle);
+            formData.append('cinema', cinema);
+            formData.append('showtime_date', showtimeDate);
+            formData.append('showtime_time', showtimeTime);
+            formData.append('film_url', filmUrl || '');
+            formData.append('film_poster', filmPoster || '');
+            formData.append('showtime_version', showtimeVersion || '');
+
+            const response = await fetch('/add-to-calendar', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Afficher une notification de succès
+                showNotification('✅ Ajouté à votre calendrier !', 'success');
+                // Recharger la watchlist pour mettre à jour les couleurs
+                await loadWatchlist();
+            } else {
+                showNotification('⚠️ ' + data.message, 'warning');
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            showNotification('❌ Erreur lors de l\'ajout', 'error');
+        }
     }
-    {% else %}
-    showNotification('🔒 Connectez-vous pour ajouter au calendrier', 'info');
-    {% endif %}
-}
 
-// Fonction pour afficher une notification temporaire
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg backdrop-blur-md border transition-all duration-300 ${
-        type === 'success' ? 'bg-green-500/20 border-green-500/30 text-green-100' :
-        type === 'error' ? 'bg-red-500/20 border-red-500/30 text-red-100' :
-        type === 'warning' ? 'bg-yellow-500/20 border-yellow-500/30 text-yellow-100' :
-        'bg-blue-500/20 border-blue-500/30 text-blue-100'
-    }`;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    // Animation d'entrée
-    setTimeout(() => {
-        notification.style.transform = 'translateX(0)';
-    }, 10);
-    
-    // Supprimer après 3 secondes
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateX(100px)';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
+    // Supprimer une séance du calendrier
+    async function removeFromCalendar(watchlistId) {
+        try {
+            const response = await fetch(`/remove-from-calendar/${watchlistId}`, {
+                method: 'POST'
+            });
 
-// Charger la watchlist au démarrage
-document.addEventListener('DOMContentLoaded', () => {
-    loadWatchlist();
-    setupMidnightRefresh();
-});
-
-// Fonction pour détecter le changement de jour et recharger la page
-function setupMidnightRefresh() {
-    // Stocker la date actuelle au chargement de la page
-    let currentDate = new Date().toDateString();
-
-    // Vérifier toutes les 30 secondes si on a changé de jour
-    setInterval(() => {
-        const newDate = new Date().toDateString();
-
-        if (newDate !== currentDate) {
-            console.log('🌙 Minuit passé, rechargement de la page pour la nouvelle journée...');
-
-            // Si on est sur la semaine actuelle (week_offset=0), recharger complètement
-            if (currentWeekOffset === 0) {
-                // Recharger la page pour récupérer les nouvelles données du jour
-                window.location.reload();
+            if (response.ok) {
+                showNotification('🗑️ Retiré de votre calendrier', 'success');
+                // Recharger la watchlist pour mettre à jour les couleurs
+                await loadWatchlist();
+            } else {
+                showNotification('❌ Erreur lors de la suppression', 'error');
             }
-
-            // Mettre à jour la date de référence
-            currentDate = newDate;
+        } catch (error) {
+            console.error('Erreur:', error);
+            showNotification('❌ Erreur lors de la suppression', 'error');
         }
-    }, 30000); // Vérifier toutes les 30 secondes
+    }
 
-    // Vérifier également à la minute exacte de minuit
-    const now = new Date();
-    const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0) - now;
+    // Watchlist en mémoire pour coloration rapide
+    let userWatchlist = [];
 
-    setTimeout(() => {
-        console.log('🌙 Minuit ! Rechargement de la page...');
-        if (currentWeekOffset === 0) {
-            window.location.reload();
+    // Charger la watchlist de l'utilisateur
+    async function loadWatchlist() {
+        {% if current_user.is_authenticated %}
+        try {
+            const response = await fetch('/api/my-watchlist');
+            if (response.ok) {
+                userWatchlist = await response.json();
+                colorizeShowtimes();
+            }
+        } catch (error) {
+            console.error('Erreur chargement watchlist:', error);
         }
+        {% endif %}
+    }
 
-        // Reconfigurer le timer pour le prochain minuit
+    // Colorer les horaires selon s'ils sont dans le calendrier
+    function colorizeShowtimes() {
+        document.querySelectorAll('.showtime-slot').forEach(slot => {
+            const filmTitle = slot.dataset.film;
+            const cinema = slot.dataset.cinema;
+            const date = slot.dataset.date;
+            const time = slot.dataset.time;
+
+            const isInWatchlist = userWatchlist.some(item =>
+                item.film_title === filmTitle &&
+                item.cinema === cinema &&
+                item.showtime_date === date &&
+                item.showtime_time === time
+            );
+
+            if (isInWatchlist) {
+                // Horaire déjà dans le calendrier → Couleur verte
+                slot.classList.remove('bg-white/15', 'hover:bg-white/25', 'border-white/20');
+                slot.classList.add('bg-green-600/40', 'hover:bg-green-600/60', 'border-green-500/50', 'text-green-100');
+            } else {
+                // Horaire pas dans le calendrier → Couleur normale
+                slot.classList.remove('bg-green-600/40', 'hover:bg-green-600/60', 'border-green-500/50', 'text-green-100');
+                slot.classList.add('bg-white/15', 'hover:bg-white/25', 'border-white/20');
+            }
+        });
+    }
+
+    // Gérer le clic sur un horaire
+    async function handleShowtimeClick(filmTitle, cinema, showtimeDate, showtimeTime, filmUrl, filmPoster, showtimeVersion) {
+        {% if current_user.is_authenticated %}
+        // Vérifier si déjà dans le calendrier
+        const existingItem = userWatchlist.find(item =>
+            item.film_title === filmTitle &&
+            item.cinema === cinema &&
+            item.showtime_date === showtimeDate &&
+            item.showtime_time === showtimeTime
+        );
+
+        if (existingItem) {
+            // Supprimer du calendrier
+            if (confirm('🗑️ Retirer cette séance de votre calendrier ?')) {
+                await removeFromCalendar(existingItem.id);
+            }
+        } else {
+            // Ajouter au calendrier
+            await addToCalendar(filmTitle, cinema, showtimeDate, showtimeTime, filmUrl, filmPoster, showtimeVersion);
+        }
+        {% else %}
+        showNotification('🔒 Connectez-vous pour ajouter au calendrier', 'info');
+        {% endif %}
+    }
+
+    // Fonction pour afficher une notification temporaire
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg backdrop-blur-md border transition-all duration-300 ${type === 'success' ? 'bg-green-500/20 border-green-500/30 text-green-100' :
+                type === 'error' ? 'bg-red-500/20 border-red-500/30 text-red-100' :
+                    type === 'warning' ? 'bg-yellow-500/20 border-yellow-500/30 text-yellow-100' :
+                        'bg-blue-500/20 border-blue-500/30 text-blue-100'
+            }`;
+        notification.textContent = message;
+
+        document.body.appendChild(notification);
+
+        // Animation d'entrée
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 10);
+
+        // Supprimer après 3 secondes
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100px)';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // Charger la watchlist au démarrage
+    document.addEventListener('DOMContentLoaded', () => {
+        loadWatchlist();
+        setupMidnightRefresh();
+    });
+
+    // Fonction pour détecter le changement de jour et recharger la page
+    function setupMidnightRefresh() {
+        // Stocker la date actuelle au chargement de la page
+        let currentDate = new Date().toDateString();
+
+        // Vérifier toutes les 30 secondes si on a changé de jour
         setInterval(() => {
+            const newDate = new Date().toDateString();
+
+            if (newDate !== currentDate) {
+                console.log('🌙 Minuit passé, rechargement de la page pour la nouvelle journée...');
+
+                // Si on est sur la semaine actuelle (week_offset=0), recharger complètement
+                if (currentWeekOffset === 0) {
+                    // Recharger la page pour récupérer les nouvelles données du jour
+                    window.location.reload();
+                }
+
+                // Mettre à jour la date de référence
+                currentDate = newDate;
+            }
+        }, 30000); // Vérifier toutes les 30 secondes
+
+        // Vérifier également à la minute exacte de minuit
+        const now = new Date();
+        const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0) - now;
+
+        setTimeout(() => {
+            console.log('🌙 Minuit ! Rechargement de la page...');
             if (currentWeekOffset === 0) {
-                console.log('🌙 Minuit ! Rechargement de la page...');
                 window.location.reload();
             }
-        }, 24 * 60 * 60 * 1000); // Toutes les 24 heures
-    }, msUntilMidnight);
-}
+
+            // Reconfigurer le timer pour le prochain minuit
+            setInterval(() => {
+                if (currentWeekOffset === 0) {
+                    console.log('🌙 Minuit ! Rechargement de la page...');
+                    window.location.reload();
+                }
+            }, 24 * 60 * 60 * 1000); // Toutes les 24 heures
+        }, msUntilMidnight);
+    }
 </script>
 
 {% endblock %}
