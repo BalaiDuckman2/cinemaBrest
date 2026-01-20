@@ -39,12 +39,12 @@
         </div>
     </div>
 
-    <!-- Barre de recherche et filtres compacts (universelle) -->
-    <div class="mb-4">
+    <!-- Barre de recherche et filtres compacts sur mobile -->
+    <div class="md:hidden mb-4">
         <!-- Recherche toujours visible sur mobile -->
         <div class="flex gap-2">
             <div class="flex-1 relative">
-                <input type="text" id="searchInput" oninput="searchFilms()" placeholder="Rechercher..."
+                <input type="text" id="searchInputMobile" oninput="syncSearch(this.value)" placeholder="Rechercher..."
                     class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-400">
                 <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" fill="none"
                     stroke="currentColor" viewBox="0 0 24 24">
@@ -62,14 +62,14 @@
                     class="hidden bg-indigo-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">0</span>
             </button>
         </div>
-        <p id="searchResults" class="text-xs text-white/70 mt-1.5 font-medium"></p>
+        <p id="searchResultsMobile" class="text-xs text-white/70 mt-1.5 font-medium"></p>
     </div>
 
-    <!-- Filtres collapsibles (universels) -->
-    <div id="filtersPanel"
-        class="hidden bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-3 sm:p-4 mb-4 space-y-3">
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
-            <select id="sortSelect" onchange="sortFilms(this.value)"
+    <!-- Filtres collapsibles sur mobile -->
+    <div id="mobileFiltersPanel"
+        class="hidden md:hidden bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-3 mb-4 space-y-3">
+        <div class="grid grid-cols-2 gap-2">
+            <select id="sortSelectMobile" onchange="syncSort(this.value)"
                 class="px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs focus:outline-none">
                 <option value="popularity">Popularité</option>
                 <option value="alphabetical">A→Z</option>
@@ -77,13 +77,13 @@
                 <option value="year-asc">+ Ancien</option>
                 <option value="showtimes">Nb séances</option>
             </select>
-            <select id="versionSelect" onchange="filterByVersion(this.value)"
+            <select id="versionSelectMobile" onchange="syncVersion(this.value)"
                 class="px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs focus:outline-none">
                 <option value="all">Toutes versions</option>
                 <option value="VF">VF</option>
                 <option value="VO">VO/VOST</option>
             </select>
-            <select id="daySelect" onchange="filterByDay(this.value)"
+            <select id="daySelectMobile" onchange="syncDay(this.value)"
                 class="px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs focus:outline-none">
                 <option value="all">Tous les jours</option>
                 <option value="0">Lundi</option>
@@ -94,7 +94,7 @@
                 <option value="5">Samedi</option>
                 <option value="6">Dimanche</option>
             </select>
-            <select id="timeSlotSelect" onchange="filterByTimeSlot(this.value)"
+            <select id="timeSlotSelectMobile" onchange="syncTimeSlot(this.value)"
                 class="px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs focus:outline-none">
                 <option value="all">Tous horaires</option>
                 <option value="morning">Matin</option>
@@ -135,19 +135,143 @@
                     class="w-3 h-3 rounded accent-indigo-500">
                 Galaxy
             </label>
+        </div>
+    </div>
+
+    <!-- Filtres Desktop (inchangés) -->
+    <div
+        class="hidden md:block bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20 rounded-2xl p-6 mb-6 shadow-xl">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-white/90 text-base font-semibold">🎯 Filtres & Recherche</h3>
+            <button onclick="toggleViewMode()"
+                class="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/15 border border-white/20 rounded-lg text-white text-sm font-medium transition">
+                <svg id="viewIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <span id="viewModeText">Vue compacte</span>
+            </button>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+            <div>
+                <label for="sortSelect" class="block text-white/90 text-sm font-semibold mb-2">📊 Trier par</label>
+                <select id="sortSelect" onchange="sortFilms(this.value)"
+                    class="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 transition cursor-pointer hover:bg-white/15">
+                    <option value="popularity" selected>⭐ Popularité</option>
+                    <option value="alphabetical">🔤 Alphabétique (A→Z)</option>
+                    <option value="year-desc">📅 Plus récent</option>
+                    <option value="year-asc">📅 Plus ancien</option>
+                    <option value="showtimes">🎬 Nombre de séances</option>
+                </select>
+            </div>
+            <div>
+                <label for="versionSelect" class="block text-white/90 text-sm font-semibold mb-2">🎬 Version</label>
+                <select id="versionSelect" onchange="filterByVersion(this.value)"
+                    class="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 transition cursor-pointer hover:bg-white/15">
+                    <option value="all" selected>Toutes</option>
+                    <option value="VF">VF uniquement</option>
+                    <option value="VO">VO/VOST uniquement</option>
+                </select>
+            </div>
+            <div>
+                <label for="searchInput" class="block text-white/90 text-sm font-semibold mb-2">🔍 Recherche</label>
+                <input type="text" id="searchInput" oninput="searchFilms()" placeholder="Rechercher un film..."
+                    class="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white text-base font-medium placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition hover:bg-white/15">
+            </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4 mt-4">
+            <div>
+                <label for="ageSelect" class="block text-white/90 text-sm font-semibold mb-2">📅 Films
+                    classiques</label>
+                <select id="ageSelect" onchange="changeAgeFilter(parseInt(this.value))"
+                    class="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 transition cursor-pointer hover:bg-white/15">
+                    <option value="0" {% if min_age==0 %}selected{% endif %}>Tous les films</option>
+                    <option value="1" {% if min_age==1 %}selected{% endif %}>+ 1 an</option>
+                    <option value="5" {% if min_age==5 %}selected{% endif %}>+ 5 ans</option>
+                    <option value="20" {% if min_age==20 %}selected{% endif %}>+ 20 ans</option>
+                </select>
+            </div>
+            <div>
+                <label for="timeSlotSelect" class="block text-white/90 text-sm font-semibold mb-2">🕐 Horaires</label>
+                <select id="timeSlotSelect" onchange="filterByTimeSlot(this.value)"
+                    class="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 transition cursor-pointer hover:bg-white/15">
+                    <option value="all" selected>Tous les horaires</option>
+                    <option value="morning">Matin (avant 12h)</option>
+                    <option value="afternoon">Après-midi (12h-18h)</option>
+                    <option value="evening">Soirée (18h-22h)</option>
+                    <option value="night">Nuit (après 22h)</option>
+                </select>
+            </div>
+            <div>
+                <label for="daySelect" class="block text-white/90 text-sm font-semibold mb-2">📆 Jour</label>
+                <select id="daySelect" onchange="filterByDay(this.value)"
+                    class="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 transition cursor-pointer hover:bg-white/15">
+                    <option value="all" selected>Tous les jours</option>
+                    <option value="0">Lundi</option>
+                    <option value="1">Mardi</option>
+                    <option value="2">Mercredi</option>
+                    <option value="3">Jeudi</option>
+                    <option value="4">Vendredi</option>
+                    <option value="5">Samedi</option>
+                    <option value="6">Dimanche</option>
+                </select>
+            </div>
+        </div>
+        <p id="searchResults" class="text-sm text-white/70 mt-3 font-medium"></p>
+    </div>
+
+    <!-- Filtre par Cinéma -->
+    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-4 sm:p-5 mb-6 sm:mb-8">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <label class="text-white/90 text-xs sm:text-sm font-semibold">🎭 Filtrer par cinéma</label>
+            <button onclick="toggleAllCinemas()"
+                class="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors duration-200">
+                Tout sélectionner/désélectionner
+            </button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
             <label
-                class="cinema-chip flex items-center gap-1 px-2 py-1 bg-white/10 border border-white/20 rounded-full text-[11px] text-white cursor-pointer transition">
+                class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="Les Studios" checked onchange="filterByCinema()"
+                    class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+                <span class="cinema-name text-white/90 font-medium text-xs sm:text-sm">Les Studios</span>
+            </label>
+            <label
+                class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="CGR Brest Le Celtic" checked onchange="filterByCinema()"
+                    class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+                <span class="cinema-name text-white/90 font-medium text-xs sm:text-sm">CGR Brest Le Celtic</span>
+            </label>
+            <label
+                class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="Multiplexe Liberté" checked onchange="filterByCinema()"
+                    class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+                <span class="cinema-name text-white/90 font-medium text-xs sm:text-sm">Multiplexe Liberté</span>
+            </label>
+            <label
+                class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="Pathé Capucins" checked onchange="filterByCinema()"
+                    class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+                <span class="cinema-name text-white/90 font-medium text-xs sm:text-sm">Pathé Capucins</span>
+            </label>
+            <label
+                class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
+                <input type="checkbox" value="Ciné Galaxy" checked onchange="filterByCinema()"
+                    class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+                <span class="cinema-name text-white/90 font-medium text-xs sm:text-sm">Ciné Galaxy</span>
+            </label>
+            <label
+                class="cinema-checkbox-label flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 hover:border-white/20">
                 <input type="checkbox" value="Les Baladins" checked onchange="filterByCinema()"
-                    class="w-3 h-3 rounded accent-indigo-500">
-                Baladins
+                    class="w-4 h-4 sm:w-5 sm:h-5 rounded accent-indigo-500 flex-shrink-0">
+                <span class="cinema-name text-white/90 font-medium text-xs sm:text-sm">Les Baladins</span>
             </label>
         </div>
     </div>
 
 
-    <!-- Vue Grille Responsive (universelle) -->
-    <div id="filmsContainer">
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+    <!-- Vue Mobile (grille 2 colonnes) -->
+    <div id="mobileFilmsContainer" class="md:hidden">
+        <div class="grid grid-cols-2 gap-3">
             {% for film in films %}
             <div class="film-mobile-card cursor-pointer" onclick="openFilmDrawer({{ loop.index0 }})"
                 data-title="{{ film.title }}" data-year="{{ film.releaseYear or 0 }}"
@@ -155,7 +279,7 @@
                 data-index="{{ loop.index0 }}">
                 <div class="relative">
                     <img src="{{ film.affiche }}" alt="{{ film.title }}"
-                        class="w-full h-56 sm:h-64 md:h-72 lg:h-80 object-cover rounded-lg shadow-lg">
+                        class="w-full h-56 object-cover rounded-lg shadow-lg">
                     <div
                         class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 rounded-b-lg">
                         <p class="text-sm text-white font-medium line-clamp-2">{{ film.title }}</p>
@@ -169,14 +293,14 @@
         </div>
 
         <!-- Message si aucun film après filtrage -->
-        <div id="noResults" class="hidden text-center py-8 text-white/60">
+        <div id="mobileNoResults" class="hidden text-center py-8 text-white/60">
             Aucun film ne correspond à vos filtres
         </div>
     </div>
 
-    <!-- Bottom Sheet / Drawer (universel) -->
+    <!-- Bottom Sheet / Drawer pour mobile -->
     <div id="filmDrawer"
-        class="fixed inset-x-0 bottom-0 max-w-4xl mx-auto transform translate-y-full transition-transform duration-300 ease-out z-50">
+        class="fixed inset-x-0 bottom-0 transform translate-y-full transition-transform duration-300 ease-out z-50 md:hidden">
         <div class="bg-gray-900 rounded-t-2xl max-h-[85vh] overflow-hidden shadow-2xl border-t border-white/10">
             <!-- Handle bar et bouton fermer -->
             <div class="sticky top-0 bg-gray-900 pt-3 pb-2 z-10 flex items-center justify-between px-4">
@@ -199,7 +323,120 @@
     </div>
 
     <!-- Backdrop pour le drawer -->
-    <div id="drawerBackdrop" class="fixed inset-0 bg-black/60 z-40 hidden" onclick="closeFilmDrawer()"></div>
+    <div id="drawerBackdrop" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden" onclick="closeFilmDrawer()"></div>
+
+    <!-- Liste des films (Desktop) -->
+    <div id="filmsContainer" class="hidden md:block space-y-4 sm:space-y-8 transition-opacity duration-200">
+        {% for film in films %}
+        <div class="film-item bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-300"
+            data-title="{{ film.title }}" data-year="{{ film.releaseYear or 0 }}"
+            data-popularity="{{ film.wantToSee or 0 }}" data-showtimes="{{ film.total_showtimes or 0 }}">
+
+            <!-- En-tête du film -->
+            <div class="flex flex-col md:flex-row gap-4 sm:gap-6 p-4 sm:p-6">
+                <img src="{{ film.affiche }}" alt="{{ film.title }}"
+                    class="w-full md:w-48 h-auto rounded-lg sm:rounded-xl shadow-lg object-cover">
+
+                <div class="flex-1 space-y-3 sm:space-y-4">
+                    <div>
+                        <h3 class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
+                            <a href="{{ film.url }}" target="_blank" rel="noopener noreferrer"
+                                class="hover:text-indigo-400 transition inline-flex items-center gap-2">
+                                {{ film.title }}
+                                <svg class="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+                            {% if film.releaseYear %}
+                            <span class="text-sm sm:text-base text-white/40 font-normal ml-2">({{ film.releaseYear
+                                }})</span>
+                            {% endif %}
+                        </h3>
+                        {% if film.releaseYear and film.filmAge %}
+                        <span
+                            class="inline-flex items-center gap-1.5 sm:gap-2 bg-white/10 text-white/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium border border-white/10">
+                            <span class="opacity-60">📅</span> Il y a {{ film.filmAge }} ans
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
+                        <p class="text-white/70"><span class="font-semibold text-white/90">Réalisateur:</span> {{
+                            film.director }}</p>
+                        <p class="text-white/70"><span class="font-semibold text-white/90">Durée:</span> {{ film.duree
+                            }}</p>
+                        <p class="text-white/70 sm:col-span-2"><span class="font-semibold text-white/90">Genre:</span>
+                            {{ film.genres }}</p>
+                        <p class="text-white/70 sm:col-span-2"><span class="font-semibold text-white/90">Casting:</span>
+                            {{ film.casting }}</p>
+                    </div>
+
+                    {% if film.synopsis %}
+                    <p class="text-white/60 text-xs sm:text-sm leading-relaxed line-clamp-3">{{ film.synopsis }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tableau des séances -->
+            <div class="overflow-x-auto -mx-4 sm:mx-0">
+                <table class="w-full border-collapse min-w-max">
+                    <thead>
+                        <tr class="bg-white/5">
+                            <th
+                                class="px-2 sm:px-4 py-3 sm:py-4 text-left text-white/90 font-semibold border-r border-white/10 text-xs sm:text-sm sticky left-0 bg-gray-900/90 backdrop-blur-sm z-10">
+                                Cinéma</th>
+                            {% for date in dates %}
+                            <th
+                                class="px-2 sm:px-3 py-3 sm:py-4 text-center border-r border-white/5 min-w-[80px] sm:min-w-[100px]">
+                                <div class="text-white/50 text-[10px] sm:text-xs font-normal">{{ date.jour }}</div>
+                                <div class="text-lg sm:text-xl font-bold text-white/90 my-0.5 sm:my-1">{{ date.chiffre
+                                    }}</div>
+                                <div class="text-white/50 text-[10px] sm:text-xs font-normal">{{ date.mois }}</div>
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cinema_name, days_data in film.seances_table.items() %}
+                        <tr class="cinema-row border-t border-white/5 hover:bg-white/5 transition"
+                            data-cinema="{{ cinema_name }}">
+                            <td
+                                class="px-2 sm:px-4 py-2 sm:py-3 text-white/85 font-medium border-r border-white/10 text-xs sm:text-sm sticky left-0 bg-gray-900/90 backdrop-blur-sm z-10">
+                                {{ cinema_name }}
+                            </td>
+                            {% for date in dates %}
+                            <td class="px-1 sm:px-2 py-2 sm:py-3 text-center border-r border-white/5">
+                                {% if date.index in days_data %}
+                                <div class="flex flex-wrap gap-1 sm:gap-1.5 justify-center">
+                                    {% for showtime in days_data[date.index] %}
+                                    <div class="relative inline-block group">
+                                        <button
+                                            onclick="handleShowtimeClick({{ film.title|tojson }}, {{ cinema_name|tojson }}, {{ date.date|tojson }}, {{ showtime.time|tojson }}, {{ film.url|tojson }}, {{ film.affiche|tojson }}, {{ showtime.version|tojson }})"
+                                            data-film="{{ film.title }}" data-cinema="{{ cinema_name }}"
+                                            data-date="{{ date.date }}" data-time="{{ showtime.time }}"
+                                            data-version="{{ showtime.version }}"
+                                            class="showtime-slot bg-white/15 hover:bg-white/25 text-white px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium border border-white/20 whitespace-nowrap transition cursor-pointer flex flex-col items-center gap-0.5">
+                                            <span class="font-semibold">{{ showtime.time }}</span>
+                                            <span class="text-[8px] sm:text-[10px] opacity-70">{{ showtime.version
+                                                }}</span>
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <span class="text-white/20 text-xs sm:text-sm">—</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 
 </div>
 
@@ -244,18 +481,6 @@
     /* Empêcher le scroll du body quand le drawer est ouvert */
     body.drawer-active {
         overflow: hidden;
-    }
-
-    /* Effet hover pour les cartes de films sur desktop */
-    @media (min-width: 768px) {
-        .film-mobile-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .film-mobile-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-        }
     }
 </style>
 
@@ -476,7 +701,7 @@
     let mobileFiltersOpen = false;
 
     function toggleMobileFilters() {
-        const panel = document.getElementById('filtersPanel');
+        const panel = document.getElementById('mobileFiltersPanel');
         const btn = document.getElementById('mobileFilterBtn');
         mobileFiltersOpen = !mobileFiltersOpen;
 
@@ -489,45 +714,101 @@
         }
     }
 
+    // Synchroniser recherche mobile/desktop
+    function syncSearch(value) {
+        const desktopInput = document.getElementById('searchInput');
+        const mobileInput = document.getElementById('searchInputMobile');
+        const mobileResults = document.getElementById('searchResultsMobile');
+        const desktopResults = document.getElementById('searchResults');
+
+        if (desktopInput) desktopInput.value = value;
+        if (mobileInput) mobileInput.value = value;
+
+        // Appeler la fonction de recherche existante
+        localStorage.setItem('searchTerm', value);
+        const filter = value.toLowerCase().trim();
+        const filmItems = document.querySelectorAll('.film-item');
+        const mobileFilmItems = document.querySelectorAll('.film-mobile-card');
+
+        let visibleCount = 0;
+
+        filmItems.forEach(filmItem => {
+            const filmTitle = (filmItem.dataset.title || '').toLowerCase();
+            if (filter === '' || filmTitle.includes(filter)) {
+                filmItem.style.display = '';
+                visibleCount++;
+            } else {
+                filmItem.style.display = 'none';
+            }
+        });
+
+        mobileFilmItems.forEach(filmItem => {
+            const filmTitle = (filmItem.dataset.title || '').toLowerCase();
+            if (filter === '' || filmTitle.includes(filter)) {
+                filmItem.style.display = '';
+            } else {
+                filmItem.style.display = 'none';
+            }
+        });
+
+        const resultText = filter === '' ? '' : `${visibleCount} film(s)`;
+        if (mobileResults) mobileResults.textContent = resultText;
+        if (desktopResults) {
+            desktopResults.textContent = resultText;
+            desktopResults.style.color = visibleCount > 0 ? '#4caf50' : '#f44336';
+        }
+    }
+
+    // Synchroniser tri mobile/desktop
+    function syncSort(value) {
+        const desktopSelect = document.getElementById('sortSelect');
+        const mobileSelect = document.getElementById('sortSelectMobile');
+
+        if (desktopSelect) desktopSelect.value = value;
+        if (mobileSelect) mobileSelect.value = value;
+
+        sortFilms(value);
+    }
+
+    // Synchroniser version mobile/desktop
+    function syncVersion(value) {
+        const desktopSelect = document.getElementById('versionSelect');
+        const mobileSelect = document.getElementById('versionSelectMobile');
+
+        if (desktopSelect) desktopSelect.value = value;
+        if (mobileSelect) mobileSelect.value = value;
+
+        filterByVersion(value);
+    }
+
+    // Synchroniser jour mobile/desktop
+    function syncDay(value) {
+        const desktopSelect = document.getElementById('daySelect');
+        const mobileSelect = document.getElementById('daySelectMobile');
+
+        if (desktopSelect) desktopSelect.value = value;
+        if (mobileSelect) mobileSelect.value = value;
+
+        filterByDay(value);
+    }
+
+    // Synchroniser horaires mobile/desktop
+    function syncTimeSlot(value) {
+        const desktopSelect = document.getElementById('timeSlotSelect');
+        const mobileSelect = document.getElementById('timeSlotSelectMobile');
+
+        if (desktopSelect) desktopSelect.value = value;
+        if (mobileSelect) mobileSelect.value = value;
+
+        filterByTimeSlot(value);
+    }
+
     // Fonction pour remonter en haut avec défilement smooth
     function scrollToTop() {
         window.scrollTo({
             top: 0,
             behavior: 'smooth'
         });
-    }
-
-    // Fonction pour mettre à jour le badge de compteur de filtres
-    function updateFilterBadge() {
-        const badge = document.getElementById('filterBadge');
-        if (!badge) return;
-
-        let count = 0;
-
-        // Vérifier le filtre de version
-        const versionSelect = document.getElementById('versionSelect');
-        if (versionSelect && versionSelect.value !== 'all') count++;
-
-        // Vérifier le filtre de créneau horaire
-        const timeSlotSelect = document.getElementById('timeSlotSelect');
-        if (timeSlotSelect && timeSlotSelect.value !== 'all') count++;
-
-        // Vérifier le filtre de jour
-        const daySelect = document.getElementById('daySelect');
-        if (daySelect && daySelect.value !== 'all') count++;
-
-        // Vérifier le filtre de cinéma
-        const checkboxes = document.querySelectorAll('.cinema-chip input, .cinema-chip input');
-        const uncheckedCount = Array.from(checkboxes).filter(cb => !cb.checked).length;
-        if (uncheckedCount > 0) count++;
-
-        // Afficher ou cacher le badge
-        if (count > 0) {
-            badge.textContent = count;
-            badge.classList.remove('hidden');
-        } else {
-            badge.classList.add('hidden');
-        }
     }
 
     // Gérer l'affichage du bouton scroll to top
@@ -547,6 +828,7 @@
     let currentWeekOffset = {{ week_offset }};
     let currentMinAge = {{ min_age }};
     let isLoading = false;
+    let isCompactView = localStorage.getItem('compactView') === 'true';
 
     // Initialiser les préférences sauvegardées au chargement
     window.addEventListener('DOMContentLoaded', function () {
@@ -567,10 +849,15 @@
         const savedCinemas = localStorage.getItem('selectedCinemas');
         if (savedCinemas) {
             const cinemasList = JSON.parse(savedCinemas);
-            document.querySelectorAll('.cinema-chip input').forEach(checkbox => {
+            document.querySelectorAll('.cinema-checkbox-label input').forEach(checkbox => {
                 checkbox.checked = cinemasList.includes(checkbox.value);
             });
             filterByCinema();
+        }
+
+        // Restaurer la vue compacte/étendue
+        if (isCompactView) {
+            applyCompactView();
         }
 
         // Restaurer le filtre de version
@@ -613,6 +900,76 @@
         } else {
             todayBtn.classList.add('hidden');
         }
+    }
+
+    // Toggle entre vue compacte et étendue
+    function toggleViewMode() {
+        isCompactView = !isCompactView;
+        localStorage.setItem('compactView', isCompactView);
+
+        if (isCompactView) {
+            applyCompactView();
+        } else {
+            applyExtendedView();
+        }
+    }
+
+    // Appliquer la vue compacte
+    function applyCompactView() {
+        const viewIcon = document.getElementById('viewIcon');
+        const viewModeText = document.getElementById('viewModeText');
+
+        viewModeText.textContent = 'Vue étendue';
+        viewIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>';
+
+        document.querySelectorAll('.film-item').forEach(film => {
+            // Cacher l'image, synopsis et infos détaillées
+            const img = film.querySelector('img');
+            const synopsis = film.querySelector('.line-clamp-3');
+            const filmInfo = film.querySelector('.grid.grid-cols-1');
+            const filmAge = film.querySelector('.inline-flex');
+
+            if (img) img.classList.add('hidden');
+            if (synopsis) synopsis.classList.add('hidden');
+            if (filmInfo) filmInfo.classList.add('hidden');
+            if (filmAge) filmAge.classList.add('hidden');
+
+            // Réduire le padding
+            const header = film.querySelector('.flex.flex-col');
+            if (header) {
+                header.classList.remove('p-4', 'sm:p-6', 'gap-4', 'sm:gap-6');
+                header.classList.add('p-2', 'sm:p-3');
+            }
+        });
+    }
+
+    // Appliquer la vue étendue
+    function applyExtendedView() {
+        const viewIcon = document.getElementById('viewIcon');
+        const viewModeText = document.getElementById('viewModeText');
+
+        viewModeText.textContent = 'Vue compacte';
+        viewIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>';
+
+        document.querySelectorAll('.film-item').forEach(film => {
+            // Réafficher tout
+            const img = film.querySelector('img');
+            const synopsis = film.querySelector('.line-clamp-3');
+            const filmInfo = film.querySelector('.grid.grid-cols-1');
+            const filmAge = film.querySelector('.inline-flex');
+
+            if (img) img.classList.remove('hidden');
+            if (synopsis) synopsis.classList.remove('hidden');
+            if (filmInfo) filmInfo.classList.remove('hidden');
+            if (filmAge) filmAge.classList.remove('hidden');
+
+            // Restaurer le padding
+            const header = film.querySelector('.flex.flex-col');
+            if (header) {
+                header.classList.remove('p-2', 'sm:p-3');
+                header.classList.add('p-4', 'sm:p-6', 'gap-4', 'sm:gap-6');
+            }
+        });
     }
 
     // Fonction pour changer le filtre d'âge dynamiquement
@@ -756,15 +1113,16 @@
     function searchFilms() {
         const input = document.getElementById('searchInput');
         const filter = input.value.toLowerCase().trim();
-        const filmCards = document.querySelectorAll('.film-mobile-card');
+        const filmItems = document.querySelectorAll('.film-item');
+        const mobileFilmItems = document.querySelectorAll('.film-mobile-card');
         const resultsText = document.getElementById('searchResults');
 
         localStorage.setItem('searchTerm', input.value);
 
         let visibleCount = 0;
 
-        // Filtrer les cartes de films
-        filmCards.forEach(filmItem => {
+        // Filtrer la vue desktop
+        filmItems.forEach(filmItem => {
             const filmTitle = (filmItem.dataset.title || '').toLowerCase();
 
             if (filter === '' || filmTitle.includes(filter)) {
@@ -775,13 +1133,25 @@
             }
         });
 
-        // Afficher le message "aucun résultat" si nécessaire
-        const noResults = document.getElementById('noResults');
-        if (noResults) {
-            if (visibleCount === 0 && filter !== '') {
-                noResults.classList.remove('hidden');
+        // Filtrer la vue mobile
+        mobileFilmItems.forEach(filmItem => {
+            const filmTitle = (filmItem.dataset.title || '').toLowerCase();
+
+            if (filter === '' || filmTitle.includes(filter)) {
+                filmItem.style.display = '';
             } else {
-                noResults.classList.add('hidden');
+                filmItem.style.display = 'none';
+            }
+        });
+
+        // Afficher le message "aucun résultat" sur mobile si nécessaire
+        const mobileNoResults = document.getElementById('mobileNoResults');
+        if (mobileNoResults) {
+            const visibleMobileFilms = Array.from(mobileFilmItems).filter(f => f.style.display !== 'none');
+            if (visibleMobileFilms.length === 0 && filter !== '') {
+                mobileNoResults.classList.remove('hidden');
+            } else {
+                mobileNoResults.classList.add('hidden');
             }
         }
 
@@ -820,7 +1190,7 @@
 
     // Fonction centralisée pour appliquer tous les filtres
     function applyAllFilters() {
-        const checkboxes = document.querySelectorAll('.cinema-chip input[type="checkbox"]');
+        const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
         const selectedCinemas = Array.from(checkboxes)
             .filter(cb => cb.checked)
             .map(cb => cb.value);
@@ -898,7 +1268,7 @@
 
     // Fonction de filtre par cinéma
     function filterByCinema() {
-        const checkboxes = document.querySelectorAll('.cinema-chip input[type="checkbox"]');
+        const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
         const selectedCinemas = Array.from(checkboxes)
             .filter(cb => cb.checked)
             .map(cb => cb.value);
@@ -906,7 +1276,7 @@
         localStorage.setItem('selectedCinemas', JSON.stringify(selectedCinemas));
 
         checkboxes.forEach(checkbox => {
-            const label = checkbox.closest('.cinema-chip');
+            const label = checkbox.closest('.cinema-checkbox-label');
             if (checkbox.checked) {
                 label.classList.add('bg-white/15', 'border-white/30');
             } else {
@@ -914,7 +1284,27 @@
             }
         });
 
-        // Filtrer les cartes de films (masquer les films sans séances dans les cinémas sélectionnés)
+        // Filtrer la vue desktop
+        document.querySelectorAll('.cinema-row').forEach(row => {
+            const cinemaName = row.dataset.cinema;
+            if (selectedCinemas.includes(cinemaName)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        document.querySelectorAll('.film-item').forEach(filmItem => {
+            const visibleRows = filmItem.querySelectorAll('.cinema-row:not([style*="display: none"])');
+
+            if (visibleRows.length === 0) {
+                filmItem.style.display = 'none';
+            } else {
+                filmItem.style.display = '';
+            }
+        });
+
+        // Filtrer la vue mobile (masquer les films sans séances dans les cinémas sélectionnés)
         document.querySelectorAll('.film-mobile-card').forEach(card => {
             const filmIndex = parseInt(card.dataset.index);
             const film = filmsData[filmIndex];
@@ -936,24 +1326,22 @@
             }
         });
 
-        // Afficher le message "aucun résultat" si nécessaire
-        const noResults = document.getElementById('noResults');
-        if (noResults) {
-            const filmCards = document.querySelectorAll('.film-mobile-card');
-            const visibleFilms = Array.from(filmCards).filter(f => f.style.display !== 'none');
-            if (visibleFilms.length === 0) {
-                noResults.classList.remove('hidden');
+        // Afficher le message "aucun résultat" sur mobile si nécessaire
+        const mobileNoResults = document.getElementById('mobileNoResults');
+        if (mobileNoResults) {
+            const mobileFilmItems = document.querySelectorAll('.film-mobile-card');
+            const visibleMobileFilms = Array.from(mobileFilmItems).filter(f => f.style.display !== 'none');
+            if (visibleMobileFilms.length === 0) {
+                mobileNoResults.classList.remove('hidden');
             } else {
-                noResults.classList.add('hidden');
+                mobileNoResults.classList.add('hidden');
             }
         }
-
-        updateFilterBadge();
     }
 
     // Fonction pour tout sélectionner/désélectionner
     function toggleAllCinemas() {
-        const checkboxes = document.querySelectorAll('.cinema-chip input[type="checkbox"]');
+        const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
         const allChecked = Array.from(checkboxes).every(cb => cb.checked);
 
         checkboxes.forEach(checkbox => {
@@ -965,9 +1353,97 @@
 
     // Fonction de filtre par jour de la semaine
     function filterByDay(selectedDay) {
-        // Sauvegarder dans localStorage (utilisé par le drawer)
+        // Sauvegarder dans localStorage
         localStorage.setItem('selectedDay', selectedDay);
-        updateFilterBadge();
+
+        // Si "tous les jours" est sélectionné, tout afficher
+        if (selectedDay === 'all') {
+            document.querySelectorAll('.film-item table').forEach(table => {
+                // Afficher tous les en-têtes
+                table.querySelectorAll('thead th').forEach(th => {
+                    th.style.display = '';
+                });
+
+                // Afficher toutes les cellules
+                table.querySelectorAll('tbody tr.cinema-row').forEach(row => {
+                    row.querySelectorAll('td').forEach(td => {
+                        td.style.display = '';
+                    });
+                    row.style.display = '';
+                });
+            });
+
+            // Afficher tous les films
+            document.querySelectorAll('.film-item').forEach(filmItem => {
+                filmItem.style.display = '';
+            });
+            return;
+        }
+
+        const dayIndex = parseInt(selectedDay);
+
+        // Parcourir tous les tableaux de films
+        document.querySelectorAll('.film-item table').forEach(table => {
+            // Filtrer les en-têtes de colonnes (th) - ignorer la première colonne (Cinéma)
+            const headerCells = table.querySelectorAll('thead th');
+            headerCells.forEach((th, index) => {
+                if (index === 0) {
+                    th.style.display = ''; // Toujours afficher la colonne "Cinéma"
+                    return;
+                }
+
+                const cellDayIndex = index - 1; // Ajuster l'index (0 = lundi, 1 = mardi, etc.)
+                if (cellDayIndex === dayIndex) {
+                    th.style.display = '';
+                } else {
+                    th.style.display = 'none';
+                }
+            });
+
+            // Filtrer les cellules de chaque ligne de cinéma
+            const cinemaRows = table.querySelectorAll('tbody tr.cinema-row');
+            cinemaRows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let hasVisibleShowtimes = false;
+
+                cells.forEach((td, index) => {
+                    if (index === 0) {
+                        td.style.display = ''; // Toujours afficher la colonne "Cinéma"
+                        return;
+                    }
+
+                    const cellDayIndex = index - 1;
+                    if (cellDayIndex === dayIndex) {
+                        td.style.display = '';
+                        // Vérifier si cette cellule contient des séances
+                        const showtimes = td.querySelectorAll('.showtime-slot');
+                        if (showtimes.length > 0) {
+                            hasVisibleShowtimes = true;
+                        }
+                    } else {
+                        td.style.display = 'none';
+                    }
+                });
+
+                // Masquer la ligne si elle n'a pas de séances visibles
+                if (!hasVisibleShowtimes) {
+                    row.style.display = 'none';
+                } else {
+                    row.style.display = '';
+                }
+            });
+        });
+
+        // Masquer les films qui n'ont plus de lignes visibles
+        document.querySelectorAll('.film-item').forEach(filmItem => {
+            const visibleRows = filmItem.querySelectorAll('.cinema-row:not([style*="display: none"])');
+
+            if (visibleRows.length === 0) {
+                filmItem.style.display = 'none';
+            } else {
+                filmItem.style.display = '';
+            }
+        });
     }
 
     // Fonction de filtre par créneau horaire
@@ -975,7 +1451,6 @@
         currentTimeSlotFilter = timeSlot;
         localStorage.setItem('timeSlotFilter', timeSlot);
         applyAllFilters();
-        updateFilterBadge();
     }
 
     // Fonction de filtre par version (VO/VF)
@@ -985,7 +1460,6 @@
         currentVersionFilter = version;
         localStorage.setItem('versionFilter', version);
         applyAllFilters();
-        updateFilterBadge();
     }
 
     // Restaurer les préférences de cinéma au chargement
@@ -995,7 +1469,7 @@
         if (savedCinemas) {
             try {
                 const selectedCinemas = JSON.parse(savedCinemas);
-                const checkboxes = document.querySelectorAll('.cinema-chip input[type="checkbox"]');
+                const checkboxes = document.querySelectorAll('.cinema-checkbox-label input[type="checkbox"]');
 
                 checkboxes.forEach(checkbox => {
                     checkbox.checked = false;
@@ -1036,21 +1510,17 @@
     // Fonction de tri des films
     function sortFilms(sortType) {
         const container = document.getElementById('filmsContainer');
-        if (!container) return;
-
-        const gridContainer = container.querySelector('.grid');
-        if (!gridContainer) return;
-
-        const filmCards = Array.from(gridContainer.querySelectorAll('.film-mobile-card'));
+        const films = Array.from(container.querySelectorAll('.film-item'));
 
         // Sauvegarder le tri dans localStorage
         localStorage.setItem('sortBy', sortType);
-        localStorage.setItem('sortType', sortType);
         currentSort = sortType;
+        localStorage.setItem('sortType', sortType);
 
         // Mettre à jour la valeur du select
-        const sortSelect = document.getElementById('sortSelect');
-        if (sortSelect) sortSelect.value = sortType;
+        document.getElementById('sortSelect').value = sortType;
+
+        currentSort = sortType;
 
         // Fonction de comparaison
         const compareFunc = (a, b) => {
@@ -1070,65 +1540,199 @@
             }
         };
 
-        // Trier les cartes de films
-        filmCards.sort(compareFunc);
-        filmCards.forEach(film => gridContainer.appendChild(film));
+        // Trier la vue desktop
+        films.sort(compareFunc);
+        films.forEach(film => container.appendChild(film));
 
-        // Animation de transition
-        gridContainer.style.opacity = '0.7';
+        // Trier la vue mobile
+        const mobileContainer = document.getElementById('mobileFilmsContainer');
+        if (mobileContainer) {
+            const mobileCarousel = mobileContainer.querySelector('.flex.overflow-x-auto');
+            const mobileFilms = Array.from(mobileCarousel.querySelectorAll('.film-mobile-card'));
+            mobileFilms.sort(compareFunc);
+            mobileFilms.forEach(film => mobileCarousel.appendChild(film));
+        }
+
+        container.style.opacity = '0.7';
         setTimeout(() => {
-            gridContainer.style.opacity = '1';
+            container.style.opacity = '1';
         }, 150);
     }
 
     // Fonction pour générer le HTML d'un film
-    // Fonction pour générer le HTML d'un film
     function renderFilms(films, dates) {
-        // Mettre à jour les données globales pour le drawer
+        // Mettre à jour les données globales pour le drawer mobile
         filmsData.length = 0;
         films.forEach(f => filmsData.push(f));
         datesData.length = 0;
         dates.forEach(d => datesData.push(d));
 
         const container = document.getElementById('filmsContainer');
-        if (!container) return;
-
-        const gridContainer = container.querySelector('.grid');
-        if (!gridContainer) return;
+        const mobileContainer = document.getElementById('mobileFilmsContainer');
 
         if (films.length === 0) {
-            gridContainer.innerHTML = '';
-            const noResults = document.getElementById('noResults');
-            if (noResults) noResults.classList.remove('hidden');
+            container.innerHTML = '<div class="text-center py-16 text-white/60">Aucun film trouvé pour cette semaine</div>';
+            if (mobileContainer) {
+                mobileContainer.querySelector('.flex.overflow-x-auto').innerHTML = '';
+                document.getElementById('mobileNoResults').classList.remove('hidden');
+            }
             return;
         }
 
-        // Générer les cartes de films
-        gridContainer.innerHTML = films.map((film, index) => `
-            <div class="film-mobile-card cursor-pointer" onclick="openFilmDrawer(${index})"
-                data-title="${film.title || ''}"
-                data-year="${film.releaseYear || 0}"
-                data-popularity="${film.wantToSee || 0}"
-                data-showtimes="${film.total_showtimes || 0}"
-                data-index="${index}">
+        // Mettre à jour la vue mobile (carousel)
+        if (mobileContainer) {
+            const mobileCarousel = mobileContainer.querySelector('.flex.overflow-x-auto');
+            mobileCarousel.innerHTML = films.map((film, index) => `
+            <div class="film-mobile-card flex-shrink-0 w-28 cursor-pointer snap-start"
+                 onclick="openFilmDrawer(${index})"
+                 data-title="${film.title || ''}"
+                 data-year="${film.releaseYear || 0}"
+                 data-popularity="${film.wantToSee || 0}"
+                 data-showtimes="${film.total_showtimes || 0}"
+                 data-index="${index}">
                 <div class="relative">
-                    <img src="${film.affiche || ''}" alt="${film.title}"
-                        class="w-full h-56 sm:h-64 md:h-72 lg:h-80 object-cover rounded-lg shadow-lg">
-                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 rounded-b-lg">
-                        <p class="text-sm text-white font-medium line-clamp-2">${film.title}</p>
-                        ${film.releaseYear ? `<p class="text-xs text-white/60">${film.releaseYear}</p>` : ''}
+                    <img src="${film.affiche || ''}" alt="${film.title}" class="w-full h-40 object-cover rounded-lg shadow-lg">
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 rounded-b-lg">
+                        <p class="text-xs text-white font-medium truncate">${film.title}</p>
+                        ${film.releaseYear ? `<p class="text-[10px] text-white/60">${film.releaseYear}</p>` : ''}
                     </div>
                 </div>
             </div>
         `).join('');
+            document.getElementById('mobileNoResults').classList.add('hidden');
+        }
 
-        const noResults = document.getElementById('noResults');
-        if (noResults) noResults.classList.add('hidden');
+        // Vue desktop
+        container.innerHTML = films.map(film => {
+            const datesHeader = dates.map(date => `
+            <th class="px-3 py-4 text-center border-r border-white/5">
+                <div class="text-white/50 text-xs font-normal">${date.jour}</div>
+                <div class="text-xl font-bold text-white/90 my-1">${date.chiffre}</div>
+                <div class="text-white/50 text-xs font-normal">${date.mois}</div>
+            </th>
+        `).join('');
 
-        // Réappliquer les filtres
+            let seancesHTML = '';
+            for (const [cinema, days] of Object.entries(film.seances_table || {})) {
+                seancesHTML += `
+                <tr class="cinema-row border-t border-white/5 hover:bg-white/5 transition" data-cinema="${cinema}">
+                    <td class="px-4 py-3 text-white/85 font-medium border-r border-white/10 whitespace-nowrap text-sm">
+                        ${cinema}
+                    </td>`;
+
+                for (let i = 0; i < 7; i++) {
+                    const times = days[i] || [];
+                    const dateInfo = dates[i]; // Récupérer la date correspondante
+
+                    if (times.length > 0) {
+                        seancesHTML += `
+                        <td class="px-2 py-3 text-center border-r border-white/5">
+                            <div class="flex flex-wrap gap-1.5 justify-center">
+                                ${times.map(timeObj => {
+                            // timeObj peut être soit une string (ancien format) soit un objet {time, version}
+                            const time = typeof timeObj === 'string' ? timeObj : timeObj.time;
+                            const version = typeof timeObj === 'object' && timeObj.version ? timeObj.version : '';
+                            const versionDisplay = version ? ` (${version})` : '';
+
+                            // Échapper correctement avec JSON.stringify pour gérer tous les caractères spéciaux
+                            const filmTitleEscaped = JSON.stringify(film.title);
+                            const cinemaEscaped = JSON.stringify(cinema);
+                            const dateEscaped = JSON.stringify(dateInfo.date);
+                            const timeEscaped = JSON.stringify(time);
+                            const filmUrlEscaped = JSON.stringify(film.url || '');
+                            const filmPosterEscaped = JSON.stringify(film.affiche || '');
+                            const versionEscaped = JSON.stringify(version);
+
+                            return `<div class="relative inline-block group">
+                                        <button
+                                            onclick="handleShowtimeClick(${filmTitleEscaped}, ${cinemaEscaped}, ${dateEscaped}, ${timeEscaped}, ${filmUrlEscaped}, ${filmPosterEscaped}, ${versionEscaped})"
+                                            data-film="${film.title}"
+                                            data-cinema="${cinema}"
+                                            data-date="${dateInfo.date}"
+                                            data-time="${time}"
+                                            data-version="${version}"
+                                            class="showtime-slot bg-white/15 hover:bg-white/25 text-white px-2.5 py-1 rounded-lg text-xs font-medium border border-white/20 whitespace-nowrap transition cursor-pointer flex flex-col items-center gap-0.5">
+                                            <span class="font-semibold">${time}</span>
+                                            ${version ? `<span class="text-[10px] opacity-70">${version}</span>` : ''}
+                                        </button>
+                                    </div>`;
+                        }).join('')}
+                            </div>
+                        </td>`;
+                    } else {
+                        seancesHTML += `<td class="px-2 py-3 text-center border-r border-white/5"><span class="text-white/20 text-sm">—</span></td>`;
+                    }
+                }
+                seancesHTML += '</tr>';
+            }
+
+            const filmAge = film.filmAge || '';
+            const releaseYear = film.releaseYear || '';
+
+            return `
+            <div class="film-item bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-300" 
+                 data-title="${film.title || ''}" 
+                 data-year="${releaseYear}"
+                 data-popularity="${film.wantToSee || 0}"
+                 data-showtimes="${film.total_showtimes || 0}">
+                
+                <div class="flex flex-col md:flex-row gap-6 p-6">
+                    <img src="${film.affiche || ''}" alt="${film.title}" class="w-full md:w-48 h-auto rounded-xl shadow-lg object-cover">
+                    
+                    <div class="flex-1 space-y-4">
+                        <div>
+                            <h3 class="text-2xl md:text-3xl font-bold text-white mb-2">
+                                <a href="${film.url || '#'}" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-400 transition inline-flex items-center gap-2">
+                                    ${film.title || ''}
+                                    <svg class="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                    </svg>
+                                </a>
+                                ${releaseYear ? `<span class="text-base text-white/40 font-normal ml-2">(${releaseYear})</span>` : ''}
+                            </h3>
+                            ${releaseYear && filmAge ? `
+                            <span class="inline-flex items-center gap-2 bg-white/10 text-white/70 px-3 py-1.5 rounded-lg text-sm font-medium border border-white/10">
+                                <span class="opacity-60">📅</span> Il y a ${filmAge} ans
+                            </span>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <p class="text-white/70"><span class="font-semibold text-white/90">Réalisateur:</span> ${film.director || 'N/A'}</p>
+                            <p class="text-white/70"><span class="font-semibold text-white/90">Durée:</span> ${film.duree || 'N/A'}</p>
+                            <p class="text-white/70 col-span-2"><span class="font-semibold text-white/90">Genre:</span> ${film.genres || 'N/A'}</p>
+                            <p class="text-white/70 col-span-2"><span class="font-semibold text-white/90">Casting:</span> ${film.casting || 'N/A'}</p>
+                        </div>
+                        
+                        ${film.synopsis ? `<p class="text-white/60 text-sm leading-relaxed line-clamp-3">${film.synopsis}</p>` : ''}
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-white/5">
+                                <th class="px-4 py-4 text-left text-white/90 font-semibold border-r border-white/10 text-sm">Cinéma</th>
+                                ${datesHeader}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${seancesHTML}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        }).join('');
+
+        // Réappliquer la vue compacte si nécessaire
+        if (isCompactView) {
+            setTimeout(() => applyCompactView(), 100);
+        }
+
+        // Réappliquer le filtre par cinéma
         filterByCinema();
     }
-
 
     // Gérer le bouton retour du navigateur
     window.addEventListener('popstate', (event) => {

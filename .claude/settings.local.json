@@ -6,7 +6,7 @@
       "Bash(tasklist:*)",
       "Bash(findstr:*)",
       "Bash(powershell -ExecutionPolicy Bypass -File publish-docker.ps1)",
-      "Bash(docker push:*)"
+      "Bash(docker push:*)",
       "Bash(findstr:*)",
       "mcp__chrome-devtools__new_page",
       "mcp__chrome-devtools__take_snapshot",
@@ -22,7 +22,10 @@
       "Bash(powershell:*)",
       "Bash(set PYTHONIOENCODING=utf-8:*)",
       "mcp__chrome-devtools__click",
-      "mcp__chrome-devtools__press_key"
+      "mcp__chrome-devtools__press_key",
+      "Skill(superpowers:brainstorming)",
+      "Bash(cat:*)",
+      "Skill(frontend-design:frontend-design)"
     ],
     "deny": [],
     "ask": []
