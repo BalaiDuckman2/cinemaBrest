@@ -1,10 +1,198 @@
 ﻿{% extends 'base.html' %}
 
+{% block head %}
+<!-- Google Fonts: Bebas Neue, Playfair Display, Crimson Text -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Bebas+Neue&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+<style>
+    /* === FONTS === */
+    .font-bebas { font-family: 'Bebas Neue', sans-serif; }
+    .font-playfair { font-family: 'Playfair Display', serif; }
+    .font-crimson { font-family: 'Crimson Text', serif; }
+
+    /* === CUSTOM COLORS === */
+    .bg-rouge-cinema { background-color: #D32F2F; }
+    .bg-jaune-marquise { background-color: #F9A825; }
+    .bg-creme-ecran { background-color: #FFF8E1; }
+    .bg-sepia-chaud { background-color: #8D6E63; }
+    .bg-noir-velours { background-color: #1A1A1A; }
+    .bg-or-antique { background-color: #FFD54F; }
+    .bg-bordeaux-profond { background-color: #B71C1C; }
+    .bg-beige-papier { background-color: #EFEBE9; }
+
+    .text-rouge-cinema { color: #D32F2F; }
+    .text-jaune-marquise { color: #F9A825; }
+    .text-creme-ecran { color: #FFF8E1; }
+    .text-sepia-chaud { color: #8D6E63; }
+    .text-noir-velours { color: #1A1A1A; }
+    .text-or-antique { color: #FFD54F; }
+    .text-bordeaux-profond { color: #B71C1C; }
+
+    .border-rouge-cinema { border-color: #D32F2F; }
+    .border-sepia-chaud { border-color: #8D6E63; }
+    .border-or-antique { border-color: #FFD54F; }
+
+    .accent-rouge-cinema { accent-color: #D32F2F; }
+
+    /* === FILM STRIP BORDER === */
+    .film-strip-border {
+        position: relative;
+        padding-top: 24px;
+        padding-bottom: 24px;
+    }
+
+    .film-strip-border::before,
+    .film-strip-border::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 20px;
+        background:
+            repeating-linear-gradient(
+                90deg,
+                #1A1A1A 0px,
+                #1A1A1A 15px,
+                transparent 15px,
+                transparent 20px
+            ),
+            linear-gradient(180deg, #1A1A1A 0px, #1A1A1A 4px, transparent 4px, transparent 8px, #1A1A1A 8px, #1A1A1A 12px, transparent 12px, transparent 16px, #1A1A1A 16px, #1A1A1A 20px);
+        background-size: 20px 100%, 100% 20px;
+    }
+
+    .film-strip-border::before {
+        top: 0;
+    }
+
+    .film-strip-border::after {
+        bottom: 0;
+        border-top: 2px solid #F9A825;
+    }
+
+    /* === VINTAGE TEXTURE OVERLAY === */
+    .vintage-texture {
+        position: relative;
+    }
+
+    .vintage-texture::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+        pointer-events: none;
+        mix-blend-mode: overlay;
+        border-radius: inherit;
+    }
+
+    /* === SPOTLIGHT GLOW EFFECT (Desktop only) === */
+    @media (min-width: 768px) {
+        .spotlight-glow {
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .spotlight-glow::after {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            background: radial-gradient(circle at 50% 0%, rgba(249, 168, 37, 0.3) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            border-radius: inherit;
+        }
+
+        .spotlight-glow:hover::after {
+            opacity: 1;
+        }
+
+        .spotlight-glow:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+    }
+
+    /* === STAGE CURTAIN HEADER === */
+    .stage-curtain {
+        background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stage-curtain::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 200%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.1) 45%,
+            rgba(255, 255, 255, 0.2) 50%,
+            rgba(255, 255, 255, 0.1) 55%,
+            transparent 100%
+        );
+        animation: curtain-shimmer 8s ease-in-out infinite;
+    }
+
+    @keyframes curtain-shimmer {
+        0%, 100% { transform: translateX(0); }
+        50% { transform: translateX(50%); }
+    }
+
+    /* === TICKET CARD DESIGN === */
+    .ticket-card {
+        background: #FFF8E1;
+        border: 2px solid #8D6E63;
+        border-radius: 8px;
+        position: relative;
+        box-shadow:
+            0 4px 6px rgba(0, 0, 0, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .ticket-card::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        width: 20px;
+        height: 20px;
+        background: #EFEBE9;
+        border-bottom-left-radius: 20px;
+        border: 2px solid #8D6E63;
+        border-top: none;
+        border-right: none;
+    }
+
+    /* === TICKET CHIP (Cinema filters) === */
+    .ticket-chip {
+        transition: all 0.2s ease;
+    }
+
+    .ticket-chip:hover {
+        border-color: #D32F2F;
+        box-shadow: 0 2px 4px rgba(211, 47, 47, 0.2);
+        transform: translateY(-1px);
+    }
+
+    /* === BODY BACKGROUND === */
+    body {
+        background: linear-gradient(to bottom right, #EFEBE9 0%, #FFF8E1 50%, #EFEBE9 100%);
+    }
+</style>
+{% endblock %}
+
 {% block body %}
 
 <!-- Bouton retour en haut -->
 <button id="scrollTopBtn" onclick="scrollToTop()"
-    class="fixed bottom-4 right-4 md:bottom-8 md:right-8 bg-indigo-600 hover:bg-indigo-700 text-white p-3 md:p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-50 opacity-0 pointer-events-none">
+    class="fixed bottom-4 right-4 md:bottom-8 md:right-8 bg-rouge-cinema hover:bg-bordeaux-profond text-creme-ecran p-3 md:p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-50 opacity-0 pointer-events-none border-2 border-or-antique">
     <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
     </svg>
@@ -13,26 +201,26 @@
 <div class="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-7xl">
 
     <!-- Navigation entre semaines -->
-    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-3 sm:p-5 mb-4 sm:mb-6">
+    <div class="bg-beige-papier border-2 border-sepia-chaud rounded-xl md:rounded-2xl p-3 sm:p-5 mb-4 sm:mb-6 shadow-md">
         <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
             <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-center">
-                <button onclick="changeWeek(-1)"
-                    class="px-3 sm:px-6 py-2 sm:py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium transition-all duration-200 hover:-translate-x-1">
+                <button onclick="changeWeek(-1)" style="font-family: 'Bebas Neue', sans-serif;"
+                    class="px-3 sm:px-6 py-2 sm:py-2.5 bg-creme-ecran hover:bg-or-antique/20 border-2 border-sepia-chaud hover:border-rouge-cinema rounded-lg sm:rounded-xl text-noir-velours text-sm sm:text-base uppercase tracking-wide transition-all duration-200 hover:-translate-x-1">
                     <span class="hidden sm:inline">← Précédent</span>
                     <span class="sm:hidden">←</span>
                 </button>
-                <div id="weekPeriod"
-                    class="px-3 sm:px-8 py-2 sm:py-2.5 bg-indigo-600/20 border border-indigo-500/30 rounded-lg sm:rounded-xl text-white text-xs sm:text-base font-semibold text-center flex-1 sm:flex-none">
+                <div id="weekPeriod" style="font-family: 'Crimson Text', serif;"
+                    class="px-3 sm:px-8 py-2 sm:py-2.5 bg-rouge-cinema border-2 border-bordeaux-profond rounded-lg sm:rounded-xl text-creme-ecran text-xs sm:text-base font-semibold text-center flex-1 sm:flex-none shadow-md">
                     <span class="hidden sm:inline">📅 </span>{{ week_period }}
                 </div>
-                <button onclick="changeWeek(1)"
-                    class="px-3 sm:px-6 py-2 sm:py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium transition-all duration-200 hover:translate-x-1">
+                <button onclick="changeWeek(1)" style="font-family: 'Bebas Neue', sans-serif;"
+                    class="px-3 sm:px-6 py-2 sm:py-2.5 bg-creme-ecran hover:bg-or-antique/20 border-2 border-sepia-chaud hover:border-rouge-cinema rounded-lg sm:rounded-xl text-noir-velours text-sm sm:text-base uppercase tracking-wide transition-all duration-200 hover:translate-x-1">
                     <span class="hidden sm:inline">Suivant →</span>
                     <span class="sm:hidden">→</span>
                 </button>
             </div>
-            <button id="todayBtn" onclick="goToToday()"
-                class="hidden px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 border border-indigo-500 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-medium transition-all duration-200 hover:scale-105 shadow-lg">
+            <button id="todayBtn" onclick="goToToday()" style="font-family: 'Bebas Neue', sans-serif;"
+                class="hidden px-3 sm:px-4 py-2 sm:py-2.5 bg-jaune-marquise hover:bg-or-antique border-2 border-or-antique rounded-lg sm:rounded-xl text-noir-velours text-sm sm:text-base font-bold uppercase tracking-wide transition-all duration-200 hover:scale-105 shadow-lg">
                 <span class="hidden sm:inline">🎬 Aujourd'hui</span>
                 <span class="sm:hidden">Aujourd'hui</span>
             </button>
@@ -44,47 +232,47 @@
         <!-- Recherche toujours visible sur mobile -->
         <div class="flex gap-2">
             <div class="flex-1 relative">
-                <input type="text" id="searchInput" oninput="searchFilms()" placeholder="Rechercher..."
-                    class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" fill="none"
+                <input type="text" id="searchInput" oninput="searchFilms()" placeholder="Rechercher un film..." style="font-family: 'Crimson Text', serif;"
+                    class="w-full px-3 py-2 bg-creme-ecran border-2 border-sepia-chaud rounded-lg text-noir-velours text-sm placeholder-sepia-chaud/60 focus:outline-none focus:ring-2 focus:ring-rouge-cinema focus:border-rouge-cinema shadow-sm">
+                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sepia-chaud" fill="none"
                     stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
             </div>
-            <button onclick="toggleMobileFilters()" id="mobileFilterBtn"
-                class="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm font-medium transition hover:bg-white/15 flex items-center gap-1.5">
+            <button onclick="toggleMobileFilters()" id="mobileFilterBtn" style="font-family: 'Bebas Neue', sans-serif;"
+                class="px-3 py-2 bg-beige-papier border-2 border-sepia-chaud rounded-lg text-noir-velours text-sm uppercase tracking-wide transition hover:bg-creme-ecran hover:border-rouge-cinema flex items-center gap-1.5 shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                 </svg>
                 <span id="filterBadge"
-                    class="hidden bg-indigo-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+                    class="hidden bg-rouge-cinema text-creme-ecran text-[10px] font-bebas px-1.5 py-0.5 rounded-full">0</span>
             </button>
         </div>
-        <p id="searchResults" class="text-xs text-white/70 mt-1.5 font-medium"></p>
+        <p id="searchResults" style="font-family: 'Crimson Text', serif;" class="text-xs text-sepia-chaud mt-1.5 italic"></p>
     </div>
 
     <!-- Filtres collapsibles (universels) -->
     <div id="filtersPanel"
-        class="hidden bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-3 sm:p-4 mb-4 space-y-3">
+        class="hidden bg-beige-papier border-2 border-sepia-chaud rounded-xl p-3 sm:p-4 mb-4 space-y-3 shadow-md">
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
-            <select id="sortSelect" onchange="sortFilms(this.value)"
-                class="px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs focus:outline-none">
+            <select id="sortSelect" onchange="sortFilms(this.value)" style="font-family: 'Crimson Text', serif;"
+                class="px-2 py-2 bg-creme-ecran border-2 border-sepia-chaud rounded-lg text-noir-velours text-xs focus:outline-none focus:border-rouge-cinema focus:ring-2 focus:ring-rouge-cinema/20">
                 <option value="popularity">Popularité</option>
                 <option value="alphabetical">A→Z</option>
                 <option value="year-desc">+ Récent</option>
                 <option value="year-asc">+ Ancien</option>
                 <option value="showtimes">Nb séances</option>
             </select>
-            <select id="versionSelect" onchange="filterByVersion(this.value)"
-                class="px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs focus:outline-none">
+            <select id="versionSelect" onchange="filterByVersion(this.value)" style="font-family: 'Crimson Text', serif;"
+                class="px-2 py-2 bg-creme-ecran border-2 border-sepia-chaud rounded-lg text-noir-velours text-xs focus:outline-none focus:border-rouge-cinema focus:ring-2 focus:ring-rouge-cinema/20">
                 <option value="all">Toutes versions</option>
                 <option value="VF">VF</option>
                 <option value="VO">VO/VOST</option>
             </select>
-            <select id="daySelect" onchange="filterByDay(this.value)"
-                class="px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs focus:outline-none">
+            <select id="daySelect" onchange="filterByDay(this.value)" style="font-family: 'Crimson Text', serif;"
+                class="px-2 py-2 bg-creme-ecran border-2 border-sepia-chaud rounded-lg text-noir-velours text-xs focus:outline-none focus:border-rouge-cinema focus:ring-2 focus:ring-rouge-cinema/20">
                 <option value="all">Tous les jours</option>
                 <option value="0">Lundi</option>
                 <option value="1">Mardi</option>
@@ -94,8 +282,8 @@
                 <option value="5">Samedi</option>
                 <option value="6">Dimanche</option>
             </select>
-            <select id="timeSlotSelect" onchange="filterByTimeSlot(this.value)"
-                class="px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs focus:outline-none">
+            <select id="timeSlotSelect" onchange="filterByTimeSlot(this.value)" style="font-family: 'Crimson Text', serif;"
+                class="px-2 py-2 bg-creme-ecran border-2 border-sepia-chaud rounded-lg text-noir-velours text-xs focus:outline-none focus:border-rouge-cinema focus:ring-2 focus:ring-rouge-cinema/20">
                 <option value="all">Tous horaires</option>
                 <option value="morning">Matin</option>
                 <option value="afternoon">Après-midi</option>
@@ -105,40 +293,40 @@
         </div>
         <!-- Cinémas en chips -->
         <div class="flex flex-wrap gap-1.5">
-            <label
-                class="cinema-chip flex items-center gap-1 px-2 py-1 bg-white/10 border border-white/20 rounded-full text-[11px] text-white cursor-pointer transition">
+            <label style="font-family: 'Bebas Neue', sans-serif;"
+                class="ticket-chip flex items-center gap-1.5 px-3 py-1.5 bg-creme-ecran border-2 border-sepia-chaud rounded-full text-[11px] text-noir-velours uppercase tracking-wide cursor-pointer">
                 <input type="checkbox" value="Les Studios" checked onchange="filterByCinema()"
-                    class="w-3 h-3 rounded accent-indigo-500">
+                    class="w-3.5 h-3.5 rounded accent-rouge-cinema">
                 Studios
             </label>
-            <label
-                class="cinema-chip flex items-center gap-1 px-2 py-1 bg-white/10 border border-white/20 rounded-full text-[11px] text-white cursor-pointer transition">
+            <label style="font-family: 'Bebas Neue', sans-serif;"
+                class="ticket-chip flex items-center gap-1.5 px-3 py-1.5 bg-creme-ecran border-2 border-sepia-chaud rounded-full text-[11px] text-noir-velours uppercase tracking-wide cursor-pointer">
                 <input type="checkbox" value="CGR Brest Le Celtic" checked onchange="filterByCinema()"
-                    class="w-3 h-3 rounded accent-indigo-500">
+                    class="w-3.5 h-3.5 rounded accent-rouge-cinema">
                 CGR
             </label>
-            <label
-                class="cinema-chip flex items-center gap-1 px-2 py-1 bg-white/10 border border-white/20 rounded-full text-[11px] text-white cursor-pointer transition">
+            <label style="font-family: 'Bebas Neue', sans-serif;"
+                class="ticket-chip flex items-center gap-1.5 px-3 py-1.5 bg-creme-ecran border-2 border-sepia-chaud rounded-full text-[11px] text-noir-velours uppercase tracking-wide cursor-pointer">
                 <input type="checkbox" value="Multiplexe Liberté" checked onchange="filterByCinema()"
-                    class="w-3 h-3 rounded accent-indigo-500">
+                    class="w-3.5 h-3.5 rounded accent-rouge-cinema">
                 Liberté
             </label>
-            <label
-                class="cinema-chip flex items-center gap-1 px-2 py-1 bg-white/10 border border-white/20 rounded-full text-[11px] text-white cursor-pointer transition">
+            <label style="font-family: 'Bebas Neue', sans-serif;"
+                class="ticket-chip flex items-center gap-1.5 px-3 py-1.5 bg-creme-ecran border-2 border-sepia-chaud rounded-full text-[11px] text-noir-velours uppercase tracking-wide cursor-pointer">
                 <input type="checkbox" value="Pathé Capucins" checked onchange="filterByCinema()"
-                    class="w-3 h-3 rounded accent-indigo-500">
+                    class="w-3.5 h-3.5 rounded accent-rouge-cinema">
                 Pathé
             </label>
-            <label
-                class="cinema-chip flex items-center gap-1 px-2 py-1 bg-white/10 border border-white/20 rounded-full text-[11px] text-white cursor-pointer transition">
+            <label style="font-family: 'Bebas Neue', sans-serif;"
+                class="ticket-chip flex items-center gap-1.5 px-3 py-1.5 bg-creme-ecran border-2 border-sepia-chaud rounded-full text-[11px] text-noir-velours uppercase tracking-wide cursor-pointer">
                 <input type="checkbox" value="Ciné Galaxy" checked onchange="filterByCinema()"
-                    class="w-3 h-3 rounded accent-indigo-500">
+                    class="w-3.5 h-3.5 rounded accent-rouge-cinema">
                 Galaxy
             </label>
-            <label
-                class="cinema-chip flex items-center gap-1 px-2 py-1 bg-white/10 border border-white/20 rounded-full text-[11px] text-white cursor-pointer transition">
+            <label style="font-family: 'Bebas Neue', sans-serif;"
+                class="ticket-chip flex items-center gap-1.5 px-3 py-1.5 bg-creme-ecran border-2 border-sepia-chaud rounded-full text-[11px] text-noir-velours uppercase tracking-wide cursor-pointer">
                 <input type="checkbox" value="Les Baladins" checked onchange="filterByCinema()"
-                    class="w-3 h-3 rounded accent-indigo-500">
+                    class="w-3.5 h-3.5 rounded accent-rouge-cinema">
                 Baladins
             </label>
         </div>
@@ -149,41 +337,54 @@
     <div id="filmsContainer">
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
             {% for film in films %}
-            <div class="film-mobile-card cursor-pointer" onclick="openFilmDrawer({{ loop.index0 }})"
+            <div class="ticket-card vintage-texture spotlight-glow cursor-pointer overflow-hidden" onclick="openFilmDrawer({{ loop.index0 }})"
                 data-title="{{ film.title }}" data-year="{{ film.releaseYear or 0 }}"
                 data-popularity="{{ film.wantToSee or 0 }}" data-showtimes="{{ film.total_showtimes or 0 }}"
                 data-index="{{ loop.index0 }}">
                 <div class="relative">
                     <img src="{{ film.affiche }}" alt="{{ film.title }}"
-                        class="w-full h-56 sm:h-64 md:h-72 lg:h-80 object-cover rounded-lg shadow-lg">
-                    <div
-                        class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 rounded-b-lg">
-                        <p class="text-sm text-white font-medium line-clamp-2">{{ film.title }}</p>
+                        class="w-full h-56 sm:h-64 md:h-72 lg:h-80 object-cover">
+
+                    <!-- Overlay gradient chaud -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-noir-velours via-transparent to-transparent opacity-60"></div>
+
+                    <!-- Titre sur overlay -->
+                    <div class="absolute bottom-0 left-0 right-0 p-3">
+                        <h2 style="font-family: 'Playfair Display', serif;" class="text-base sm:text-lg font-bold text-creme-ecran drop-shadow-lg line-clamp-2">{{ film.title }}</h2>
                         {% if film.releaseYear %}
-                        <p class="text-xs text-white/60">{{ film.releaseYear }}</p>
+                        <p style="font-family: 'Crimson Text', serif;" class="text-xs text-or-antique mt-0.5 italic">{{ film.releaseYear }}</p>
                         {% endif %}
                     </div>
                 </div>
+
+                <!-- Perforations de ticket -->
+                <div class="h-2 bg-gradient-to-r from-transparent via-sepia-chaud to-transparent opacity-30"></div>
             </div>
             {% endfor %}
         </div>
 
         <!-- Message si aucun film après filtrage -->
-        <div id="noResults" class="hidden text-center py-8 text-white/60">
-            Aucun film ne correspond à vos filtres
+        <div id="noResults" style="font-family: 'Crimson Text', serif;" class="hidden text-center py-12 px-4">
+            <p class="text-2xl text-sepia-chaud mb-2">🎬</p>
+            <p class="text-lg text-noir-velours font-semibold mb-1">Aucun film trouvé</p>
+            <p class="text-sm text-sepia-chaud italic">Essayez de modifier vos filtres</p>
         </div>
     </div>
 
     <!-- Bottom Sheet / Drawer (universel) -->
     <div id="filmDrawer"
         class="fixed inset-x-0 bottom-0 max-w-4xl mx-auto transform translate-y-full transition-transform duration-300 ease-out z-50">
-        <div class="bg-gray-900 rounded-t-2xl max-h-[85vh] overflow-hidden shadow-2xl border-t border-white/10">
+        <!-- Curved top edge (écran de cinéma) -->
+        <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-32 h-6 bg-creme-ecran rounded-t-full border-t-2 border-x-2 border-sepia-chaud"></div>
+
+        <div class="bg-creme-ecran rounded-t-3xl max-h-[85vh] overflow-hidden shadow-2xl border-t-4 border-rouge-cinema">
             <!-- Handle bar et bouton fermer -->
-            <div class="sticky top-0 bg-gray-900 pt-3 pb-2 z-10 flex items-center justify-between px-4">
+            <div class="sticky top-0 bg-creme-ecran pt-3 pb-2 z-10 flex items-center justify-between px-4 border-b border-sepia-chaud/20">
                 <div class="w-8"></div>
-                <div class="w-12 h-1 bg-white/30 rounded-full cursor-pointer" onclick="closeFilmDrawer()"></div>
+                <!-- Grip handle vintage (or antique) -->
+                <div class="w-16 h-1.5 bg-or-antique rounded-full cursor-pointer shadow-inner" onclick="closeFilmDrawer()"></div>
                 <button onclick="closeFilmDrawer()"
-                    class="w-8 h-8 flex items-center justify-center text-white/50 hover:text-white/80 transition">
+                    class="w-8 h-8 flex items-center justify-center text-sepia-chaud hover:text-rouge-cinema transition rounded-full hover:bg-beige-papier">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
@@ -192,14 +393,14 @@
             </div>
 
             <!-- Contenu du drawer -->
-            <div id="drawerContent" class="px-4 pb-8 overflow-y-auto max-h-[calc(85vh-50px)]">
+            <div id="drawerContent" class="px-4 sm:px-6 pb-8 overflow-y-auto max-h-[calc(85vh-50px)]">
                 <!-- Rempli dynamiquement par JS -->
             </div>
         </div>
     </div>
 
     <!-- Backdrop pour le drawer -->
-    <div id="drawerBackdrop" class="fixed inset-0 bg-black/60 z-40 hidden" onclick="closeFilmDrawer()"></div>
+    <div id="drawerBackdrop" class="fixed inset-0 bg-noir-velours/70 z-40 hidden" onclick="closeFilmDrawer()"></div>
 
 </div>
 
@@ -281,13 +482,13 @@
 
         // En-tête avec affiche et titre
         let html = `
-        <div class="flex gap-4 mb-4">
-            <img src="${film.affiche || ''}" alt="${film.title}" class="w-24 h-36 object-cover rounded-lg shadow-lg flex-shrink-0">
+        <div class="flex gap-4 mb-6">
+            <img src="${film.affiche || ''}" alt="${film.title}" class="w-24 h-36 object-cover rounded-lg shadow-lg flex-shrink-0 border-2 border-sepia-chaud">
             <div class="flex-1 min-w-0">
-                <h3 class="text-xl font-bold text-white leading-tight">${film.title}</h3>
-                <p class="text-white/60 text-sm mt-1">${film.releaseYear ? film.releaseYear + ' · ' : ''}${film.duree || ''}</p>
-                ${film.filmAge ? `<span class="inline-block mt-2 bg-white/10 text-white/70 px-2 py-1 rounded text-xs">Il y a ${film.filmAge} ans</span>` : ''}
-                <a href="${film.url || '#'}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 mt-2 text-indigo-400 text-sm hover:text-indigo-300">
+                <h3 style="font-family: 'Playfair Display', serif;" class="text-2xl font-bold text-noir-velours leading-tight">${film.title}</h3>
+                <p style="font-family: 'Crimson Text', serif;" class="text-sepia-chaud text-sm mt-1 italic">${film.releaseYear ? film.releaseYear + ' · ' : ''}${film.duree || ''}</p>
+                ${film.filmAge ? `<span style="font-family: 'Bebas Neue', sans-serif;" class="inline-block mt-2 bg-or-antique/20 text-sepia-chaud px-2 py-1 rounded text-xs uppercase tracking-wide border border-or-antique/40">Il y a ${film.filmAge} ans</span>` : ''}
+                <a href="${film.url || '#'}" target="_blank" rel="noopener noreferrer" style="font-family: 'Crimson Text', serif;" class="inline-flex items-center gap-1 mt-2 text-rouge-cinema text-sm hover:text-bordeaux-profond underline">
                     Voir sur Letterboxd
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
@@ -295,58 +496,107 @@
                 </a>
             </div>
         </div>
+
+        <!-- Art Deco Divider -->
+        <div class="mb-6">
+            <svg viewBox="0 0 200 20" class="w-full h-5">
+                <line x1="0" y1="10" x2="80" y2="10" stroke="#F9A825" stroke-width="2"/>
+                <circle cx="100" cy="10" r="6" fill="#D32F2F" stroke="#F9A825" stroke-width="2"/>
+                <line x1="120" y1="10" x2="200" y2="10" stroke="#F9A825" stroke-width="2"/>
+            </svg>
+        </div>
     `;
 
-        // Séances groupées par cinéma (accordion)
-        html += '<div class="space-y-2 mb-4">';
-        html += '<h4 class="text-white/80 text-sm font-semibold mb-2">🎬 Séances</h4>';
+        // Séances : Vue accordéon par jour (mobile-first)
+        html += '<div class="mb-8">';
+        html += '<h4 style="font-family: \'Bebas Neue\', sans-serif;" class="text-rouge-cinema text-2xl uppercase tracking-wider mb-4 flex items-center gap-2"><span>🎬</span> Programme de la Semaine</h4>';
 
         const seancesTable = film.seances_table || {};
 
         // Récupérer les cinémas sélectionnés dans le filtre
         const savedCinemas = localStorage.getItem('selectedCinemas');
-        let selectedCinemas = ['Les Studios', 'CGR Brest Le Celtic', 'Multiplexe Liberté', 'Pathé Capucins', 'Ciné Galaxy'];
+        let selectedCinemas = ['Les Studios', 'CGR Brest Le Celtic', 'Multiplexe Liberté', 'Pathé Capucins', 'Ciné Galaxy', 'Les Baladins'];
         if (savedCinemas) {
             try {
-                selectedCinemas = JSON.parse(savedCinemas);
+                const parsedCinemas = JSON.parse(savedCinemas);
+                if (parsedCinemas.length > 0) {
+                    selectedCinemas = parsedCinemas;
+                }
             } catch (e) { }
         }
 
         // Filtrer les cinémas selon le filtre actif
         const cinemaNames = Object.keys(seancesTable).filter(cinema => selectedCinemas.includes(cinema));
 
-        if (cinemaNames.length === 0) {
-            html += '<p class="text-white/50 text-sm">Aucune séance disponible</p>';
-        } else {
-            cinemaNames.forEach((cinemaName, cinemaIndex) => {
-                const daysData = seancesTable[cinemaName];
+        const cinemaShortNames = {
+            'Les Studios': 'Studios',
+            'CGR Brest Le Celtic': 'CGR',
+            'Multiplexe Liberté': 'Liberté',
+            'Pathé Capucins': 'Pathé',
+            'Ciné Galaxy': 'Galaxy',
+            'Les Baladins': 'Baladins'
+        };
 
+        if (cinemaNames.length === 0) {
+            html += '<p style="font-family: \'Crimson Text\', serif;" class="text-sepia-chaud text-sm italic">Aucune séance disponible pour les cinémas sélectionnés</p>';
+        } else {
+            // Vue par jour (accordéon verticale)
+            html += '<div class="space-y-2">';
+
+            datesData.forEach((dateInfo, dayIndex) => {
+                // Vérifier si ce jour a au moins une séance
+                let hasShowtimes = false;
+                cinemaNames.forEach(cinemaName => {
+                    const daysData = seancesTable[cinemaName] || {};
+                    const showtimes = daysData[String(dayIndex)] || [];
+                    if (showtimes.length > 0) hasShowtimes = true;
+                });
+
+                if (!hasShowtimes) return; // Skip les jours sans séances
+
+                // Carte de jour
                 html += `
-                <details class="bg-white/5 rounded-lg border border-white/10 group" ${cinemaIndex === 0 ? 'open' : ''}>
-                    <summary class="p-3 text-white font-medium cursor-pointer flex items-center justify-between hover:bg-white/5 rounded-lg">
-                        <span class="text-sm">${cinemaName}</span>
-                        <svg class="w-4 h-4 text-white/50 transform transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <details class="group bg-beige-papier rounded-lg border-2 border-sepia-chaud shadow-sm overflow-hidden" ${dayIndex === 0 ? 'open' : ''}>
+                    <summary style="background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);" class="p-3 cursor-pointer flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div style="font-family: 'Playfair Display', serif;" class="text-creme-ecran flex flex-col items-center min-w-[50px]">
+                                <span style="font-family: 'Bebas Neue', sans-serif;" class="text-xs uppercase tracking-wider opacity-90">${dateInfo.jour}</span>
+                                <span class="text-3xl font-bold leading-none">${dateInfo.chiffre}</span>
+                                <span class="text-xs italic opacity-80">${dateInfo.mois}</span>
+                            </div>
+                            <div style="font-family: 'Bebas Neue', sans-serif;" class="text-creme-ecran text-sm uppercase tracking-wide">
+                                Séances du jour
+                            </div>
+                        </div>
+                        <svg class="w-5 h-5 text-jaune-marquise transform transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </summary>
-                    <div class="px-3 pb-3 space-y-2">
-            `;
 
-                // Grouper par jour
-                datesData.forEach((dateInfo, dayIndex) => {
-                    const showtimes = daysData[dayIndex] || [];
+                    <div class="p-4 space-y-4 bg-creme-ecran">
+                `;
+
+                // Pour chaque cinéma
+                cinemaNames.forEach(cinemaName => {
+                    const daysData = seancesTable[cinemaName] || {};
+                    const showtimes = daysData[String(dayIndex)] || [];
+
                     if (showtimes.length > 0) {
+                        const shortName = cinemaShortNames[cinemaName] || cinemaName;
+
                         html += `
-                        <div class="border-t border-white/5 pt-2 first:border-0 first:pt-0">
-                            <p class="text-white/60 text-xs mb-1.5">${dateInfo.jour} ${dateInfo.chiffre} ${dateInfo.mois}</p>
-                            <div class="flex flex-wrap gap-1.5">
-                    `;
+                        <div class="border-b border-sepia-chaud/30 last:border-0 pb-3 last:pb-0">
+                            <h5 style="font-family: 'Bebas Neue', sans-serif;" class="text-rouge-cinema text-sm uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <span class="w-1 h-4 bg-rouge-cinema rounded-full"></span>
+                                ${shortName}
+                            </h5>
+                            <div class="flex flex-wrap gap-2">
+                        `;
 
                         showtimes.forEach(showtime => {
                             const time = typeof showtime === 'string' ? showtime : showtime.time;
                             const version = typeof showtime === 'object' && showtime.version ? showtime.version : '';
 
-                            // Échapper les données pour l'onclick
                             const filmTitleEscaped = JSON.stringify(film.title);
                             const cinemaEscaped = JSON.stringify(cinemaName);
                             const dateEscaped = JSON.stringify(dateInfo.date);
@@ -363,11 +613,12 @@
                                 data-date="${dateInfo.date}"
                                 data-time="${time}"
                                 data-version="${version}"
-                                class="showtime-slot bg-white/15 hover:bg-white/25 text-white px-2.5 py-1.5 rounded-lg text-xs font-medium border border-white/20 transition flex flex-col items-center">
-                                <span class="font-semibold">${time}</span>
-                                ${version ? `<span class="text-[10px] opacity-70">${version}</span>` : ''}
-                            </button>
-                        `;
+                                style="font-family: 'Bebas Neue', sans-serif; position: relative; background: linear-gradient(135deg, #D32F2F 0%, #C62828 100%); box-shadow: 0 2px 4px rgba(0,0,0,0.15);"
+                                class="showtime-slot text-creme-ecran px-3 py-2 rounded-md text-xs uppercase tracking-wider border-2 border-or-antique hover:border-jaune-marquise transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5">
+                                <span class="font-bold text-sm block leading-none">${time}</span>
+                                ${version ? `<span class="text-[9px] opacity-90 block mt-0.5 leading-none">${version}</span>` : ''}
+                                <div style="position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #FFF8E1; border-bottom-left-radius: 8px;"></div>
+                            </button>`;
                         });
 
                         html += '</div></div>';
@@ -376,17 +627,19 @@
 
                 html += '</div></details>';
             });
+
+            html += '</div>';
         }
 
         html += '</div>';
 
         // Infos secondaires
         html += `
-        <div class="border-t border-white/10 pt-4 space-y-2 text-sm">
-            ${film.director ? `<p class="text-white/70"><span class="text-white/90 font-medium">Réalisateur:</span> ${film.director}</p>` : ''}
-            ${film.genres ? `<p class="text-white/70"><span class="text-white/90 font-medium">Genre:</span> ${film.genres}</p>` : ''}
-            ${film.casting ? `<p class="text-white/70"><span class="text-white/90 font-medium">Casting:</span> ${film.casting}</p>` : ''}
-            ${film.synopsis ? `<p class="text-white/60 text-xs mt-3 leading-relaxed">${film.synopsis}</p>` : ''}
+        <div class="border-t-2 border-sepia-chaud/30 pt-6 space-y-3 text-sm">
+            ${film.director ? `<p style="font-family: 'Crimson Text', serif;" class="text-noir-velours"><span class="font-bold text-rouge-cinema">Réalisateur:</span> ${film.director}</p>` : ''}
+            ${film.genres ? `<p style="font-family: 'Crimson Text', serif;" class="text-noir-velours"><span class="font-bold text-rouge-cinema">Genre:</span> ${film.genres}</p>` : ''}
+            ${film.casting ? `<p style="font-family: 'Crimson Text', serif;" class="text-noir-velours"><span class="font-bold text-rouge-cinema">Casting:</span> ${film.casting}</p>` : ''}
+            ${film.synopsis ? `<p style="font-family: 'Crimson Text', serif;" class="text-sepia-chaud text-xs mt-4 leading-relaxed italic">${film.synopsis}</p>` : ''}
         </div>
     `;
 
@@ -422,7 +675,7 @@
     // Gérer le swipe pour fermer le drawer
     function setupDrawerSwipe() {
         const drawer = document.getElementById('filmDrawer');
-        const drawerInner = drawer.querySelector('.bg-gray-900');
+        const drawerInner = drawer.querySelector('.bg-creme-ecran');
 
         drawerInner.addEventListener('touchstart', handleDrawerTouchStart, { passive: true });
         drawerInner.addEventListener('touchmove', handleDrawerTouchMove, { passive: false });
@@ -482,10 +735,10 @@
 
         if (mobileFiltersOpen) {
             panel.classList.remove('hidden');
-            btn.classList.add('bg-indigo-600/50', 'border-indigo-500');
+            btn.classList.add('bg-rouge-cinema/20', 'border-rouge-cinema');
         } else {
             panel.classList.add('hidden');
-            btn.classList.remove('bg-indigo-600/50', 'border-indigo-500');
+            btn.classList.remove('bg-rouge-cinema/20', 'border-rouge-cinema');
         }
     }
 
@@ -517,7 +770,7 @@
         if (daySelect && daySelect.value !== 'all') count++;
 
         // Vérifier le filtre de cinéma
-        const checkboxes = document.querySelectorAll('.cinema-chip input, .cinema-chip input');
+        const checkboxes = document.querySelectorAll('.ticket-chip input');
         const uncheckedCount = Array.from(checkboxes).filter(cb => !cb.checked).length;
         if (uncheckedCount > 0) count++;
 
@@ -550,12 +803,6 @@
 
     // Initialiser les préférences sauvegardées au chargement
     window.addEventListener('DOMContentLoaded', function () {
-        // Restaurer le filtre d'âge sauvegardé
-        const savedMinAge = localStorage.getItem('minAge');
-        if (savedMinAge !== null) {
-            document.getElementById('ageSelect').value = savedMinAge;
-        }
-
         // Restaurer le tri sauvegardé
         const savedSort = localStorage.getItem('sortBy');
         if (savedSort) {
@@ -567,11 +814,18 @@
         const savedCinemas = localStorage.getItem('selectedCinemas');
         if (savedCinemas) {
             const cinemasList = JSON.parse(savedCinemas);
-            document.querySelectorAll('.cinema-chip input').forEach(checkbox => {
+            document.querySelectorAll('.ticket-chip input').forEach(checkbox => {
                 checkbox.checked = cinemasList.includes(checkbox.value);
             });
-            filterByCinema();
+        } else {
+            // Si rien dans localStorage, sauvegarder les cinémas cochés par défaut
+            const checkboxes = document.querySelectorAll('.ticket-chip input[type="checkbox"]');
+            const defaultCinemas = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+            localStorage.setItem('selectedCinemas', JSON.stringify(defaultCinemas));
         }
+        filterByCinema();
 
         // Restaurer le filtre de version
         const savedVersion = localStorage.getItem('versionFilter');
@@ -820,7 +1074,7 @@
 
     // Fonction centralisée pour appliquer tous les filtres
     function applyAllFilters() {
-        const checkboxes = document.querySelectorAll('.cinema-chip input[type="checkbox"]');
+        const checkboxes = document.querySelectorAll('.ticket-chip input[type="checkbox"]');
         const selectedCinemas = Array.from(checkboxes)
             .filter(cb => cb.checked)
             .map(cb => cb.value);
@@ -898,7 +1152,7 @@
 
     // Fonction de filtre par cinéma
     function filterByCinema() {
-        const checkboxes = document.querySelectorAll('.cinema-chip input[type="checkbox"]');
+        const checkboxes = document.querySelectorAll('.ticket-chip input[type="checkbox"]');
         const selectedCinemas = Array.from(checkboxes)
             .filter(cb => cb.checked)
             .map(cb => cb.value);
@@ -906,11 +1160,13 @@
         localStorage.setItem('selectedCinemas', JSON.stringify(selectedCinemas));
 
         checkboxes.forEach(checkbox => {
-            const label = checkbox.closest('.cinema-chip');
+            const label = checkbox.closest('.cinema-chip, .ticket-chip');
             if (checkbox.checked) {
-                label.classList.add('bg-white/15', 'border-white/30');
+                label.classList.add('bg-creme-ecran', 'border-sepia-chaud');
+                label.classList.remove('bg-beige-papier', 'border-sepia-chaud/50');
             } else {
-                label.classList.remove('bg-white/15', 'border-white/30');
+                label.classList.remove('bg-creme-ecran', 'border-sepia-chaud');
+                label.classList.add('bg-beige-papier', 'border-sepia-chaud/50', 'opacity-60');
             }
         });
 
@@ -953,7 +1209,7 @@
 
     // Fonction pour tout sélectionner/désélectionner
     function toggleAllCinemas() {
-        const checkboxes = document.querySelectorAll('.cinema-chip input[type="checkbox"]');
+        const checkboxes = document.querySelectorAll('.ticket-chip input[type="checkbox"]');
         const allChecked = Array.from(checkboxes).every(cb => cb.checked);
 
         checkboxes.forEach(checkbox => {
@@ -995,7 +1251,7 @@
         if (savedCinemas) {
             try {
                 const selectedCinemas = JSON.parse(savedCinemas);
-                const checkboxes = document.querySelectorAll('.cinema-chip input[type="checkbox"]');
+                const checkboxes = document.querySelectorAll('.ticket-chip input[type="checkbox"]');
 
                 checkboxes.forEach(checkbox => {
                     checkbox.checked = false;
@@ -1105,7 +1361,7 @@
 
         // Générer les cartes de films
         gridContainer.innerHTML = films.map((film, index) => `
-            <div class="film-mobile-card cursor-pointer" onclick="openFilmDrawer(${index})"
+            <div class="ticket-card vintage-texture spotlight-glow cursor-pointer overflow-hidden" onclick="openFilmDrawer(${index})"
                 data-title="${film.title || ''}"
                 data-year="${film.releaseYear || 0}"
                 data-popularity="${film.wantToSee || 0}"
@@ -1113,12 +1369,14 @@
                 data-index="${index}">
                 <div class="relative">
                     <img src="${film.affiche || ''}" alt="${film.title}"
-                        class="w-full h-56 sm:h-64 md:h-72 lg:h-80 object-cover rounded-lg shadow-lg">
-                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 rounded-b-lg">
-                        <p class="text-sm text-white font-medium line-clamp-2">${film.title}</p>
-                        ${film.releaseYear ? `<p class="text-xs text-white/60">${film.releaseYear}</p>` : ''}
+                        class="w-full h-56 sm:h-64 md:h-72 lg:h-80 object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-noir-velours via-transparent to-transparent opacity-60"></div>
+                    <div class="absolute bottom-0 left-0 right-0 p-3">
+                        <h2 style="font-family: 'Playfair Display', serif;" class="text-base sm:text-lg font-bold text-creme-ecran drop-shadow-lg line-clamp-2">${film.title}</h2>
+                        ${film.releaseYear ? `<p style="font-family: 'Crimson Text', serif;" class="text-xs text-or-antique mt-0.5 italic">${film.releaseYear}</p>` : ''}
                     </div>
                 </div>
+                <div class="h-2 bg-gradient-to-r from-transparent via-sepia-chaud to-transparent opacity-30"></div>
             </div>
         `).join('');
 
@@ -1147,13 +1405,13 @@
             if (minAge !== currentMinAge) {
                 currentMinAge = minAge;
                 document.querySelectorAll('.age-filter').forEach(btn => {
-                    btn.classList.remove('bg-white', 'text-gray-900', 'border-white');
-                    btn.classList.add('bg-white/5', 'text-white/80', 'border-white/10');
+                    btn.classList.remove('bg-rouge-cinema', 'text-creme-ecran', 'border-or-antique');
+                    btn.classList.add('bg-beige-papier', 'text-noir-velours', 'border-sepia-chaud');
                 });
                 const activeBtn = document.querySelector(`.age-filter[onclick="changeAgeFilter(${minAge})"]`);
                 if (activeBtn) {
-                    activeBtn.classList.remove('bg-white/5', 'text-white/80', 'border-white/10');
-                    activeBtn.classList.add('bg-white', 'text-gray-900', 'border-white');
+                    activeBtn.classList.remove('bg-beige-papier', 'text-noir-velours', 'border-sepia-chaud');
+                    activeBtn.classList.add('bg-rouge-cinema', 'text-creme-ecran', 'border-or-antique');
                 }
             }
         }
@@ -1280,13 +1538,13 @@
             );
 
             if (isInWatchlist) {
-                // Horaire déjà dans le calendrier → Couleur verte
-                slot.classList.remove('bg-white/15', 'hover:bg-white/25', 'border-white/20');
-                slot.classList.add('bg-green-600/40', 'hover:bg-green-600/60', 'border-green-500/50', 'text-green-100');
+                // Horaire déjà dans le calendrier → Or antique
+                slot.classList.remove('bg-rouge-cinema', 'hover:bg-bordeaux-profond', 'border-or-antique');
+                slot.classList.add('bg-or-antique', 'hover:bg-jaune-marquise', 'border-rouge-cinema', 'text-noir-velours');
             } else {
-                // Horaire pas dans le calendrier → Couleur normale
-                slot.classList.remove('bg-green-600/40', 'hover:bg-green-600/60', 'border-green-500/50', 'text-green-100');
-                slot.classList.add('bg-white/15', 'hover:bg-white/25', 'border-white/20');
+                // Horaire pas dans le calendrier → Rouge cinéma
+                slot.classList.remove('bg-or-antique', 'hover:bg-jaune-marquise', 'text-noir-velours');
+                slot.classList.add('bg-rouge-cinema', 'hover:bg-bordeaux-profond', 'border-or-antique');
             }
         });
     }
@@ -1319,10 +1577,11 @@
     // Fonction pour afficher une notification temporaire
     function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
-        notification.className = `fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg backdrop-blur-md border transition-all duration-300 ${type === 'success' ? 'bg-green-500/20 border-green-500/30 text-green-100' :
-                type === 'error' ? 'bg-red-500/20 border-red-500/30 text-red-100' :
-                    type === 'warning' ? 'bg-yellow-500/20 border-yellow-500/30 text-yellow-100' :
-                        'bg-blue-500/20 border-blue-500/30 text-blue-100'
+        notification.style.fontFamily = "'Crimson Text', serif";
+        notification.className = `fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg border-2 transition-all duration-300 ${type === 'success' ? 'bg-creme-ecran border-rouge-cinema text-noir-velours' :
+                type === 'error' ? 'bg-bordeaux-profond border-or-antique text-creme-ecran' :
+                    type === 'warning' ? 'bg-jaune-marquise border-sepia-chaud text-noir-velours' :
+                        'bg-beige-papier border-sepia-chaud text-noir-velours'
             }`;
         notification.textContent = message;
 
