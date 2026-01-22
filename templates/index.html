@@ -274,6 +274,8 @@
             <select id="daySelect" onchange="filterByDay(this.value)" style="font-family: 'Crimson Text', serif;"
                 class="px-2 py-2 bg-creme-ecran border-2 border-sepia-chaud rounded-lg text-noir-velours text-xs focus:outline-none focus:border-rouge-cinema focus:ring-2 focus:ring-rouge-cinema/20">
                 <option value="all">Tous les jours</option>
+                <option value="weekday">Semaine (Lun-Jeu)</option>
+                <option value="weekend">Weekend (Ven-Dim)</option>
                 <option value="0">Lundi</option>
                 <option value="1">Mardi</option>
                 <option value="2">Mercredi</option>
@@ -513,7 +515,7 @@
 
         const seancesTable = film.seances_table || {};
 
-        // Récupérer les cinémas sélectionnés dans le filtre
+        // Récupérer tous les filtres actifs
         const savedCinemas = localStorage.getItem('selectedCinemas');
         let selectedCinemas = ['Les Studios', 'CGR Brest Le Celtic', 'Multiplexe Liberté', 'Pathé Capucins', 'Ciné Galaxy', 'Les Baladins'];
         if (savedCinemas) {
@@ -524,6 +526,10 @@
                 }
             } catch (e) { }
         }
+
+        const versionFilter = localStorage.getItem('versionFilter') || 'all';
+        const timeSlotFilter = localStorage.getItem('timeSlotFilter') || 'all';
+        const dayFilter = localStorage.getItem('selectedDay') || 'all';
 
         // Filtrer les cinémas selon le filtre actif
         const cinemaNames = Object.keys(seancesTable).filter(cinema => selectedCinemas.includes(cinema));
@@ -544,15 +550,34 @@
             html += '<div class="space-y-2">';
 
             datesData.forEach((dateInfo, dayIndex) => {
-                // Vérifier si ce jour a au moins une séance
+                // Vérifier si ce jour correspond au filtre de jour
+                if (!isDayInFilter(dayIndex, dayFilter)) return;
+
+                // Vérifier si ce jour a au moins une séance après filtrage
                 let hasShowtimes = false;
                 cinemaNames.forEach(cinemaName => {
                     const daysData = seancesTable[cinemaName] || {};
                     const showtimes = daysData[String(dayIndex)] || [];
-                    if (showtimes.length > 0) hasShowtimes = true;
+
+                    // Vérifier s'il y a au moins une séance qui correspond aux filtres
+                    const hasMatchingShowtime = showtimes.some(showtime => {
+                        const time = typeof showtime === 'string' ? showtime : showtime.time;
+                        const version = typeof showtime === 'object' && showtime.version ? showtime.version : '';
+
+                        // Vérifier le filtre de version
+                        if (versionFilter === 'VF' && version !== 'VF') return false;
+                        if (versionFilter === 'VO' && !version.includes('VO') && !version.includes('VOST')) return false;
+
+                        // Vérifier le filtre de créneau horaire
+                        if (timeSlotFilter !== 'all' && !isInTimeSlot(time, timeSlotFilter)) return false;
+
+                        return true;
+                    });
+
+                    if (hasMatchingShowtime) hasShowtimes = true;
                 });
 
-                if (!hasShowtimes) return; // Skip les jours sans séances
+                if (!hasShowtimes) return; // Skip les jours sans séances correspondant aux filtres
 
                 // Carte de jour
                 html += `
@@ -581,7 +606,22 @@
                     const daysData = seancesTable[cinemaName] || {};
                     const showtimes = daysData[String(dayIndex)] || [];
 
-                    if (showtimes.length > 0) {
+                    // Filtrer les séances selon les filtres actifs
+                    const filteredShowtimes = showtimes.filter(showtime => {
+                        const time = typeof showtime === 'string' ? showtime : showtime.time;
+                        const version = typeof showtime === 'object' && showtime.version ? showtime.version : '';
+
+                        // Vérifier le filtre de version
+                        if (versionFilter === 'VF' && version !== 'VF') return false;
+                        if (versionFilter === 'VO' && !version.includes('VO') && !version.includes('VOST')) return false;
+
+                        // Vérifier le filtre de créneau horaire
+                        if (timeSlotFilter !== 'all' && !isInTimeSlot(time, timeSlotFilter)) return false;
+
+                        return true;
+                    });
+
+                    if (filteredShowtimes.length > 0) {
                         const shortName = cinemaShortNames[cinemaName] || cinemaName;
 
                         html += `
@@ -593,7 +633,7 @@
                             <div class="flex flex-wrap gap-2">
                         `;
 
-                        showtimes.forEach(showtime => {
+                        filteredShowtimes.forEach(showtime => {
                             const time = typeof showtime === 'string' ? showtime : showtime.time;
                             const version = typeof showtime === 'object' && showtime.version ? showtime.version : '';
 
@@ -1010,35 +1050,17 @@
     function searchFilms() {
         const input = document.getElementById('searchInput');
         const filter = input.value.toLowerCase().trim();
-        const filmCards = document.querySelectorAll('.film-mobile-card');
-        const resultsText = document.getElementById('searchResults');
 
         localStorage.setItem('searchTerm', input.value);
 
-        let visibleCount = 0;
+        // Réappliquer tous les filtres (qui incluent maintenant la recherche)
+        filterByCinema();
 
-        // Filtrer les cartes de films
-        filmCards.forEach(filmItem => {
-            const filmTitle = (filmItem.dataset.title || '').toLowerCase();
+        // Compter les films visibles pour afficher le résultat de recherche
+        const filmCards = document.querySelectorAll('.film-mobile-card, .ticket-card');
+        const visibleCount = Array.from(filmCards).filter(f => f.style.display !== 'none').length;
 
-            if (filter === '' || filmTitle.includes(filter)) {
-                filmItem.style.display = '';
-                visibleCount++;
-            } else {
-                filmItem.style.display = 'none';
-            }
-        });
-
-        // Afficher le message "aucun résultat" si nécessaire
-        const noResults = document.getElementById('noResults');
-        if (noResults) {
-            if (visibleCount === 0 && filter !== '') {
-                noResults.classList.remove('hidden');
-            } else {
-                noResults.classList.add('hidden');
-            }
-        }
-
+        const resultsText = document.getElementById('searchResults');
         if (filter === '') {
             resultsText.textContent = '';
         } else {
@@ -1072,82 +1094,62 @@
         }
     }
 
-    // Fonction centralisée pour appliquer tous les filtres
-    function applyAllFilters() {
-        const checkboxes = document.querySelectorAll('.ticket-chip input[type="checkbox"]');
-        const selectedCinemas = Array.from(checkboxes)
-            .filter(cb => cb.checked)
-            .map(cb => cb.value);
+    // Fonction utilitaire pour vérifier si un jour correspond au filtre
+    function isDayInFilter(dayIndex, dayFilter) {
+        if (dayFilter === 'all') return true;
+        if (dayFilter === 'weekday') return dayIndex >= 0 && dayIndex <= 3; // Lundi à Jeudi
+        if (dayFilter === 'weekend') return dayIndex >= 4 && dayIndex <= 6; // Vendredi à Dimanche
+        return String(dayIndex) === String(dayFilter); // Jour spécifique
+    }
 
-        const versionFilter = currentVersionFilter || 'all';
-        const timeSlotFilter = currentTimeSlotFilter || 'all';
+    // Fonction utilitaire pour vérifier si un film a des séances visibles avec tous les filtres
+    function filmHasVisibleShowtimes(film, selectedCinemas, versionFilter, timeSlotFilter, dayFilter) {
+        if (!film || !film.seances_table) return false;
 
-        // Pour chaque film
-        document.querySelectorAll('.film-item').forEach(filmItem => {
-            let hasVisibleRow = false;
+        // Pour chaque cinéma sélectionné
+        for (const cinema of selectedCinemas) {
+            const cinemaDays = film.seances_table[cinema];
+            if (!cinemaDays) continue;
 
-            // Pour chaque ligne de cinéma dans ce film
-            filmItem.querySelectorAll('.cinema-row').forEach(row => {
-                const cinemaName = row.dataset.cinema;
+            // Pour chaque jour
+            for (const dayIndex in cinemaDays) {
+                const dayIndexNum = parseInt(dayIndex);
 
-                // Vérifier si le cinéma est sélectionné
-                const isCinemaSelected = selectedCinemas.includes(cinemaName);
+                // Vérifier si ce jour correspond au filtre de jour
+                if (!isDayInFilter(dayIndexNum, dayFilter)) continue;
 
-                if (!isCinemaSelected) {
-                    row.style.display = 'none';
-                    return;
+                const showtimes = cinemaDays[dayIndex];
+                if (!showtimes || showtimes.length === 0) continue;
+
+                // Pour chaque séance de ce jour
+                for (const showtime of showtimes) {
+                    const time = typeof showtime === 'string' ? showtime : showtime.time;
+                    const version = typeof showtime === 'object' && showtime.version ? showtime.version : '';
+
+                    // Vérifier le filtre de version
+                    let matchesVersion = true;
+                    if (versionFilter === 'VF' && version !== 'VF') {
+                        matchesVersion = false;
+                    } else if (versionFilter === 'VO' && !version.includes('VO') && !version.includes('VOST')) {
+                        matchesVersion = false;
+                    }
+
+                    // Vérifier le filtre de créneau horaire
+                    let matchesTimeSlot = true;
+                    if (timeSlotFilter !== 'all' && !isInTimeSlot(time, timeSlotFilter)) {
+                        matchesTimeSlot = false;
+                    }
+
+                    // Si cette séance correspond à tous les filtres, le film a au moins une séance visible
+                    if (matchesVersion && matchesTimeSlot) {
+                        return true;
+                    }
                 }
-
-                // Vérifier les séances selon les filtres de version ET de créneau horaire
-                let hasVisibleShowtime = false;
-                const showtimeSlots = row.querySelectorAll('.showtime-slot');
-
-                showtimeSlots.forEach(slot => {
-                    const slotVersion = slot.dataset.version || '';
-                    const slotTime = slot.dataset.time || '';
-                    let showSlot = true;
-
-                    // Appliquer le filtre de version
-                    if (versionFilter !== 'all') {
-                        if (versionFilter === 'VF' && slotVersion !== 'VF') {
-                            showSlot = false;
-                        } else if (versionFilter === 'VO' && !slotVersion.includes('VO') && !slotVersion.includes('VOST')) {
-                            showSlot = false;
-                        }
-                    }
-
-                    // Appliquer le filtre de créneau horaire
-                    if (showSlot && timeSlotFilter !== 'all') {
-                        if (!isInTimeSlot(slotTime, timeSlotFilter)) {
-                            showSlot = false;
-                        }
-                    }
-
-                    // Afficher ou masquer la séance
-                    if (showSlot) {
-                        slot.parentElement.style.display = '';
-                        hasVisibleShowtime = true;
-                    } else {
-                        slot.parentElement.style.display = 'none';
-                    }
-                });
-
-                // Afficher/masquer la ligne selon si elle a des séances visibles
-                if (hasVisibleShowtime) {
-                    row.style.display = '';
-                    hasVisibleRow = true;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            // Afficher/masquer le film selon si au moins une ligne est visible
-            if (hasVisibleRow) {
-                filmItem.style.display = '';
-            } else {
-                filmItem.style.display = 'none';
             }
-        });
+        }
+
+        // Aucune séance ne correspond à tous les filtres
+        return false;
     }
 
     // Fonction de filtre par cinéma
@@ -1170,22 +1172,26 @@
             }
         });
 
-        // Filtrer les cartes de films (masquer les films sans séances dans les cinémas sélectionnés)
-        document.querySelectorAll('.film-mobile-card').forEach(card => {
+        // Récupérer les autres filtres actifs
+        const versionFilter = currentVersionFilter || 'all';
+        const timeSlotFilter = currentTimeSlotFilter || 'all';
+        const dayFilter = localStorage.getItem('selectedDay') || 'all';
+        const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+
+        // Filtrer les cartes de films (masquer les films sans séances visibles avec TOUS les filtres)
+        document.querySelectorAll('.film-mobile-card, .ticket-card').forEach(card => {
             const filmIndex = parseInt(card.dataset.index);
             const film = filmsData[filmIndex];
+            const filmTitle = (card.dataset.title || '').toLowerCase();
 
-            if (!film || !film.seances_table) {
-                card.style.display = 'none';
-                return;
-            }
+            // Vérifier le filtre de recherche
+            const matchesSearch = searchTerm === '' || filmTitle.includes(searchTerm);
 
-            // Vérifier si le film a des séances dans les cinémas sélectionnés
-            const hasShowtimesInSelectedCinemas = Object.keys(film.seances_table).some(cinema =>
-                selectedCinemas.includes(cinema)
-            );
+            // Vérifier si le film a au moins une séance visible avec tous les filtres appliqués
+            const hasVisibleShowtimes = filmHasVisibleShowtimes(film, selectedCinemas, versionFilter, timeSlotFilter, dayFilter);
 
-            if (hasShowtimesInSelectedCinemas) {
+            // Afficher seulement si le film correspond à la recherche ET a des séances visibles
+            if (matchesSearch && hasVisibleShowtimes) {
                 card.style.display = '';
             } else {
                 card.style.display = 'none';
@@ -1195,7 +1201,7 @@
         // Afficher le message "aucun résultat" si nécessaire
         const noResults = document.getElementById('noResults');
         if (noResults) {
-            const filmCards = document.querySelectorAll('.film-mobile-card');
+            const filmCards = document.querySelectorAll('.film-mobile-card, .ticket-card');
             const visibleFilms = Array.from(filmCards).filter(f => f.style.display !== 'none');
             if (visibleFilms.length === 0) {
                 noResults.classList.remove('hidden');
@@ -1221,8 +1227,10 @@
 
     // Fonction de filtre par jour de la semaine
     function filterByDay(selectedDay) {
-        // Sauvegarder dans localStorage (utilisé par le drawer)
+        // Sauvegarder dans localStorage
         localStorage.setItem('selectedDay', selectedDay);
+        // Réappliquer tous les filtres
+        filterByCinema();
         updateFilterBadge();
     }
 
@@ -1230,7 +1238,8 @@
     function filterByTimeSlot(timeSlot) {
         currentTimeSlotFilter = timeSlot;
         localStorage.setItem('timeSlotFilter', timeSlot);
-        applyAllFilters();
+        // Réappliquer tous les filtres
+        filterByCinema();
         updateFilterBadge();
     }
 
@@ -1240,7 +1249,8 @@
     function filterByVersion(version) {
         currentVersionFilter = version;
         localStorage.setItem('versionFilter', version);
-        applyAllFilters();
+        // Réappliquer tous les filtres
+        filterByCinema();
         updateFilterBadge();
     }
 
