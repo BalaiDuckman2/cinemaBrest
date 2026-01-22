@@ -1,6 +1,6 @@
 # Commande: /status
 
-Affiche l'état actuel du projet CinéBrest avec des statistiques et recommandations.
+Affiche l'état actuel du projet ReelTime avec des statistiques et recommandations.
 
 ## Actions à effectuer
 
@@ -80,7 +80,7 @@ Basé sur l'analyse, suggérer :
 ## Format de sortie
 
 ```
-📊 État du Projet CinéBrest
+📊 État du Projet ReelTime
 ═══════════════════════════════════════
 
 📁 Code

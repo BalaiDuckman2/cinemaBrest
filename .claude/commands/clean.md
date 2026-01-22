@@ -1,6 +1,6 @@
 # Commande: /clean
 
-Nettoie le projet CinéBrest en supprimant les fichiers temporaires, caches et fichiers inutiles.
+Nettoie le projet ReelTime en supprimant les fichiers temporaires, caches et fichiers inutiles.
 
 ## Actions à effectuer
 
@@ -70,7 +70,7 @@ Afficher un résumé :
 ## Format de sortie
 Afficher un message clair avec émojis :
 ```
-🧹 Nettoyage du projet CinéBrest...
+🧹 Nettoyage du projet ReelTime...
 
 ✅ Python caches: 12 dossiers supprimés
 ✅ Fichiers .pyc: 45 fichiers supprimés

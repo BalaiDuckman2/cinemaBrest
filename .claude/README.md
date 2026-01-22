@@ -1,6 +1,6 @@
 # Commandes Claude Code Personnalisées
 
-Ce dossier contient des commandes personnalisées pour Claude Code permettant d'automatiser les tâches courantes du projet CinéBrest.
+Ce dossier contient des commandes personnalisées pour Claude Code permettant d'automatiser les tâches courantes du projet ReelTime.
 
 ## Commandes Disponibles
 
@@ -212,6 +212,6 @@ Pour toute question ou amélioration :
 ---
 
 **Version** : 1.0
-**Projet** : CinéBrest
+**Projet** : ReelTime
 **Auteur** : Équipe de développement
 **Dernière mise à jour** : 2025-10-29

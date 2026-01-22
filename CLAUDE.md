@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CinéBrest is a Flask web application that aggregates cinema showtimes from AlloCiné API for theaters in Brest and Landerneau (France). It features a 3-level caching system, user authentication, personal calendar/watchlist, and PWA capabilities.
+ReelTime is a Flask web application that aggregates cinema showtimes from AlloCiné API for theaters in Brest and Landerneau (France). It features a 3-level caching system, user authentication, personal calendar/watchlist, and PWA capabilities.
 
 **Key Technologies**: Flask 3.0, Python 3.13, SQLite, Tailwind CSS, Vanilla JS, Docker
 
@@ -39,10 +39,10 @@ python init_auth_db.py
 ### Testing & Building
 ```bash
 # Build Docker image
-docker build -t cinebrest:latest .
+docker build -t reeltime:latest .
 
 # Run Docker container locally
-docker run -p 5000:5000 --env-file .env cinebrest:latest
+docker run -p 5000:5000 --env-file .env reeltime:latest
 ```
 
 ## Architecture Overview
@@ -275,7 +275,7 @@ Prometheus metrics exposed at `/metrics`:
 1. Branch from `main`: `git checkout -b feature/my-feature`
 2. Test locally with `SKIP_PRELOAD=true` for faster iteration
 3. Clear caches if modifying data structures: `python clear_db.py`
-4. Verify Docker build: `docker build -t cinebrest:test .`
+4. Verify Docker build: `docker build -t reeltime:test .`
 5. Commit with descriptive message
 6. Push and create PR
 

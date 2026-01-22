@@ -2,7 +2,7 @@
 
 ## Objectif
 
-Unifier l'interface CinéBrest pour utiliser le pattern mobile (grille + bottom sheet drawer + filtres cachés) sur tous les écrans, avec adaptation responsive du nombre de colonnes.
+Unifier l'interface ReelTime pour utiliser le pattern mobile (grille + bottom sheet drawer + filtres cachés) sur tous les écrans, avec adaptation responsive du nombre de colonnes.
 
 ## Décisions de Design
 

@@ -1,6 +1,6 @@
 # Commande: /test
 
-Lance tous les tests et validations du projet CinéBrest.
+Lance tous les tests et validations du projet ReelTime.
 
 ## Actions à effectuer
 
@@ -89,7 +89,7 @@ docker build -t cinema-test . && echo "✅ Docker build OK"
 ## Format de sortie
 
 ```
-🧪 Tests du Projet CinéBrest
+🧪 Tests du Projet ReelTime
 ═══════════════════════════════════════
 
 📋 Environnement

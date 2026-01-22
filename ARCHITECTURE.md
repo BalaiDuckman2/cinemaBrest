@@ -1,8 +1,8 @@
-# 🏗️ Architecture du Code - CinéBrest
+# 🏗️ Architecture du Code - ReelTime
 
 ## 📋 Vue d'ensemble
 
-CinéBrest est une application web Flask qui agrège les horaires de cinéma depuis l'API AlloCiné et les affiche dans une interface moderne avec cache multi-niveaux.
+ReelTime est une application web Flask qui agrège les horaires de cinéma depuis l'API AlloCiné et les affiche dans une interface moderne avec cache multi-niveaux.
 
 ## 🔧 Technologies
 
@@ -173,7 +173,7 @@ Simple wrapper pour `requests.get()` avec gestion d'erreurs.
 ### `static/manifest.json` - PWA Manifest
 
 **Configuration** :
-- Nom : "CinéBrest - Horaires Cinéma"
+- Nom : "ReelTime - Horaires Cinéma"
 - Icônes : 192x192, 512x512
 - Display : standalone
 - Orientation : portrait-primary

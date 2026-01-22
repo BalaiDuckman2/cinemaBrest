@@ -424,15 +424,6 @@
         color: white;
     }
 
-    /* Masquer la scrollbar sur le carousel mobile */
-    .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-
-    .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-    }
 
     /* Animation du drawer */
     #filmDrawer {
@@ -449,17 +440,7 @@
         overflow: hidden;
     }
 
-    /* Effet hover pour les cartes de films sur desktop */
-    @media (min-width: 768px) {
-        .film-mobile-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .film-mobile-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-        }
-    }
+    /* Effet hover pour les cartes de films déjà géré par .spotlight-glow */
 </style>
 
 <script>
@@ -709,17 +690,39 @@
         backdrop.classList.add('hidden');
         document.body.classList.remove('drawer-active');
 
+        // Nettoyer les event listeners
+        cleanupDrawerSwipe();
+
         currentDrawerFilmIndex = null;
     }
 
+    // Variable pour stocker les listeners et pouvoir les supprimer
+    let drawerTouchListenersAdded = false;
+
     // Gérer le swipe pour fermer le drawer
     function setupDrawerSwipe() {
+        if (drawerTouchListenersAdded) return; // Éviter d'ajouter plusieurs fois
+
         const drawer = document.getElementById('filmDrawer');
         const drawerInner = drawer.querySelector('.bg-creme-ecran');
 
         drawerInner.addEventListener('touchstart', handleDrawerTouchStart, { passive: true });
         drawerInner.addEventListener('touchmove', handleDrawerTouchMove, { passive: false });
         drawerInner.addEventListener('touchend', handleDrawerTouchEnd, { passive: true });
+        drawerTouchListenersAdded = true;
+    }
+
+    // Nettoyer les listeners du drawer
+    function cleanupDrawerSwipe() {
+        if (!drawerTouchListenersAdded) return;
+
+        const drawer = document.getElementById('filmDrawer');
+        const drawerInner = drawer.querySelector('.bg-creme-ecran');
+
+        drawerInner.removeEventListener('touchstart', handleDrawerTouchStart);
+        drawerInner.removeEventListener('touchmove', handleDrawerTouchMove);
+        drawerInner.removeEventListener('touchend', handleDrawerTouchEnd);
+        drawerTouchListenersAdded = false;
     }
 
     function handleDrawerTouchStart(e) {
@@ -939,35 +942,8 @@
 
             container.style.opacity = '1';
 
-            // Réappliquer les filtres et tri sauvegardés
-            restoreCinemaPreferences();
-
-            const savedSearch = localStorage.getItem('searchTerm');
-            if (savedSearch) {
-                document.getElementById('searchInput').value = savedSearch;
-                searchFilms();
-            }
-
-            const savedSort = localStorage.getItem('sortType');
-            if (savedSort) {
-                sortFilms(savedSort);
-            } else {
-                sortFilms('popularity');
-            }
-
-            // Restaurer le filtre d'horaire
-            const savedTimeSlot = localStorage.getItem('timeSlotFilter');
-            if (savedTimeSlot) {
-                document.getElementById('timeSlotSelect').value = savedTimeSlot;
-                filterByTimeSlot(savedTimeSlot);
-            }
-
-            // Restaurer le filtre de jour
-            const savedDay = localStorage.getItem('selectedDay');
-            if (savedDay) {
-                document.getElementById('daySelect').value = savedDay;
-                filterByDay(savedDay);
-            }
+            // Réappliquer tous les filtres sauvegardés
+            restoreAllFilters();
 
         } catch (error) {
             console.error('Erreur lors du changement de filtre:', error);
@@ -1007,35 +983,8 @@
 
             container.style.opacity = '1';
 
-            restoreCinemaPreferences();
-            restoreDayPreferences();
-
-            const savedSearch = localStorage.getItem('searchTerm');
-            if (savedSearch) {
-                document.getElementById('searchInput').value = savedSearch;
-                searchFilms();
-            }
-
-            const savedSort = localStorage.getItem('sortType');
-            if (savedSort) {
-                sortFilms(savedSort);
-            } else {
-                sortFilms('popularity');
-            }
-
-            // Restaurer le filtre d'horaire
-            const savedTimeSlot = localStorage.getItem('timeSlotFilter');
-            if (savedTimeSlot) {
-                document.getElementById('timeSlotSelect').value = savedTimeSlot;
-                filterByTimeSlot(savedTimeSlot);
-            }
-
-            // Restaurer le filtre de jour
-            const savedDay = localStorage.getItem('selectedDay');
-            if (savedDay) {
-                document.getElementById('daySelect').value = savedDay;
-                filterByDay(savedDay);
-            }
+            // Réappliquer tous les filtres sauvegardés
+            restoreAllFilters();
 
         } catch (error) {
             console.error('Erreur lors du changement de semaine:', error);
@@ -1046,6 +995,9 @@
         }
     }
 
+    // Debouncing pour la recherche (évite trop d'appels pendant la saisie)
+    let searchTimeout = null;
+
     // Fonction de recherche de films en temps réel
     function searchFilms() {
         const input = document.getElementById('searchInput');
@@ -1053,20 +1005,28 @@
 
         localStorage.setItem('searchTerm', input.value);
 
-        // Réappliquer tous les filtres (qui incluent maintenant la recherche)
-        filterByCinema();
-
-        // Compter les films visibles pour afficher le résultat de recherche
-        const filmCards = document.querySelectorAll('.film-mobile-card, .ticket-card');
-        const visibleCount = Array.from(filmCards).filter(f => f.style.display !== 'none').length;
-
-        const resultsText = document.getElementById('searchResults');
-        if (filter === '') {
-            resultsText.textContent = '';
-        } else {
-            resultsText.textContent = `${visibleCount} film(s) trouvé(s)`;
-            resultsText.style.color = visibleCount > 0 ? '#4caf50' : '#f44336';
+        // Annuler la recherche précédente si elle est en cours
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
         }
+
+        // Attendre 300ms après la dernière frappe avant de filtrer
+        searchTimeout = setTimeout(() => {
+            // Réappliquer tous les filtres (qui incluent maintenant la recherche)
+            filterByCinema();
+
+            // Compter les films visibles pour afficher le résultat de recherche
+            const filmCards = document.querySelectorAll('.ticket-card');
+            const visibleCount = Array.from(filmCards).filter(f => f.style.display !== 'none').length;
+
+            const resultsText = document.getElementById('searchResults');
+            if (filter === '') {
+                resultsText.textContent = '';
+            } else {
+                resultsText.textContent = `${visibleCount} film(s) trouvé(s)`;
+                resultsText.style.color = visibleCount > 0 ? '#4caf50' : '#f44336';
+            }
+        }, 300);
     }
 
     // Variables globales pour les filtres
@@ -1162,10 +1122,10 @@
         localStorage.setItem('selectedCinemas', JSON.stringify(selectedCinemas));
 
         checkboxes.forEach(checkbox => {
-            const label = checkbox.closest('.cinema-chip, .ticket-chip');
+            const label = checkbox.closest('.ticket-chip');
             if (checkbox.checked) {
                 label.classList.add('bg-creme-ecran', 'border-sepia-chaud');
-                label.classList.remove('bg-beige-papier', 'border-sepia-chaud/50');
+                label.classList.remove('bg-beige-papier', 'border-sepia-chaud/50', 'opacity-60');
             } else {
                 label.classList.remove('bg-creme-ecran', 'border-sepia-chaud');
                 label.classList.add('bg-beige-papier', 'border-sepia-chaud/50', 'opacity-60');
@@ -1179,7 +1139,7 @@
         const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
 
         // Filtrer les cartes de films (masquer les films sans séances visibles avec TOUS les filtres)
-        document.querySelectorAll('.film-mobile-card, .ticket-card').forEach(card => {
+        document.querySelectorAll('.ticket-card').forEach(card => {
             const filmIndex = parseInt(card.dataset.index);
             const film = filmsData[filmIndex];
             const filmTitle = (card.dataset.title || '').toLowerCase();
@@ -1201,7 +1161,7 @@
         // Afficher le message "aucun résultat" si nécessaire
         const noResults = document.getElementById('noResults');
         if (noResults) {
-            const filmCards = document.querySelectorAll('.film-mobile-card, .ticket-card');
+            const filmCards = document.querySelectorAll('.ticket-card');
             const visibleFilms = Array.from(filmCards).filter(f => f.style.display !== 'none');
             if (visibleFilms.length === 0) {
                 noResults.classList.remove('hidden');
@@ -1213,17 +1173,6 @@
         updateFilterBadge();
     }
 
-    // Fonction pour tout sélectionner/désélectionner
-    function toggleAllCinemas() {
-        const checkboxes = document.querySelectorAll('.ticket-chip input[type="checkbox"]');
-        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = !allChecked;
-        });
-
-        filterByCinema();
-    }
 
     // Fonction de filtre par jour de la semaine
     function filterByDay(selectedDay) {
@@ -1280,24 +1229,57 @@
         }
     }
 
-    function restoreDayPreferences() {
-        const savedDay = localStorage.getItem('selectedDay');
-
-        if (savedDay) {
-            try {
-                const daySelect = document.getElementById('daySelect');
-                if (daySelect) {
-                    daySelect.value = savedDay;
-                    filterByDay(savedDay);
-                }
-            } catch (e) {
-                console.error('Erreur lors de la restauration des préférences de jours:', e);
-            }
-        }
-    }
 
     // Variable pour mémoriser le tri actuel
     let currentSort = 'popularity';
+
+    // Fonction centralisée pour restaurer tous les filtres après un changement de semaine/âge
+    function restoreAllFilters() {
+        // Restaurer les préférences de cinéma
+        restoreCinemaPreferences();
+
+        // Restaurer la recherche
+        const savedSearch = localStorage.getItem('searchTerm');
+        if (savedSearch) {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.value = savedSearch;
+                searchFilms();
+            }
+        }
+
+        // Restaurer le tri
+        const savedSort = localStorage.getItem('sortBy');
+        if (savedSort) {
+            sortFilms(savedSort);
+        } else {
+            sortFilms('popularity');
+        }
+
+        // Restaurer le filtre de version
+        const savedVersion = localStorage.getItem('versionFilter');
+        if (savedVersion) {
+            const versionSelect = document.getElementById('versionSelect');
+            if (versionSelect) versionSelect.value = savedVersion;
+            filterByVersion(savedVersion);
+        }
+
+        // Restaurer le filtre d'horaire
+        const savedTimeSlot = localStorage.getItem('timeSlotFilter');
+        if (savedTimeSlot) {
+            const timeSlotSelect = document.getElementById('timeSlotSelect');
+            if (timeSlotSelect) timeSlotSelect.value = savedTimeSlot;
+            filterByTimeSlot(savedTimeSlot);
+        }
+
+        // Restaurer le filtre de jour
+        const savedDay = localStorage.getItem('selectedDay');
+        if (savedDay) {
+            const daySelect = document.getElementById('daySelect');
+            if (daySelect) daySelect.value = savedDay;
+            filterByDay(savedDay);
+        }
+    }
 
     // Fonction de tri des films
     function sortFilms(sortType) {
@@ -1307,11 +1289,10 @@
         const gridContainer = container.querySelector('.grid');
         if (!gridContainer) return;
 
-        const filmCards = Array.from(gridContainer.querySelectorAll('.film-mobile-card'));
+        const filmCards = Array.from(gridContainer.querySelectorAll('.ticket-card'));
 
         // Sauvegarder le tri dans localStorage
         localStorage.setItem('sortBy', sortType);
-        localStorage.setItem('sortType', sortType);
         currentSort = sortType;
 
         // Mettre à jour la valeur du select
@@ -1347,8 +1328,7 @@
         }, 150);
     }
 
-    // Fonction pour générer le HTML d'un film
-    // Fonction pour générer le HTML d'un film
+    // Fonction pour générer le HTML des films
     function renderFilms(films, dates) {
         // Mettre à jour les données globales pour le drawer
         filmsData.length = 0;
@@ -1426,11 +1406,8 @@
             }
         }
 
-        // Restaurer les préférences de cinéma
+        // Restaurer les préférences de cinéma et tous les filtres
         restoreCinemaPreferences();
-
-        // Restaurer les préférences de jours
-        restoreDayPreferences();
 
         // Restaurer la recherche
         const searchInput = document.getElementById('searchInput');
@@ -1441,7 +1418,7 @@
         }
 
         // Restaurer le tri
-        const savedSort = localStorage.getItem('sortType');
+        const savedSort = localStorage.getItem('sortBy');
         if (savedSort) {
             sortFilms(savedSort);
         }

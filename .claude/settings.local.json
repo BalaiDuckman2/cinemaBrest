@@ -25,7 +25,17 @@
       "mcp__chrome-devtools__press_key",
       "Skill(superpowers:brainstorming)",
       "Bash(cat:*)",
-      "Skill(frontend-design:frontend-design)"
+      "Skill(frontend-design:frontend-design)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Complete vintage French cinema redesign with accordion showtimes view\n\n- Replace desktop/mobile dual view with unified vintage aesthetic\n- Transform showtimes table to vertical accordion \\(eliminates horizontal scroll\\)\n- Add warm color palette: Rouge Cinéma, Jaune Marquise, Crème Écran, Sépia Chaud\n- Integrate custom Google Fonts: Bebas Neue, Playfair Display, Crimson Text\n- Implement visual signature elements: film strip borders, vintage texture, spotlight glow, stage curtain animations, ticket stub designs\n- Fix cinema filter initialization bug \\(localStorage empty array issue\\)\n- Redesign drawer with day-based accordion for mobile-friendly showtimes display\n- Each day shows all cinemas with gradient red header and ticket-style time buttons\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push)",
+      "Bash(docker build:*)",
+      "Bash(docker tag:*)",
+      "Bash(ping:*)",
+      "Bash(curl:*)",
+      "mcp__chrome-devtools__emulate",
+      "Bash(taskkill:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

@@ -8,7 +8,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="CinéBrest">
+    <meta name="apple-mobile-web-app-title" content="ReelTime">
     
     <!-- Manifest -->
     <link rel="manifest" href="/static/manifest.json">
@@ -17,13 +17,13 @@
     <link rel="shortcut icon" type="image/png" href="/static/images/favicon.png"/>
     <link rel="apple-touch-icon" href="/static/images/icon-192.png">
 
-    <meta property="og:title" content="CinéBrest">
+    <meta property="og:title" content="ReelTime">
     <meta property="og:image" content="https://cinema.mathiasd.fr/static/images/banner.png">
     <meta property="og:url" content="https://cinema.mathiasd.fr/">
     <meta name="twitter:card" content="summary_large_image"/>
     <meta name="theme-color" content="#6366f1"/>
-    <meta property="og:description" content="Retrouvez toutes les séances des cinémas brestois sur une seule page, toujours à jour">
-    <meta name="description" content="Retrouvez toutes les séances des cinémas brestois sur une seule page, toujours à jour">
+    <meta property="og:description" content="Retrouvez toutes les séances de cinéma de Brest et Landerneau en temps réel sur une seule page">
+    <meta name="description" content="Retrouvez toutes les séances de cinéma de Brest et Landerneau en temps réel sur une seule page">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -32,7 +32,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""></script>
-    <title>CinéBrest</title>
+    <title>ReelTime</title>
     <script>
         tailwind.config = {
             theme: {
@@ -56,8 +56,8 @@
             <a href="{{ url_for('home') }}" class="flex items-center gap-2 sm:gap-4 hover:opacity-80 transition-opacity cursor-pointer">
                 <span class="text-3xl sm:text-4xl">🎬</span>
                 <div>
-                    <h1 style="font-family: 'Bebas Neue', sans-serif;" class="text-2xl sm:text-3xl md:text-4xl text-creme-ecran uppercase tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">CinéBrest</h1>
-                    <p style="font-family: 'Crimson Text', serif;" class="text-xs sm:text-sm text-creme-ecran/80 italic hidden sm:block">Toutes vos séances en un coup d'œil</p>
+                    <h1 style="font-family: 'Bebas Neue', sans-serif;" class="text-2xl sm:text-3xl md:text-4xl text-creme-ecran uppercase tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">ReelTime</h1>
+                    <p style="font-family: 'Crimson Text', serif;" class="text-xs sm:text-sm text-creme-ecran/80 italic hidden sm:block">Vos séances ciné en temps réel</p>
                 </div>
             </a>
 
@@ -171,10 +171,10 @@
         <div class="flex flex-col items-center gap-4 mb-6">
             <div class="flex items-center gap-2 text-2xl">
                 <span>🎬</span>
-                <span style="font-family: 'Bebas Neue', sans-serif;" class="text-3xl text-creme-ecran uppercase tracking-wider drop-shadow-lg">CinéBrest</span>
+                <span style="font-family: 'Bebas Neue', sans-serif;" class="text-3xl text-creme-ecran uppercase tracking-wider drop-shadow-lg">ReelTime</span>
             </div>
             <p style="font-family: 'Crimson Text', serif;" class="text-creme-ecran/90 text-sm max-w-md leading-relaxed">
-                Tous les horaires de cinéma de Brest et Landerneau, agrégés en temps réel pour vous simplifier la vie.
+                Tous les horaires de cinéma de Brest et Landerneau, agrégés en temps réel, toujours à jour.
             </p>
         </div>
 
@@ -192,7 +192,7 @@
 
         <div class="border-t border-creme-ecran/30 pt-4">
             <p style="font-family: 'Crimson Text', serif;" class="text-creme-ecran/70 text-xs italic">
-                Données mises à jour automatiquement • Open Source • Fait avec ❤️ pour la communauté brestoise
+                Données mises à jour automatiquement • Open Source • Fait avec ❤️ pour les cinéphiles brestois
             </p>
         </div>
     </div>

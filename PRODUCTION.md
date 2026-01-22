@@ -1,4 +1,4 @@
-# 🚀 Guide de Déploiement en Production - CinéBrest
+# 🚀 Guide de Déploiement en Production - ReelTime
 
 ## 📋 Prérequis
 
@@ -71,7 +71,7 @@ docker-compose down
 
 ```bash
 # Build
-docker build -t cinebrest:latest .
+docker build -t reeltime:latest .
 
 # Run
 docker run -d \
@@ -80,7 +80,7 @@ docker run -d \
   --env-file .env \
   --restart unless-stopped \
   -v $(pwd)/data:/app/data \
-  cinebrest:latest
+  reeltime:latest
 
 # Logs
 docker logs -f cinebrest
@@ -269,7 +269,7 @@ docker-compose logs -f app
 docker exec cinebrest sqlite3 /app/data/cinema.db ".backup '/app/data/cinema_backup_$(date +%Y%m%d).db'"
 
 # Copier en local
-docker cp cinebrest:/app/data/cinema_backup_YYYYMMDD.db ./backups/
+docker cp reeltime:/app/data/cinema_backup_YYYYMMDD.db ./backups/
 ```
 
 ### Backup Automatique (Cron)
@@ -285,7 +285,7 @@ mkdir -p $BACKUP_DIR
 
 # Backup BDD
 docker exec cinebrest sqlite3 /app/data/cinema.db ".backup '/app/data/backup_temp.db'"
-docker cp cinebrest:/app/data/backup_temp.db $BACKUP_DIR/cinema_$DATE.db
+docker cp reeltime:/app/data/backup_temp.db $BACKUP_DIR/cinema_$DATE.db
 
 # Garder seulement les 30 derniers backups
 find $BACKUP_DIR -name "cinema_*.db" -mtime +30 -delete

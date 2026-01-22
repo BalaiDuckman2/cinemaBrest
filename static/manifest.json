@@ -1,7 +1,7 @@
 {
-  "name": "CinéBrest - Horaires Cinéma",
-  "short_name": "CinéBrest",
-  "description": "Tous les horaires de cinéma de Brest et Landerneau",
+  "name": "ReelTime - Horaires Cinéma",
+  "short_name": "ReelTime",
+  "description": "Tous les horaires de cinéma de Brest et Landerneau en temps réel",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1a1a2e",

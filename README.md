@@ -1,6 +1,6 @@
-# 🎬 CinéBrest
+# 🎬 ReelTime
 
-Application web pour visualiser tous les films à l'affiche dans les cinémas de Brest et Landerneau, avec filtrage par âge du film et vue hebdomadaire.
+Application web en temps réel pour visualiser tous les films à l'affiche dans les cinémas de Brest et Landerneau, avec filtrage intelligent et vue hebdomadaire.
 
 ![Python](https://img.shields.io/badge/Python-3.13-blue)
 ![Flask](https://img.shields.io/badge/Flask-3.0-green)

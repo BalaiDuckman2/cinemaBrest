@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cinebrest-v2';
+const CACHE_NAME = 'reeltime-v1';
 const urlsToCache = [
   '/static/images/favicon.png',
   '/static/images/nocontent.png',

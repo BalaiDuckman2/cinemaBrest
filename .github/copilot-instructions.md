@@ -2,7 +2,7 @@
 
 ## Contexte du Projet
 
-Ce projet est **CinéBrest**, une application web Flask qui agrège les horaires de cinéma.
+Ce projet est **ReelTime**, une application web Flask qui agrège les horaires de cinéma.
 
 ### Technologies Utilisées
 - **Backend** : Flask 3.0, Python 3.13

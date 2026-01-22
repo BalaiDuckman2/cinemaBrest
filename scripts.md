@@ -1,4 +1,4 @@
-# 🛠️ Scripts Utiles - CinéBrest
+# 🛠️ Scripts Utiles - ReelTime
 
 ## 🚀 Développement
 
@@ -21,7 +21,7 @@ python clear_db.py
 
 ### Build l'image
 ```bash
-docker build -t cinebrest:latest .
+docker build -t reeltime:latest .
 ```
 
 ### Lancer avec Docker Compose
