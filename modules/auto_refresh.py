@@ -123,4 +123,29 @@ class AutoRefresh:
                 logger.info(f"📅 Progression: {idx}/{total_dates} jours ({idx//7} semaines)")
                     
         elapsed = time.time() - start_time
-        logger.info(f"✓ Rafraîchissement terminé : {total_showtimes} séances sur 60 jours en {elapsed:.1f}s")
+        logger.info(f"✓ Rafraîchissement API terminé : {total_showtimes} séances sur 60 jours en {elapsed:.1f}s")
+
+        # Précharger les semaines dans _week_cache pour accès instantané
+        # IMPORTANT: Sans cela, chaque changement de semaine doit recalculer l'agrégation
+        logger.info("📅 Préchargement des semaines dans le cache...")
+        try:
+            # Import de la fonction getShowtimesWeek depuis app.py via un import circulaire évité
+            # On doit importer dynamiquement car auto_refresh est importé par app.py
+            import sys
+            if 'app' in sys.modules:
+                app_module = sys.modules['app']
+                getShowtimesWeek = getattr(app_module, 'getShowtimesWeek', None)
+                if getShowtimesWeek:
+                    for week in range(8):
+                        try:
+                            films, _ = getShowtimesWeek(week)
+                            logger.info(f"✓ Semaine +{week}: {len(films)} films en cache")
+                        except Exception as e:
+                            logger.error(f"❌ Erreur semaine +{week}: {e}")
+                    logger.info("✓ Cache des semaines préchargé")
+                else:
+                    logger.warning("⚠️  getShowtimesWeek non disponible")
+            else:
+                logger.warning("⚠️  Module app non chargé, cache semaines non préchargé")
+        except Exception as e:
+            logger.error(f"❌ Erreur préchargement semaines: {e}")
