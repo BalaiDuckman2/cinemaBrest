@@ -1,5 +1,10 @@
 .env
 
+# Node
+node_modules/
+dist/
+.turbo/
+
 # Base de données
 *.db
 *.db-journal

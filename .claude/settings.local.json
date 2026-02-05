@@ -35,7 +35,11 @@
       "Bash(curl:*)",
       "mcp__chrome-devtools__emulate",
       "Bash(taskkill:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(cd:*)",
+      "Bash(git commit:*)",
+      "Bash(docker images:*)",
+      "Bash(docker login:*)"
     ],
     "deny": [],
     "ask": []

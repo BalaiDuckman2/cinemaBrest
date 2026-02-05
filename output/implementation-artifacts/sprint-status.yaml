@@ -1,0 +1,104 @@
+# generated: 2026-02-04
+# project: cinemaBrest-1
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-02-04
+project: cinemaBrest-1
+project_key: NOKEY
+tracking_system: file-system
+story_location: output/implementation-artifacts
+
+development_status:
+  # Epic 0: Technical Prerequisites
+  epic-0: in-progress
+  0-1-initialize-monorepo-structure: done
+  0-2-setup-design-system-foundation: ready-for-dev
+  0-3-create-shared-types-package: backlog
+  0-4-initialize-api-application: backlog
+  0-5-initialize-web-application: backlog
+  0-6-initialize-mobile-application: backlog
+  epic-0-retrospective: optional
+
+  # Epic 2: Guest Film Discovery
+  epic-2: backlog
+  2-1-allocine-scraper-service: backlog
+  2-2-database-schema-for-films-and-cinemas: backlog
+  2-3-multi-level-cache-service: backlog
+  2-4-films-api-endpoints: backlog
+  2-5-cinemas-api-endpoints: backlog
+  2-6-core-ui-components: backlog
+  2-7-filmdrawer-component: backlog
+  2-8-web-films-page: backlog
+  2-9-mobile-films-screen: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: User Authentication
+  epic-3: backlog
+  3-1-user-database-schema-and-registration-api: backlog
+  3-2-login-api-and-jwt-token-management: backlog
+  3-3-auth-middleware-and-user-profile-api: backlog
+  3-4-web-authentication-pages: backlog
+  3-5-mobile-authentication-screens: backlog
+  3-6-account-deletion-and-data-erasure-rgpd: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Search & Filtering
+  epic-4: backlog
+  4-1-search-and-filter-api-support: backlog
+  4-2-web-search-and-filters: backlog
+  4-3-mobile-search-and-filters: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Watchlist
+  epic-5: backlog
+  5-1-watchlist-database-and-api-endpoints: backlog
+  5-2-web-watchlist-integration: backlog
+  5-3-mobile-watchlist-integration: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: Administration & Monitoring
+  epic-6: backlog
+  6-1-structured-logging-and-prometheus-metrics: backlog
+  6-2-allocine-auto-sync-and-cache-management: backlog
+  6-3-docker-deployment-and-health-monitoring: backlog
+  6-4-cicd-pipeline: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: Alerts & Notifications (Phase 2)
+  epic-7: backlog
+  7-1-alerts-database-and-crud-api: backlog
+  7-2-alert-matching-and-push-notification-service: backlog
+  7-3-web-alerts-management: backlog
+  7-4-mobile-alerts-and-push-notifications: backlog
+  epic-7-retrospective: optional

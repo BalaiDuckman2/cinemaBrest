@@ -1,0 +1,12 @@
+{
+  "extends": "./packages/config/typescript/base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@reeltime/types": ["packages/types/src"],
+      "@reeltime/ui": ["packages/ui/src"],
+      "@reeltime/api-client": ["packages/api-client/src"]
+    }
+  },
+  "exclude": ["node_modules", "dist", "apps", "packages"]
+}
