@@ -48,6 +48,14 @@ export const CINEMAS: CinemaConfig[] = [
     latitude: 48.4474,
     longitude: -4.2544,
   },
+  {
+    allocineId: 'P0328',
+    name: 'Les Baladins',
+    address: '34 Avenue du Général de Gaulle, 22300 Lannion',
+    city: 'Lannion',
+    latitude: 48.7279,
+    longitude: -3.4607,
+  },
 ];
 
 export function getCinemaByAllocineId(id: string): CinemaConfig | undefined {

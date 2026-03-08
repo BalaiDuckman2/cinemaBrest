@@ -13,10 +13,16 @@ COPY packages/config/ packages/config/
 # Copy API source
 COPY apps/api/ apps/api/
 
-# Install dependencies and build
+# Install dependencies (respects lockfile = prisma 6.x)
 RUN pnpm install --frozen-lockfile
-RUN pnpm turbo run build --filter=@reeltime/api
 RUN cd apps/api && npx prisma generate
+RUN pnpm turbo run build --filter=@reeltime/api
+
+# Prune to production deps
+RUN pnpm --filter=@reeltime/api deploy --prod /app/pruned
+
+# Create template SQLite DB using the locked prisma 6.x
+RUN cd apps/api && DATABASE_URL=file:/tmp/template.db npx prisma db push --skip-generate --accept-data-loss 2>&1
 
 # Stage 2: Production
 FROM node:20-alpine
@@ -25,17 +31,33 @@ RUN apk add --no-cache wget && \
     adduser -S appuser -u 1001 -G appgroup
 WORKDIR /app
 
-# Copy built output and production deps
+# Copy pruned production deps
+COPY --from=builder /app/pruned/node_modules ./node_modules
+
+# Copy built output
 COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/apps/api/prisma ./prisma
-COPY --from=builder /app/apps/api/node_modules ./node_modules
 COPY --from=builder /app/apps/api/package.json ./
 
+# Copy generated Prisma client to where compiled code expects it (dist/generated/)
+COPY --from=builder /app/apps/api/src/generated ./dist/generated
+
+# Copy workspace packages that the API depends on
+COPY --from=builder /app/packages/types ./node_modules/@reeltime/types
+
+# Copy template database
+COPY --from=builder /tmp/template.db /app/template.db
+
+# Create data directory for SQLite
+RUN mkdir -p /app/data && chown appuser:appgroup /app/data
+
 ENV NODE_ENV=production
+ENV DATABASE_URL=file:/app/data/reeltime.db
+
 USER appuser
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD wget -qO- http://localhost:3000/healthcheck || exit 1
 
-CMD ["node", "dist/server.js"]
+# Copy template DB if no database exists, then start server
+CMD ["sh", "-c", "[ -f /app/data/reeltime.db ] || cp /app/template.db /app/data/reeltime.db; node dist/server.js"]

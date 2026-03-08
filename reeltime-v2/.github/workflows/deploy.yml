@@ -45,7 +45,45 @@ jobs:
             -t ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-web:latest .
           docker push ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-web --all-tags
 
-      - name: Deploy to NAS via SSH
+      - name: Create production docker-compose on NAS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.NAS_SSH_HOST }}
+          username: ${{ secrets.NAS_SSH_USER }}
+          key: ${{ secrets.NAS_SSH_KEY }}
+          script: |
+            mkdir -p ${{ secrets.NAS_DEPLOY_PATH }}
+            cat > ${{ secrets.NAS_DEPLOY_PATH }}/docker-compose.yml << 'COMPOSE'
+            services:
+              api:
+                image: ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-api:latest
+                restart: unless-stopped
+                environment:
+                  DATABASE_URL: file:/app/data/reeltime.db
+                  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+                  JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+                  CORS_ORIGIN: "*"
+                  NODE_ENV: production
+                  SKIP_PRELOAD: "false"
+                  TIMEZONE: Europe/Paris
+                  LOG_LEVEL: info
+                volumes:
+                  - reeltime_data:/app/data
+
+              web:
+                image: ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-web:latest
+                restart: unless-stopped
+                depends_on:
+                  api:
+                    condition: service_healthy
+                ports:
+                  - "80:80"
+
+            volumes:
+              reeltime_data:
+            COMPOSE
+
+      - name: Deploy to NAS
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.NAS_SSH_HOST }}
@@ -53,6 +91,7 @@ jobs:
           key: ${{ secrets.NAS_SSH_KEY }}
           script: |
             cd ${{ secrets.NAS_DEPLOY_PATH }}
+            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
             docker compose pull
             docker compose up -d
             docker image prune -f

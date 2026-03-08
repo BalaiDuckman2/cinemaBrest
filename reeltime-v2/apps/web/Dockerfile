@@ -13,6 +13,10 @@ COPY packages/config/ packages/config/
 # Copy Web source
 COPY apps/web/ apps/web/
 
+# API URL is empty in prod (nginx proxies /api to the api service)
+ARG VITE_API_URL=""
+ENV VITE_API_URL=${VITE_API_URL}
+
 # Install dependencies and build
 RUN pnpm install --frozen-lockfile
 RUN pnpm turbo run build --filter=@reeltime/web
