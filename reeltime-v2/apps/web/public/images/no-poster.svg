@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+  <rect width="300" height="450" fill="#EFEBE9"/>
+  <text x="150" y="210" text-anchor="middle" font-family="serif" font-size="20" fill="#8D6E63">Pas</text>
+  <text x="150" y="240" text-anchor="middle" font-family="serif" font-size="20" fill="#8D6E63">d'affiche</text>
+  <rect x="120" y="260" width="60" height="2" fill="#8D6E63" opacity="0.4"/>
+</svg>

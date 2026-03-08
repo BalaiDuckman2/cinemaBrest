@@ -1,0 +1,16 @@
+{
+  "extends": "@reeltime/config/typescript/react",
+  "compilerOptions": {
+    "jsx": "react-native",
+    "lib": ["ES2022"],
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["App.tsx", "src/**/*.ts", "src/**/*.tsx", "nativewind-env.d.ts"],
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js", "tailwind.config.ts"]
+}

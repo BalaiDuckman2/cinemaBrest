@@ -1,0 +1,185 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* === BODY BACKGROUND === */
+body {
+  background: linear-gradient(to bottom right, #EFEBE9 0%, #FFF8E1 50%, #EFEBE9 100%);
+  min-height: 100vh;
+}
+
+/* === FILM STRIP BORDER === */
+.film-strip-border {
+  position: relative;
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+.film-strip-border::before,
+.film-strip-border::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #1A1A1A 0px,
+      #1A1A1A 15px,
+      transparent 15px,
+      transparent 20px
+    ),
+    linear-gradient(180deg, #1A1A1A 0px, #1A1A1A 4px, transparent 4px, transparent 8px, #1A1A1A 8px, #1A1A1A 12px, transparent 12px, transparent 16px, #1A1A1A 16px, #1A1A1A 20px);
+  background-size: 20px 100%, 100% 20px;
+}
+
+.film-strip-border::before {
+  top: 0;
+}
+
+.film-strip-border::after {
+  bottom: 0;
+  border-top: 2px solid #F9A825;
+}
+
+/* === STAGE CURTAIN HEADER === */
+.stage-curtain {
+  background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.stage-curtain::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 45%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 55%,
+    transparent 100%
+  );
+  animation: curtain-shimmer 8s ease-in-out infinite;
+}
+
+@keyframes curtain-shimmer {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(50%); }
+}
+
+/* === TICKET CARD DESIGN === */
+.ticket-card {
+  background: #FFF8E1;
+  border: 2px solid #8D6E63;
+  border-radius: 8px;
+  position: relative;
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ticket-card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 20px;
+  height: 20px;
+  background: #EFEBE9;
+  border-bottom-left-radius: 20px;
+  border: 2px solid #8D6E63;
+  border-top: none;
+  border-right: none;
+  z-index: 10;
+}
+
+/* === VINTAGE TEXTURE OVERLAY === */
+.vintage-texture {
+  position: relative;
+}
+
+.vintage-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  border-radius: inherit;
+}
+
+/* === SPOTLIGHT GLOW EFFECT (Desktop only) === */
+@media (min-width: 768px) {
+  .spotlight-glow {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .spotlight-glow::after {
+    content: '';
+    position: absolute;
+    inset: -10px;
+    background: radial-gradient(circle at 50% 0%, rgba(249, 168, 37, 0.3) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .spotlight-glow:hover::after {
+    opacity: 1;
+  }
+
+  .spotlight-glow:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* === TICKET CHIP (Cinema filters) === */
+.ticket-chip {
+  transition: all 0.2s ease;
+}
+
+.ticket-chip:hover {
+  border-color: #D32F2F;
+  box-shadow: 0 2px 4px rgba(211, 47, 47, 0.2);
+  transform: translateY(-1px);
+}
+
+/* === SELECT DROPDOWN STYLING === */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+select option {
+  background-color: #1f2937;
+  color: white;
+}
+
+/* === DRAWER ANIMATION === */
+#filmDrawer {
+  will-change: transform;
+}
+
+.drawer-open {
+  transform: translateY(0) !important;
+}
+
+body.drawer-active {
+  overflow: hidden;
+}

@@ -8,7 +8,8 @@
     "./typescript/node": "./typescript/node.json",
     "./eslint/base": "./eslint/base.js",
     "./eslint/react": "./eslint/react.js",
-    "./eslint/node": "./eslint/node.js"
+    "./eslint/node": "./eslint/node.js",
+    "./tailwind/preset": "./tailwind/preset.js"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.0.0",

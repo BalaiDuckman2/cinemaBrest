@@ -1,0 +1,15 @@
+export const config = {
+  port: parseInt(process.env.PORT || '3000', 10),
+  host: process.env.HOST || '0.0.0.0',
+  nodeEnv: process.env.NODE_ENV || 'development',
+  databaseUrl: process.env.DATABASE_URL || 'file:./dev.db',
+  jwtSecret: process.env.JWT_SECRET || 'dev-secret-change-in-production',
+  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-change-in-production',
+  corsOrigin: process.env.CORS_ORIGIN || '*',
+  logLevel: process.env.LOG_LEVEL || 'info',
+  skipPreload: process.env.SKIP_PRELOAD === 'true',
+  timezone: process.env.TIMEZONE || 'Europe/Paris',
+  firebaseProjectId: process.env.FIREBASE_PROJECT_ID || '',
+  firebaseClientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
+  firebasePrivateKey: process.env.FIREBASE_PRIVATE_KEY || '',
+} as const;

@@ -1,0 +1,9 @@
+export { healthcheckRoutes } from './healthcheck.js';
+export { authRoutes } from './auth.js';
+export { meRoutes } from './me.js';
+export { filmsRoutes } from './films.js';
+export { watchlistRoutes } from './watchlist.js';
+export { cinemasRoutes } from './cinemas.js';
+export { alertesRoutes } from './alertes.js';
+export { devicesRoutes } from './devices.js';
+export { adminRoutes } from './admin.js';

@@ -35,6 +35,13 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+*.tsbuildinfo
 
 # Vercel
 .vercel
+
+# Generated
+generated/
+
+# Expo
+.expo/

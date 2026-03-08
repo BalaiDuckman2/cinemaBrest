@@ -1,4 +1,5 @@
 .env
+.env.local
 
 # Node
 node_modules/
@@ -12,31 +13,15 @@ data/
 
 # OS
 .DS_Store
+NUL
+nul
 
 # IDE
 .vscode/
 .idea
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-.venv
-venv/
-ENV/
+# Expo
+.expo/
 
-# Fichiers de test temporaires
-check_*.py
-test_*.py
-debug_*.py
-inspect_*.py
-
-# Documentation de logs obsolètes
-AMELIORATIONS_*.md
-CORRECTION_*.md
-NETTOYAGE_*.md
-NOUVEAU_*.md
-RECAPITULATIF_*.md
-*_SUMMARY.md
+# Build
+*.tsbuildinfo
