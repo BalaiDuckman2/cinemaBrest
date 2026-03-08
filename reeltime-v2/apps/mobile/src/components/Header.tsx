@@ -13,18 +13,18 @@ function FilmStripBorder() {
 
 const stripStyles = StyleSheet.create({
   strip: {
-    height: 14,
+    height: 12,
     backgroundColor: '#1A1A1A',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-evenly',
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
   },
   hole: {
-    width: 8,
-    height: 6,
-    borderRadius: 2,
-    backgroundColor: '#2A2A2A',
+    width: 7,
+    height: 5,
+    borderRadius: 1.5,
+    backgroundColor: '#333',
   },
 });
 
@@ -35,7 +35,7 @@ export function Header() {
       <View style={styles.container}>
         <View style={styles.content}>
           <Text style={styles.emoji}>🎬</Text>
-          <View>
+          <View style={styles.textContainer}>
             <Text style={styles.title}>REELTIME</Text>
             <Text style={styles.subtitle}>Vos seances cine en temps reel</Text>
           </View>
@@ -51,32 +51,36 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#D32F2F',
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 12,
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
+  textContainer: {
+    flex: 1,
+  },
   emoji: {
-    fontSize: 28,
+    fontSize: 26,
   },
   title: {
     fontFamily: 'BebasNeue-Regular',
-    fontSize: 30,
+    fontSize: 28,
     color: '#FFF8E1',
-    letterSpacing: 2,
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    letterSpacing: 3,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   subtitle: {
     fontFamily: 'CrimsonText-Italic',
-    fontSize: 13,
-    color: 'rgba(255,248,225,0.8)',
+    fontSize: 12,
+    color: 'rgba(255,248,225,0.7)',
+    marginTop: -2,
   },
   goldLine: {
-    height: 2,
+    height: 3,
     backgroundColor: '#F9A825',
   },
 });

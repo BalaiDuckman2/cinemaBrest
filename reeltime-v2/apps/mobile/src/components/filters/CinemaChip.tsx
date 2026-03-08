@@ -28,14 +28,13 @@ export function CinemaChip({ cinemaId, cinemaName }: CinemaChipProps) {
 
 const styles = StyleSheet.create({
   chip: {
-    minHeight: 40,
+    minHeight: 38,
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 7,
     borderRadius: 20,
     backgroundColor: '#FFF8E1',
-    borderWidth: 2,
-    borderColor: '#8D6E63',
-    marginRight: 8,
+    borderWidth: 1.5,
+    borderColor: 'rgba(141,110,99,0.3)',
     justifyContent: 'center',
   },
   chipActive: {

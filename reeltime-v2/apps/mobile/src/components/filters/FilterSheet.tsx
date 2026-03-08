@@ -1,5 +1,5 @@
 import { useMemo, forwardRef, useCallback } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { CinemaChip } from './CinemaChip';
 import { VersionChip } from './VersionChip';
@@ -43,8 +43,8 @@ const AGE_OPTIONS: { value: MinAgeFilter; label: string }[] = [
 const TIME_SLOT_OPTIONS: { value: TimeSlotFilter; label: string }[] = [
   { value: 'all', label: 'Tous' },
   { value: 'morning', label: 'Matin' },
-  { value: 'afternoon', label: 'Après-midi' },
-  { value: 'evening', label: 'Soirée' },
+  { value: 'afternoon', label: 'Apres-midi' },
+  { value: 'evening', label: 'Soiree' },
   { value: 'night', label: 'Nuit' },
 ];
 
@@ -98,11 +98,7 @@ export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
 
           {/* Cinema chips */}
           <Text style={styles.sectionLabel}>CINEMAS</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipsRow}
-          >
+          <View style={styles.wrapRow}>
             {cinemas.map((cinema) => (
               <CinemaChip
                 key={cinema.id}
@@ -110,11 +106,11 @@ export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
                 cinemaName={cinema.name}
               />
             ))}
-          </ScrollView>
+          </View>
 
           {/* Version chips */}
           <Text style={[styles.sectionLabel, styles.sectionSpacing]}>VERSION</Text>
-          <View style={styles.versionRow}>
+          <View style={styles.wrapRow}>
             <VersionChip version={null} label="Tous" />
             <VersionChip version="VO" label="VO" />
             <VersionChip version="VF" label="VF" />
@@ -123,11 +119,7 @@ export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
 
           {/* Day filter chips */}
           <Text style={[styles.sectionLabel, styles.sectionSpacing]}>JOUR</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipsRow}
-          >
+          <View style={styles.wrapRow}>
             {DAY_OPTIONS.map((opt) => (
               <FilterChip
                 key={opt.value}
@@ -136,11 +128,11 @@ export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
                 onPress={() => setDayFilter(dayFilter === opt.value ? 'all' : opt.value)}
               />
             ))}
-          </ScrollView>
+          </View>
 
           {/* Time slot chips */}
-          <Text style={[styles.sectionLabel, styles.sectionSpacing]}>CRÉNEAU</Text>
-          <View style={styles.versionRow}>
+          <Text style={[styles.sectionLabel, styles.sectionSpacing]}>CRENEAU</Text>
+          <View style={styles.wrapRow}>
             {TIME_SLOT_OPTIONS.map((opt) => (
               <FilterChip
                 key={opt.value}
@@ -153,11 +145,7 @@ export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
 
           {/* Age filter chips */}
           <Text style={[styles.sectionLabel, styles.sectionSpacing]}>AGE DU FILM</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipsRow}
-          >
+          <View style={styles.wrapRow}>
             {AGE_OPTIONS.map((opt) => (
               <FilterChip
                 key={opt.value}
@@ -166,7 +154,7 @@ export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
                 onPress={() => setMinAge(minAge === opt.value ? 0 : opt.value)}
               />
             ))}
-          </ScrollView>
+          </View>
 
           {/* Time slider */}
           <View style={styles.sectionSpacing}>
@@ -197,8 +185,10 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   handleIndicator: {
-    backgroundColor: '#FFD54F',
-    width: 48,
+    backgroundColor: '#D7CCC8',
+    width: 40,
+    height: 4,
+    borderRadius: 2,
   },
   content: {
     paddingHorizontal: 16,
@@ -229,10 +219,7 @@ const styles = StyleSheet.create({
   sliderSpacing: {
     marginTop: 12,
   },
-  chipsRow: {
-    paddingRight: 8,
-  },
-  versionRow: {
+  wrapRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
@@ -243,11 +230,10 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 18,
     backgroundColor: '#FFF8E1',
-    borderWidth: 2,
-    borderColor: '#8D6E63',
+    borderWidth: 1.5,
+    borderColor: 'rgba(141,110,99,0.3)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 6,
   },
   filterChipActive: {
     backgroundColor: '#D32F2F',

@@ -17,6 +17,7 @@ import { Version as PrismaVersion } from '../generated/prisma/index.js';
 import { Version } from '@reeltime/types';
 
 const CACHE_TTL_SECONDS = 21_600; // 6 hours
+const EMPTY_CACHE_TTL_SECONDS = 3_600; // 1 hour for empty results (AlloCiné may add data later)
 
 // --- L1: In-memory cache (node-cache) ---
 
@@ -156,6 +157,7 @@ async function setInL2(
   cinemaAllocineId: string,
   date: string,
   data: CachedShowtimeData,
+  ttlSeconds: number = CACHE_TTL_SECONDS,
 ): Promise<void> {
   const cinema = await prisma.cinema.findUnique({
     where: { allocineId: cinemaAllocineId },
@@ -227,7 +229,7 @@ async function setInL2(
 
   // Update cache metadata
   const now = new Date();
-  const expiresAt = new Date(now.getTime() + CACHE_TTL_SECONDS * 1000);
+  const expiresAt = new Date(now.getTime() + ttlSeconds * 1000);
   const key = buildCacheKey(cinemaAllocineId, date);
 
   await prisma.cacheMetadata.upsert({
@@ -286,14 +288,14 @@ export async function getShowtimes(
     return { data: staleData, source: 'l2-stale', stale: true };
   }
 
-  // Cache empty results too to avoid repeated API calls for dates with no screenings
+  // Cache empty results with shorter TTL (AlloCiné may publish data later for future dates)
   const emptyData: CachedShowtimeData = { films: [], showtimes: [] };
   try {
-    await setInL2(cinemaAllocineId, date, emptyData);
+    await setInL2(cinemaAllocineId, date, emptyData, EMPTY_CACHE_TTL_SECONDS);
   } catch {
     // Ignore L2 store failures for empty data
   }
-  setInL1(key, emptyData);
+  setInL1(key, emptyData, EMPTY_CACHE_TTL_SECONDS);
   return { data: emptyData, source: 'allocine', stale: false };
 }
 

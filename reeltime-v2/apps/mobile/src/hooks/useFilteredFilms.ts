@@ -58,9 +58,12 @@ export function useFilteredFilms(films: FilmListItem[]) {
     }
 
     if (selectedCinemas.length > 0) {
-      result = result.filter((film) =>
-        film.showtimes.some((st) => selectedCinemas.includes(st.cinemaId)),
-      );
+      result = result
+        .map((film) => ({
+          ...film,
+          showtimes: film.showtimes.filter((st) => selectedCinemas.includes(st.cinemaId)),
+        }))
+        .filter((film) => film.showtimes.length > 0);
     }
 
     if (version) {

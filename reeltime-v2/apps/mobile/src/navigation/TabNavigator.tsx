@@ -22,16 +22,20 @@ export function TabNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#D32F2F',
-        tabBarInactiveTintColor: '#8D6E63',
+        tabBarActiveTintColor: '#FFD54F',
+        tabBarInactiveTintColor: 'rgba(141,110,99,0.6)',
         tabBarStyle: {
           backgroundColor: '#1A1A1A',
-          borderTopColor: '#5D4037',
+          borderTopColor: 'rgba(93,64,55,0.4)',
           borderTopWidth: 1,
+          height: 56,
+          paddingBottom: 4,
+          paddingTop: 4,
         },
         tabBarLabelStyle: {
-          fontFamily: 'CrimsonText-Regular',
+          fontFamily: 'BebasNeue-Regular',
           fontSize: 11,
+          letterSpacing: 0.5,
         },
       }}
     >
@@ -39,8 +43,8 @@ export function TabNavigator() {
         name="Films"
         component={FilmsScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="film-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'film' : 'film-outline'} size={22} color={color} />
           ),
         }}
       />
@@ -48,13 +52,14 @@ export function TabNavigator() {
         name="Calendrier"
         component={WatchlistScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={22} color={color} />
           ),
           tabBarBadge: badgeCount,
           tabBarBadgeStyle: badgeCount
             ? {
                 backgroundColor: '#D32F2F',
+                color: '#FFF8E1',
                 fontFamily: 'BebasNeue-Regular',
                 fontSize: 10,
                 minWidth: 18,
@@ -68,8 +73,8 @@ export function TabNavigator() {
         name="Profil"
         component={ProfileScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
           ),
         }}
       />

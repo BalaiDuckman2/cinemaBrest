@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { View, Text, TouchableOpacity, PanResponder, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 interface WeekNavigatorProps {
   weekOffset: number;
@@ -34,7 +35,7 @@ export function WeekNavigator({
     <View style={styles.container} {...panResponder.panHandlers}>
       <View style={styles.row}>
         <TouchableOpacity onPress={onPrevWeek} style={styles.arrowButton} hitSlop={12}>
-          <Text style={styles.arrowText}>{'\u2190'}</Text>
+          <Ionicons name="chevron-back" size={18} color="#5D4037" />
         </TouchableOpacity>
 
         <View style={styles.periodBadge}>
@@ -42,12 +43,13 @@ export function WeekNavigator({
         </View>
 
         <TouchableOpacity onPress={onNextWeek} style={styles.arrowButton} hitSlop={12}>
-          <Text style={styles.arrowText}>{'\u2192'}</Text>
+          <Ionicons name="chevron-forward" size={18} color="#5D4037" />
         </TouchableOpacity>
       </View>
 
       {weekOffset !== 0 && (
         <TouchableOpacity onPress={onToday} style={styles.todayButton} hitSlop={8}>
+          <Ionicons name="today-outline" size={14} color="#1A1A1A" style={{ marginRight: 4 }} />
           <Text style={styles.todayText}>Aujourd&apos;hui</Text>
         </TouchableOpacity>
       )}
@@ -58,18 +60,18 @@ export function WeekNavigator({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#EFEBE9',
-    borderWidth: 2,
-    borderColor: '#8D6E63',
+    borderWidth: 1.5,
+    borderColor: 'rgba(141,110,99,0.3)',
     borderRadius: 14,
     marginHorizontal: 16,
     marginVertical: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.06,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 2,
     alignItems: 'center',
     gap: 8,
   },
@@ -80,30 +82,24 @@ const styles = StyleSheet.create({
   },
   arrowButton: {
     backgroundColor: '#FFF8E1',
-    borderWidth: 2,
-    borderColor: '#8D6E63',
+    borderWidth: 1.5,
+    borderColor: 'rgba(141,110,99,0.25)',
     borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  arrowText: {
-    fontFamily: 'BebasNeue-Regular',
-    fontSize: 16,
-    color: '#1A1A1A',
-    letterSpacing: 0.5,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   periodBadge: {
     flex: 1,
     backgroundColor: '#D32F2F',
-    borderWidth: 2,
-    borderColor: '#B71C1C',
     borderRadius: 10,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 10,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: '#B71C1C',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 2,
   },
@@ -114,21 +110,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   todayButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#F9A825',
-    borderWidth: 2,
-    borderColor: '#FFD54F',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    shadowColor: '#000',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    shadowColor: '#F9A825',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 2,
   },
   todayText: {
     fontFamily: 'BebasNeue-Regular',
-    fontSize: 14,
+    fontSize: 13,
     color: '#1A1A1A',
     letterSpacing: 0.5,
     textTransform: 'uppercase',

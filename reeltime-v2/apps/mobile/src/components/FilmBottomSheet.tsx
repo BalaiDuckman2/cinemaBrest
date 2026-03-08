@@ -115,8 +115,8 @@ export function FilmBottomSheet({ film, onClose }: FilmBottomSheetProps) {
         enablePanDownToClose
         backdropComponent={renderBackdrop}
         onChange={handleSheetChanges}
-        backgroundStyle={{ backgroundColor: '#FFF8E1', borderTopWidth: 4, borderTopColor: '#D32F2F' }}
-        handleIndicatorStyle={{ backgroundColor: '#FFD54F', width: 48 }}
+        backgroundStyle={{ backgroundColor: '#FFF8E1', borderTopWidth: 3, borderTopColor: '#D32F2F', borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
+        handleIndicatorStyle={{ backgroundColor: '#D7CCC8', width: 40, height: 4, borderRadius: 2 }}
       >
         {film && (
           <BottomSheetScrollView>
