@@ -1,0 +1,53 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set image tags
+        id: meta
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "repo_lower=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Build and push API image
+        run: |
+          docker build -f reeltime-v2/apps/api/Dockerfile \
+            -t ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-api:${{ steps.meta.outputs.sha_short }} \
+            -t ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-api:latest \
+            reeltime-v2
+          docker push ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-api --all-tags
+
+      - name: Build and push Web image
+        run: |
+          docker build -f reeltime-v2/apps/web/Dockerfile \
+            -t ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-web:${{ steps.meta.outputs.sha_short }} \
+            -t ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-web:latest \
+            reeltime-v2
+          docker push ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-web --all-tags
+
+      - name: Trigger Portainer webhook
+        if: vars.PORTAINER_WEBHOOK_URL != ''
+        run: |
+          curl -s -X POST "${{ vars.PORTAINER_WEBHOOK_URL }}" || true
