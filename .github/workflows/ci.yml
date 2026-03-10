@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+defaults:
+  run:
+    working-directory: reeltime-v2
+
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -24,6 +28,7 @@ jobs:
         with:
           node-version: 20
           cache: 'pnpm'
+          cache-dependency-path: reeltime-v2/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -31,8 +36,8 @@ jobs:
       - name: Turbo Cache
         uses: actions/cache@v4
         with:
-          path: .turbo
-          key: turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          path: reeltime-v2/.turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('reeltime-v2/pnpm-lock.yaml') }}
           restore-keys: |
             turbo-${{ runner.os }}-
 

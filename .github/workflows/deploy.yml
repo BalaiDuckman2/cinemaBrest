@@ -33,16 +33,18 @@ jobs:
 
       - name: Build and push API image
         run: |
-          docker build -f apps/api/Dockerfile \
+          docker build -f reeltime-v2/apps/api/Dockerfile \
             -t ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-api:${{ steps.meta.outputs.sha_short }} \
-            -t ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-api:latest .
+            -t ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-api:latest \
+            reeltime-v2
           docker push ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-api --all-tags
 
       - name: Build and push Web image
         run: |
-          docker build -f apps/web/Dockerfile \
+          docker build -f reeltime-v2/apps/web/Dockerfile \
             -t ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-web:${{ steps.meta.outputs.sha_short }} \
-            -t ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-web:latest .
+            -t ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-web:latest \
+            reeltime-v2
           docker push ghcr.io/${{ steps.meta.outputs.repo_lower }}/reeltime-web --all-tags
 
       # Optionnel : déclencher le redéploiement Portainer via webhook
