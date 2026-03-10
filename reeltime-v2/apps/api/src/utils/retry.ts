@@ -27,15 +27,17 @@ export async function withRetry<T>(
       const isRetryable = isRetryableError(err);
 
       if (!isRetryable || attempt === opts.maxAttempts) {
+        const errMsg = err instanceof Error ? err.message : String(err);
         console.warn(
-          `[retry] All ${opts.maxAttempts} attempts exhausted. Returning null.`,
+          `[retry] All ${opts.maxAttempts} attempts exhausted: ${errMsg}. Returning null.`,
         );
         return null;
       }
 
+      const errMsg = err instanceof Error ? err.message : String(err);
       const delay = opts.baseDelayMs * Math.pow(opts.backoffMultiplier, attempt - 1);
       console.warn(
-        `[retry] Attempt ${attempt}/${opts.maxAttempts} failed. Retrying in ${delay}ms...`,
+        `[retry] Attempt ${attempt}/${opts.maxAttempts} failed: ${errMsg}. Retrying in ${delay}ms...`,
       );
       await sleep(delay);
     }
