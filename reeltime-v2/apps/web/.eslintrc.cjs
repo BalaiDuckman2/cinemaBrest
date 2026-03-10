@@ -6,4 +6,8 @@ module.exports = {
     project: true,
     tsconfigRootDir: __dirname,
   },
+  ignorePatterns: ['vite.config.ts', 'tailwind.config.ts', 'dist/**'],
+  rules: {
+    'react/no-unescaped-entities': 'off',
+  },
 };

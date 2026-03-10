@@ -60,6 +60,7 @@ async function fetchAllPages(
   const seenFilmIds = new Set<number>();
   let page = 1;
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const raw = await withRetry(
       () => fetchAllocinePage(cinemaAllocineId, date, page),

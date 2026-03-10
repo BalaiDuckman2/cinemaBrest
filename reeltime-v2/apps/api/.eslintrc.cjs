@@ -4,4 +4,5 @@ module.exports = {
     project: './tsconfig.json',
     tsconfigRootDir: __dirname,
   },
+  ignorePatterns: ['src/generated/**', 'prisma/seed.ts', 'vitest.config.ts', 'dist/**'],
 };

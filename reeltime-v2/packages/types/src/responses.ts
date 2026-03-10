@@ -1,5 +1,4 @@
 import * as z from 'zod';
-import { VersionSchema } from './version.js';
 
 // --- Film list / detail response shapes (as returned by the API) ---
 
