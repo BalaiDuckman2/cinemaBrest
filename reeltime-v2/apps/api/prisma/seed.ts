@@ -43,6 +43,14 @@ const cinemas = [
     latitude: 48.4474,
     longitude: -4.2544,
   },
+  {
+    allocineId: 'P0328',
+    name: 'Les Baladins',
+    address: '17 Rue des Chapeliers, 22300 Lannion',
+    city: 'Lannion',
+    latitude: 48.7322,
+    longitude: -3.4598,
+  },
 ];
 
 async function main() {

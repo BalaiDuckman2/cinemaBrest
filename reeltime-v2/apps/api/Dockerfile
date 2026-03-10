@@ -21,8 +21,9 @@ RUN pnpm turbo run build --filter=@reeltime/api
 # Prune to production deps
 RUN pnpm --filter=@reeltime/api deploy --prod /app/pruned
 
-# Create template SQLite DB using the locked prisma 6.x
+# Create template SQLite DB with schema and seed data (cinemas)
 RUN cd apps/api && DATABASE_URL=file:/tmp/template.db npx prisma db push --skip-generate --accept-data-loss 2>&1
+RUN cd apps/api && DATABASE_URL=file:/tmp/template.db npx tsx prisma/seed.ts
 
 # Stage 2: Production
 FROM node:20-alpine
