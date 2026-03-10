@@ -1,0 +1,55 @@
+## ReelTime v2 - Production Stack (Portainer)
+##
+## Utilisation dans Portainer :
+## 1. Stacks > Add stack > Web editor
+## 2. Coller ce fichier
+## 3. Ajouter les variables d'environnement (voir ci-dessous)
+## 4. Deploy the stack
+##
+## Variables d'environnement requises :
+##   JWT_SECRET          - openssl rand -hex 32
+##   JWT_REFRESH_SECRET  - openssl rand -hex 32
+##
+## Variables optionnelles :
+##   CORS_ORIGIN         - Origines autorisées (défaut: *)
+##   LOG_LEVEL           - trace|debug|info|warn|error (défaut: info)
+##   PORT                - Port exposé (défaut: 80)
+
+services:
+  api:
+    image: ghcr.io/balaiduckman2/cinemabrest/reeltime-api:latest
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: file:/app/data/reeltime.db
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      NODE_ENV: production
+      SKIP_PRELOAD: "false"
+      TIMEZONE: Europe/Paris
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - reeltime_data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  web:
+    image: ghcr.io/balaiduckman2/cinemabrest/reeltime-web:latest
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${PORT:-80}:80"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  reeltime_data:
