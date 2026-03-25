@@ -14,7 +14,7 @@ const USER_AGENT =
 
 const FETCH_TIMEOUT_MS = 10_000;
 
-const rateLimiter = new RateLimiter(200);
+const rateLimiter = new RateLimiter(1500);
 
 // --- Internal fetch with rate limiting ---
 
@@ -64,7 +64,7 @@ async function fetchAllPages(
   while (true) {
     const raw = await withRetry(
       () => fetchAllocinePage(cinemaAllocineId, date, page),
-      { maxAttempts: 3, baseDelayMs: 200, backoffMultiplier: 2 },
+      { maxAttempts: 5, baseDelayMs: 3000, backoffMultiplier: 2 },
     );
 
     if (raw === null) {
