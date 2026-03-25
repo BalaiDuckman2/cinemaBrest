@@ -21,15 +21,8 @@ export async function buildApp(): Promise<FastifyInstance> {
           options: { colorize: true, translateTime: 'HH:MM:ss' },
         },
       }),
-      serializers: {
-        req(request) {
-          return { method: request.method, url: request.url, requestId: request.id };
-        },
-        res(reply) {
-          return { statusCode: reply.statusCode };
-        },
-      },
     },
+    disableRequestLogging: true,
     genReqId: () => crypto.randomUUID(),
   });
 
