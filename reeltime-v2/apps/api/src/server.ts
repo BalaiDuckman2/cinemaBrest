@@ -1,10 +1,32 @@
 import { buildApp } from './app.js';
 import { config } from './config/index.js';
+import { CINEMAS } from './config/cinemas.js';
+import { prisma } from './lib/prisma.js';
 import { startCacheScheduler, stopCacheScheduler } from './services/cacheScheduler.js';
 import { runFullSync } from './services/refreshService.js';
 
+async function seedCinemas() {
+  for (const cinema of CINEMAS) {
+    await prisma.cinema.upsert({
+      where: { allocineId: cinema.allocineId },
+      update: {
+        name: cinema.name,
+        address: cinema.address,
+        city: cinema.city,
+        latitude: cinema.latitude,
+        longitude: cinema.longitude,
+      },
+      create: cinema,
+    });
+  }
+}
+
 async function start() {
   const app = await buildApp();
+
+  // Seed cinemas into DB (idempotent upsert)
+  await seedCinemas();
+  app.log.info(`Cinemas seeded: ${CINEMAS.length} upserted`);
 
   try {
     await app.listen({ port: config.port, host: config.host });
