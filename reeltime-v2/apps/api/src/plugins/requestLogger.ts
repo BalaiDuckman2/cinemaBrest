@@ -17,7 +17,6 @@ async function requestLoggerPlugin(fastify: FastifyInstance) {
         path: request.url,
         statusCode: reply.statusCode,
         duration,
-        userId: request.user?.userId,
       },
       'request completed',
     );
@@ -30,7 +29,6 @@ async function requestLoggerPlugin(fastify: FastifyInstance) {
       {
         method: request.method,
         path: request.url,
-        userId: request.user?.userId,
         err: error,
       },
       'request error',

@@ -57,17 +57,9 @@ function groupShowtimes(showtimes: ShowtimeEntry[]): GroupedByDateCinema {
 
 interface FilmShowtimesProps {
   showtimes: ShowtimeEntry[];
-  filmTitle?: string;
-  posterUrl?: string | null;
-  isShowtimeInWatchlist?: (cinemaName: string, date: string, time: string) => boolean;
-  onToggleWatchlist?: (showtime: ShowtimeEntry, date: string) => void;
 }
 
-export function FilmShowtimes({
-  showtimes,
-  isShowtimeInWatchlist,
-  onToggleWatchlist,
-}: FilmShowtimesProps) {
+export function FilmShowtimes({ showtimes }: FilmShowtimesProps) {
   if (showtimes.length === 0) {
     return (
       <div className="mb-8">
@@ -143,49 +135,42 @@ export function FilmShowtimes({
                         {shortName}
                       </h5>
                       <div className="flex flex-wrap gap-2">
-                        {times.map((st) => {
-                          const inWatchlist = isShowtimeInWatchlist?.(st.cinemaName, date, st.time) ?? false;
-
-                          return (
-                            <button
-                              key={st.id}
-                              type="button"
-                              onClick={() => onToggleWatchlist?.(st, date)}
-                              style={{
-                                position: 'relative',
-                                background: inWatchlist
-                                  ? 'linear-gradient(135deg, #FFD54F 0%, #F9A825 100%)'
-                                  : 'linear-gradient(135deg, #D32F2F 0%, #C62828 100%)',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
-                              }}
-                              className={`font-bebas ${
-                                inWatchlist
-                                  ? 'text-noir-velours border-rouge-cinema'
-                                  : 'text-creme-ecran border-or-antique'
-                              } px-3 py-2 rounded-md text-xs uppercase tracking-wider border-2 hover:border-jaune-marquise transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5`}
-                            >
-                              <span className="font-bold text-sm block leading-none">
-                                {st.time}
+                        {times.map((st) => (
+                          <a
+                            key={st.id}
+                            href={st.bookingUrl || undefined}
+                            target={st.bookingUrl ? '_blank' : undefined}
+                            rel={st.bookingUrl ? 'noopener noreferrer' : undefined}
+                            style={{
+                              position: 'relative',
+                              background: 'linear-gradient(135deg, #D32F2F 0%, #C62828 100%)',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                            }}
+                            className={`font-bebas text-creme-ecran border-or-antique px-3 py-2 rounded-md text-xs uppercase tracking-wider border-2 hover:border-jaune-marquise transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${
+                              st.bookingUrl ? 'cursor-pointer' : 'cursor-default'
+                            }`}
+                          >
+                            <span className="font-bold text-sm block leading-none">
+                              {st.time}
+                            </span>
+                            {st.version && (
+                              <span className="text-[9px] opacity-90 block mt-0.5 leading-none">
+                                {st.version}
                               </span>
-                              {st.version && (
-                                <span className="text-[9px] opacity-90 block mt-0.5 leading-none">
-                                  {st.version}
-                                </span>
-                              )}
-                              <div
-                                style={{
-                                  position: 'absolute',
-                                  top: '-2px',
-                                  right: '-2px',
-                                  width: '8px',
-                                  height: '8px',
-                                  background: '#FFF8E1',
-                                  borderBottomLeftRadius: '8px',
-                                }}
-                              />
-                            </button>
-                          );
-                        })}
+                            )}
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: '-2px',
+                                right: '-2px',
+                                width: '8px',
+                                height: '8px',
+                                background: '#FFF8E1',
+                                borderBottomLeftRadius: '8px',
+                              }}
+                            />
+                          </a>
+                        ))}
                       </div>
                     </div>
                   );

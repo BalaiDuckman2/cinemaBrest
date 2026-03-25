@@ -8,14 +8,8 @@ import { config } from './config/index.js';
 import prometheusPlugin from './plugins/prometheus.js';
 import requestLoggerPlugin from './plugins/requestLogger.js';
 import { healthcheckRoutes } from './routes/healthcheck.js';
-import { authRoutes } from './routes/auth.js';
-import { meRoutes } from './routes/me.js';
 import { filmsRoutes } from './routes/films.js';
-import { watchlistRoutes } from './routes/watchlist.js';
 import { cinemasRoutes } from './routes/cinemas.js';
-import { alertesRoutes } from './routes/alertes.js';
-import { devicesRoutes } from './routes/devices.js';
-import { adminRoutes } from './routes/admin.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -67,15 +61,6 @@ export async function buildApp(): Promise<FastifyInstance> {
         description: 'API for ReelTime cinema showtimes aggregator',
       },
       servers: [{ url: '/api/v1' }],
-      components: {
-        securitySchemes: {
-          bearerAuth: {
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT',
-          },
-        },
-      },
     },
   });
 
@@ -91,14 +76,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(healthcheckRoutes);
 
   // API v1 routes
-  await app.register(authRoutes, { prefix: '/api/v1' });
-  await app.register(meRoutes, { prefix: '/api/v1' });
   await app.register(filmsRoutes, { prefix: '/api/v1' });
-  await app.register(watchlistRoutes, { prefix: '/api/v1' });
   await app.register(cinemasRoutes, { prefix: '/api/v1' });
-  await app.register(alertesRoutes, { prefix: '/api/v1' });
-  await app.register(devicesRoutes, { prefix: '/api/v1' });
-  await app.register(adminRoutes, { prefix: '/api/v1' });
 
   return app;
 }

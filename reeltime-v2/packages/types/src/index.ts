@@ -12,20 +12,7 @@ export { CinemaSchema } from './cinema.js';
 export type { Showtime } from './showtime.js';
 export { ShowtimeSchema } from './showtime.js';
 
-export type { User } from './user.js';
-export { UserSchema } from './user.js';
 
-// Alert
-export type { Alert, AlertCriteria, AlertStatus } from './alert.js';
-export { AlertSchema, AlertCriteriaSchema, AlertStatusSchema } from './alert.js';
-
-// Watchlist
-export type { WatchlistItem } from './watchlist.js';
-export { WatchlistItemSchema } from './watchlist.js';
-
-// Device tokens
-export type { DeviceToken, DevicePlatform } from './device.js';
-export { DeviceTokenSchema, DevicePlatformSchema } from './device.js';
 
 // API response shapes
 export type {

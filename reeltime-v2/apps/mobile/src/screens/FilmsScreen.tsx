@@ -12,13 +12,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet from '@gorhom/bottom-sheet';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFiltersStore } from '../stores/useFiltersStore';
 import { useFilms } from '../hooks/useFilms';
 import { useWeekNavigation } from '../hooks/useWeekNavigation';
 import { useFilteredFilms } from '../hooks/useFilteredFilms';
-import { useAuthStore } from '../stores/useAuthStore';
 import { Header } from '../components/Header';
 import { FilmCard } from '../components/FilmCard';
 import { FilmBottomSheet } from '../components/FilmBottomSheet';
@@ -26,8 +23,6 @@ import { FilmGridSkeleton } from '../components/Skeleton';
 import { WeekNavigator } from '../components/WeekNavigator';
 import { FilterSheet } from '../components/filters/FilterSheet';
 import { ActiveFilterChips } from '../components/filters/ActiveFilterChips';
-import { AlertConfigSheet } from '../components/alerts/AlertConfigSheet';
-import type { RootStackParamList } from '../navigation/RootNavigator';
 import type { FilmListItem } from '../types';
 
 export function FilmsScreen() {
@@ -47,9 +42,6 @@ export function FilmsScreen() {
 
   const [isFocused, setIsFocused] = useState(false);
   const [selectedFilm, setSelectedFilm] = useState<FilmListItem | null>(null);
-  const [showAlertSheet, setShowAlertSheet] = useState(false);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const rootNavigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const filterSheetRef = useRef<BottomSheet>(null);
   const inputRef = useRef<TextInput>(null);
@@ -143,21 +135,6 @@ export function FilmsScreen() {
       {activeFilterCount > 0 && (
         <Pressable style={styles.resetButton} onPress={resetAll}>
           <Text style={styles.resetButtonText}>Reinitialiser les filtres</Text>
-        </Pressable>
-      )}
-      {searchQuery.trim().length > 0 && (
-        <Pressable
-          style={styles.alertButton}
-          onPress={() => {
-            if (isAuthenticated) {
-              setShowAlertSheet(true);
-            } else {
-              rootNavigation.navigate('Auth');
-            }
-          }}
-        >
-          <Ionicons name="notifications-outline" size={16} color="#1A1A1A" />
-          <Text style={styles.alertButtonText}>Creer une alerte</Text>
         </Pressable>
       )}
     </View>
@@ -267,15 +244,6 @@ export function FilmsScreen() {
 
         {/* Film Detail Bottom Sheet */}
         <FilmBottomSheet film={selectedFilm} onClose={handleCloseSheet} />
-
-        {/* Alert Config Bottom Sheet */}
-        {showAlertSheet && (
-          <AlertConfigSheet
-            initialFilmTitle={searchQuery.trim()}
-            cinemas={cinemas}
-            onCreated={() => setShowAlertSheet(false)}
-          />
-        )}
       </SafeAreaView>
     </GestureHandlerRootView>
   );
@@ -433,22 +401,6 @@ const styles = StyleSheet.create({
     fontFamily: 'BebasNeue-Regular',
     fontSize: 16,
     color: '#FFF8E1',
-    letterSpacing: 0.5,
-  },
-  alertButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFD54F',
-    borderRadius: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    marginTop: 8,
-    gap: 8,
-  },
-  alertButtonText: {
-    fontFamily: 'BebasNeue-Regular',
-    fontSize: 16,
-    color: '#1A1A1A',
     letterSpacing: 0.5,
   },
 });

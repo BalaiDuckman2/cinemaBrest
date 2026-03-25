@@ -1,12 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
-import type { FilmListItem, ShowtimeEntry } from '../types/components';
-import { useWatchlist } from '../hooks/useWatchlist';
-import { useToast } from './ui/Toast';
-import { useAuthStore } from '../stores/authStore';
+import type { FilmListItem } from '../types/components';
 import { FilmShowtimes } from './FilmShowtimes';
-import type { AddToWatchlistInput } from '../hooks/useWatchlist';
 
 const NO_POSTER = '/images/no-poster.svg';
 
@@ -74,79 +69,6 @@ export function FilmDrawer({ film, isOpen, onClose }: FilmDrawerProps) {
   );
 }
 
-// --- Shared watchlist integration ---
-
-function useDrawerWatchlist(film: FilmListItem) {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const navigate = useNavigate();
-  const { isInWatchlist, findWatchlistItem, addMutation, removeMutation } = useWatchlist();
-  const { showToast } = useToast();
-
-  const isShowtimeInWatchlist = useCallback(
-    (cinemaName: string, date: string, time: string) => {
-      if (!isAuthenticated) return false;
-      return isInWatchlist(film.title, cinemaName, date, time);
-    },
-    [isAuthenticated, isInWatchlist, film.title],
-  );
-
-  const handleToggleWatchlist = useCallback(
-    (showtime: ShowtimeEntry, date: string) => {
-      if (!isAuthenticated) {
-        const pendingAction: AddToWatchlistInput = {
-          filmTitle: film.title,
-          cinemaName: showtime.cinemaName,
-          date,
-          time: showtime.time,
-          version: showtime.version,
-          bookingUrl: showtime.bookingUrl,
-          posterUrl: film.posterUrl,
-        };
-        sessionStorage.setItem('pendingWatchlistAction', JSON.stringify(pendingAction));
-        navigate('/login');
-        return;
-      }
-
-      const existing = findWatchlistItem(film.title, showtime.cinemaName, date, showtime.time);
-      if (existing) {
-        const removedItem = existing;
-        removeMutation.mutate(existing.id);
-        showToast({
-          message: 'Retire du calendrier',
-          action: {
-            label: 'Annuler',
-            onClick: () => {
-              addMutation.mutate({
-                filmTitle: removedItem.filmTitle,
-                cinemaName: removedItem.cinemaName,
-                date: removedItem.date,
-                time: removedItem.time,
-                version: removedItem.version,
-                bookingUrl: removedItem.bookingUrl,
-                posterUrl: removedItem.posterUrl,
-              });
-            },
-          },
-        });
-      } else {
-        addMutation.mutate({
-          filmTitle: film.title,
-          cinemaName: showtime.cinemaName,
-          date,
-          time: showtime.time,
-          version: showtime.version,
-          bookingUrl: showtime.bookingUrl,
-          posterUrl: film.posterUrl,
-        });
-        showToast({ message: 'Ajoute au calendrier' });
-      }
-    },
-    [isAuthenticated, film, findWatchlistItem, addMutation, removeMutation, showToast, navigate],
-  );
-
-  return { isShowtimeInWatchlist, handleToggleWatchlist };
-}
-
 // --- Format runtime ---
 function formatRuntime(minutes: number | null): string {
   if (minutes == null || minutes <= 0) return '';
@@ -168,7 +90,6 @@ function BottomSheet({ film, onClose, animating }: BottomSheetProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
   const currentDelta = useRef(0);
-  const { isShowtimeInWatchlist, handleToggleWatchlist } = useDrawerWatchlist(film);
 
   useEffect(() => {
     sheetRef.current?.focus();
@@ -291,13 +212,7 @@ function BottomSheet({ film, onClose, animating }: BottomSheetProps) {
           </div>
 
           {/* Showtimes */}
-          <FilmShowtimes
-            showtimes={film.showtimes}
-            filmTitle={film.title}
-            posterUrl={film.posterUrl}
-            isShowtimeInWatchlist={isShowtimeInWatchlist}
-            onToggleWatchlist={handleToggleWatchlist}
-          />
+          <FilmShowtimes showtimes={film.showtimes} />
 
           {/* Secondary info */}
           <div className="border-t-2 border-sepia-chaud/30 pt-6 space-y-3 text-sm">

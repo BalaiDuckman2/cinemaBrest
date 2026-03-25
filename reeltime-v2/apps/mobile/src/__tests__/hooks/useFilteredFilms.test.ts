@@ -1,13 +1,37 @@
 import { useFiltersStore } from '../../stores/useFiltersStore';
 import type { FilmListItem } from '../../types';
 
-// We test the filtering logic directly by reproducing the logic from useFilteredFilms
-// without needing React hooks (useMemo). The logic is deterministic.
+// Inline filter utilities (same logic as useFilteredFilms)
+function normalizeText(text: string): string {
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
 
-// Import the utility functions that useFilteredFilms uses internally
-import { normalizeText } from '../../utils/normalizeText';
-import { matchesDay } from '../../utils/matchesDay';
-import { matchesTimeSlot } from '../../utils/matchesTimeSlot';
+type DayFilter = 'all' | 'weekday' | 'weekend' | '0' | '1' | '2' | '3' | '4' | '5' | '6';
+type TimeSlotFilter = 'all' | 'morning' | 'afternoon' | 'evening' | 'night';
+
+function matchesDay(datetime: string, dayFilter: DayFilter): boolean {
+  if (dayFilter === 'all') return true;
+  const date = new Date(datetime);
+  const jsDay = date.getDay();
+  const dayIndex = jsDay === 0 ? 6 : jsDay - 1;
+  if (dayFilter === 'weekday') return dayIndex >= 0 && dayIndex <= 3;
+  if (dayFilter === 'weekend') return dayIndex >= 4 && dayIndex <= 6;
+  return dayIndex === parseInt(dayFilter);
+}
+
+function matchesTimeSlot(time: string, timeSlot: TimeSlotFilter): boolean {
+  if (timeSlot === 'all') return true;
+  const hourMatch = time.match(/^(\d{1,2})/);
+  if (!hourMatch) return false;
+  const hour = parseInt(hourMatch[1]);
+  switch (timeSlot) {
+    case 'morning': return hour < 12;
+    case 'afternoon': return hour >= 12 && hour < 18;
+    case 'evening': return hour >= 18 && hour < 22;
+    case 'night': return hour >= 22;
+    default: return true;
+  }
+}
 
 // Reproduce the filtering logic from useFilteredFilms for testing without React
 function applyFilters(
@@ -61,7 +85,7 @@ function applyFilters(
       .map((film) => ({
         ...film,
         showtimes: film.showtimes.filter((st) =>
-          matchesDay(st.datetime, filters.dayFilter as any),
+          matchesDay(st.datetime, filters.dayFilter as DayFilter),
         ),
       }))
       .filter((film) => film.showtimes.length > 0);
@@ -72,7 +96,7 @@ function applyFilters(
       .map((film) => ({
         ...film,
         showtimes: film.showtimes.filter((st) =>
-          matchesTimeSlot(st.time, filters.timeSlot as any),
+          matchesTimeSlot(st.time, filters.timeSlot as TimeSlotFilter),
         ),
       }))
       .filter((film) => film.showtimes.length > 0);

@@ -1,4 +1,3 @@
-import { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -13,85 +12,21 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
-import * as Haptics from 'expo-haptics';
 import { queryKeys } from '../services/queryKeys';
 import { fetchFilmDetail } from '../api/filmsApi';
 import { FilmInfo } from '../components/FilmInfo';
 import { FilmShowtimes } from '../components/FilmShowtimes';
-import { showToast } from '../components/Toast';
-import { useWatchlist } from '../hooks/useWatchlist';
-import { useAuthStore } from '../stores/useAuthStore';
-import { AuthGateSheet, type PendingWatchlistAction } from '../components/auth/AuthGateSheet';
 import type { RootStackParamList } from '../navigation/RootNavigator';
-import type { ShowtimeEntry } from '../types';
 
 export function FilmDetailScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'Film'>>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { filmId } = route.params;
 
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const { isInWatchlist, findWatchlistItem, addToWatchlist, removeFromWatchlist } = useWatchlist();
-  const [showAuthGate, setShowAuthGate] = useState(false);
-  const [pendingAction, setPendingAction] = useState<PendingWatchlistAction | undefined>();
-
   const { data: film, isLoading, isError } = useQuery({
     queryKey: queryKeys.films.detail(filmId),
     queryFn: () => fetchFilmDetail(filmId),
   });
-
-  const checkInWatchlist = useCallback(
-    (cinemaName: string, date: string, time: string): boolean => {
-      if (!film) return false;
-      return isInWatchlist(film.title, cinemaName, date, time);
-    },
-    [film, isInWatchlist],
-  );
-
-  const handleToggleWatchlist = useCallback(
-    async (showtime: ShowtimeEntry) => {
-      if (!film) return;
-
-      if (!isAuthenticated) {
-        setPendingAction({
-          filmTitle: film.title,
-          cinemaName: showtime.cinemaName,
-          date: showtime.date,
-          time: showtime.time,
-          version: showtime.version,
-          bookingUrl: showtime.bookingUrl ?? undefined,
-          posterUrl: film.posterUrl ?? undefined,
-        });
-        setShowAuthGate(true);
-        return;
-      }
-
-      const existing = findWatchlistItem(film.title, showtime.cinemaName, showtime.date, showtime.time);
-
-      if (existing) {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-        await removeFromWatchlist(existing.id);
-        showToast('Retire du calendrier');
-      } else {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        const success = await addToWatchlist({
-          filmTitle: film.title,
-          cinemaName: showtime.cinemaName,
-          date: showtime.date,
-          time: showtime.time,
-          version: showtime.version,
-          bookingUrl: showtime.bookingUrl ?? undefined,
-          posterUrl: film.posterUrl ?? undefined,
-        });
-        if (success) {
-          showToast('Ajoute au calendrier');
-        } else {
-          showToast("Erreur lors de l'ajout");
-        }
-      }
-    },
-    [film, isAuthenticated, findWatchlistItem, addToWatchlist, removeFromWatchlist],
-  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -126,21 +61,9 @@ export function FilmDetailScreen() {
       {film && (
         <ScrollView>
           <FilmInfo film={film} />
-          <FilmShowtimes
-            showtimes={film.showtimes}
-            filmTitle={film.title}
-            filmPosterUrl={film.posterUrl}
-            isInWatchlist={checkInWatchlist}
-            onToggleWatchlist={handleToggleWatchlist}
-          />
+          <FilmShowtimes showtimes={film.showtimes} />
         </ScrollView>
       )}
-
-      <AuthGateSheet
-        visible={showAuthGate}
-        onClose={() => setShowAuthGate(false)}
-        pendingAction={pendingAction}
-      />
     </SafeAreaView>
   );
 }

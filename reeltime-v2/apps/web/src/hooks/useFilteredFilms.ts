@@ -64,21 +64,34 @@ export function useFilteredFilms(films: FilmListItem[]) {
 
     // Filter by cinema (empty = all cinemas)
     if (selectedCinemas.length > 0) {
-      result = result.filter((film) =>
-        film.showtimes.some((st) => selectedCinemas.includes(st.cinemaId)),
-      );
-    }
-
-    // Filter by version
-    if (version) {
       result = result
         .map((film) => ({
           ...film,
-          showtimes: film.showtimes.filter((st) => {
-            if (version === 'VO') return st.version === 'VO' || st.version === 'VOST';
-            return st.version === version;
-          }),
+          showtimes: film.showtimes.filter((st) => selectedCinemas.includes(st.cinemaId)),
         }))
+        .filter((film) => film.showtimes.length > 0);
+    }
+
+    // Filter by version
+    // For VF filter: also keep VO showtimes of films that have NO VF showtime
+    // (these are French films where VO = French)
+    if (version) {
+      result = result
+        .map((film) => {
+          if (version === 'VO') {
+            return {
+              ...film,
+              showtimes: film.showtimes.filter((st) => st.version === 'VO' || st.version === 'VOST'),
+            };
+          }
+          // VF filter: keep VF, and also keep VO for films with no VF (French films)
+          const vfShowtimes = film.showtimes.filter((st) => st.version === 'VF');
+          if (vfShowtimes.length > 0) {
+            return { ...film, showtimes: vfShowtimes };
+          }
+          // No VF at all → likely a French film, keep VO showtimes
+          return film;
+        })
         .filter((film) => film.showtimes.length > 0);
     }
 

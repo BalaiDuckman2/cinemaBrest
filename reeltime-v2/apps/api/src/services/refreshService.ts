@@ -1,6 +1,5 @@
 import { invalidateAllL1, getShowtimes } from './cacheService.js';
 import { CINEMAS, type CinemaConfig } from '../config/cinemas.js';
-import { runAlertMatching } from './alertMatchingService.js';
 import { prisma } from '../lib/prisma.js';
 
 interface SyncState {
@@ -160,11 +159,6 @@ export async function runFullSync(logger: Logger): Promise<SyncResult> {
   // Clean up showtimes older than 7 days
   await cleanupOldShowtimes(logger).catch((err) => {
     logger.error({ error: String(err) }, 'Showtime cleanup failed after sync');
-  });
-
-  // Run alert matching asynchronously after sync (does not block)
-  runAlertMatching(logger).catch((err) => {
-    logger.error({ error: String(err) }, 'Alert matching failed after sync');
   });
 
   return result;

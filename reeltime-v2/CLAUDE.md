@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ReelTime v2 is a monorepo application that aggregates cinema showtimes from AlloCiné for theaters in Brest and Landerneau (France). It features a multi-level cache, user authentication with JWT, watchlist, alerts with push notifications, and a vintage cinema design system.
+ReelTime v2 is a monorepo application that aggregates cinema showtimes from AlloCiné for theaters in Brest, Landerneau, and Lannion (France). It features a multi-level cache (L1 in-memory + L2 SQLite), a vintage cinema design system, and automatic daily sync of showtimes.
 
 **Key Technologies**: TypeScript, pnpm workspaces, Turborepo
 
@@ -15,11 +15,10 @@ reeltime-v2/
 ├── apps/
 │   ├── api/          # Fastify 5 + Prisma + SQLite/PostgreSQL
 │   ├── web/          # React 19 + Vite 6 + Tailwind 3 + React Query 5 + Zustand
-│   └── mobile/       # Expo 52 + React Native 0.76 + NativeWind 4 + React Navigation 7
+│   └── mobile/       # Expo 52 + React Native 0.76 + React Navigation 7
 ├── packages/
 │   ├── types/        # Shared TypeScript types (@reeltime/types)
-│   ├── config/       # Shared configs - Tailwind, ESLint (@reeltime/config)
-│   └── ui/           # Shared UI components (@reeltime/ui)
+│   └── config/       # Shared configs - Tailwind, ESLint (@reeltime/config)
 ├── docker/           # docker-compose.yml
 ├── turbo.json
 └── pnpm-workspace.yaml
@@ -43,7 +42,7 @@ pnpm lint
 # Dev individual apps
 pnpm turbo run dev --filter=@reeltime/api
 pnpm turbo run dev --filter=@reeltime/web
-pnpm turbo run dev --filter=@reeltime/mobile   # or: cd apps/mobile && expo start
+cd apps/mobile && expo start
 
 # Build individual apps
 pnpm turbo run build --filter=@reeltime/api
@@ -55,9 +54,9 @@ pnpm turbo run build --filter=@reeltime/web
 ```bash
 cd apps/api
 npx prisma generate        # Generate Prisma client
-npx prisma migrate dev     # Run migrations (dev)
 npx prisma db push         # Push schema to DB
 npx prisma studio          # Visual DB browser
+npx tsx prisma/seed.ts     # Seed cinemas
 ```
 
 ### Type Checking
@@ -78,33 +77,41 @@ cd apps/api && npx tsc --build
 ### API (`apps/api`) - Fastify 5
 
 - **Entry**: `src/server.ts` → `src/app.ts` (Fastify app builder)
-- **Routes**: `src/routes/` - films, cinemas, auth, watchlist, alertes, devices, me, admin, healthcheck
-- **Services**: `src/services/` - allocineService (scraper), cacheService (multi-level), authService (JWT), filmService, cinemaService, alertMatchingService, firebaseService (push notifications), refreshService, cacheScheduler (midnight sync)
-- **Middleware**: `src/middlewares/` - auth (JWT verification)
+- **Routes**: `src/routes/` - films, cinemas, healthcheck
+- **Services**: `src/services/` - allocineService (scraper), cacheService (multi-level L1/L2), filmService, cinemaService, refreshService (full sync), cacheScheduler (midnight sync)
+- **Plugins**: `src/plugins/` - prometheus (metrics), requestLogger
 - **Database**: Prisma ORM with schema in `prisma/schema.prisma`
-- **Config**: `src/config/` - environment variables
+- **Config**: `src/config/` - environment variables, cinema list
 - **Validation**: Zod schemas in `src/schemas/`
 
 ### Web (`apps/web`) - React 19 + Vite
 
 - **Entry**: `src/main.tsx` → `src/App.tsx` → `src/router.tsx`
-- **Pages**: `src/pages/` - HomePage, LoginPage, RegisterPage, ProfilePage, WatchlistPage
-- **Components**: `src/components/` - reusable UI components
-- **State**: Zustand stores in `src/stores/`, React Query for server state
-- **API**: `src/api/` - API client with fetch
-- **Hooks**: `src/hooks/` - custom React hooks
+- **Pages**: `src/pages/` - HomePage, NotFoundPage
+- **Components**: `src/components/` - FilmGrid, FilmCard, FilmDrawer, FilmShowtimes, FilterBar, WeekNavigator
+- **State**: Zustand store in `src/stores/filtersStore.ts`, React Query for server state
+- **API**: `src/api/` - filmsApi, cinemasApi
+- **Hooks**: `src/hooks/` - useFilms, useFilmDrawer, useWeekNavigation, useFilteredFilms, useCinemas, useMediaQuery
 - **Styles**: Tailwind CSS with vintage cinema theme
 
 ### Mobile (`apps/mobile`) - Expo + React Native
 
 - **Entry**: `index.ts` → `App.tsx`
-- **Screens**: `src/screens/` - FilmsScreen, FilmDetailScreen, LoginScreen, RegisterScreen, ProfileScreen, WatchlistScreen
+- **Screens**: `src/screens/` - FilmsScreen, FilmDetailScreen
 - **Navigation**: `src/navigation/` - React Navigation with bottom tabs + stacks
-- **Components**: `src/components/` - native UI components
-- **State**: Zustand stores in `src/stores/`
-- **API**: `src/api/` - API client
-- **Auth**: expo-secure-store for tokens (async API, no persist middleware)
-- **Push**: expo-notifications with Firebase
+- **Components**: `src/components/` - native UI components (FilmCard, FilmBottomSheet, FilmShowtimes, WeekNavigator, FilterSheet)
+- **State**: Zustand store in `src/stores/useFiltersStore.ts`
+- **API**: `src/api/` - filmsApi
+
+## Cinemas
+
+6 cinemas configured in `apps/api/src/config/cinemas.ts`:
+- Les Studios (Brest) - P0153
+- CGR Brest Le Celtic (Brest) - P0151
+- Multiplexe Liberté (Brest) - P0417
+- Pathé Capucins (Brest) - W2920
+- Ciné Galaxy (Landerneau) - G02PD
+- Les Baladins (Lannion) - P0328
 
 ## Design System (Vintage Cinema)
 
@@ -126,13 +133,12 @@ cd apps/api && npx tsc --build
 
 ### API Environment (`apps/api/.env`)
 - `DATABASE_URL` - SQLite (dev) or PostgreSQL (prod)
-- `JWT_SECRET` / `JWT_REFRESH_SECRET` - Token signing
 - `PORT` (default: 3000), `HOST` (default: 0.0.0.0)
 - `NODE_ENV` - development | production
 - `CORS_ORIGIN` - Comma-separated origins or *
+- `LOG_LEVEL` - trace | debug | info | warn | error | fatal
 - `SKIP_PRELOAD` - Skip 60-day preload at startup (true for dev)
 - `TIMEZONE` - Default: Europe/Paris
-- `FIREBASE_PROJECT_ID` / `FIREBASE_CLIENT_EMAIL` / `FIREBASE_PRIVATE_KEY` - Push notifications
 
 ### Web Environment (`apps/web/.env`)
 - `VITE_API_URL` - API base URL (default: http://localhost:3000)
@@ -147,8 +153,7 @@ cd apps/api && npx tsc --build
 - React 19 `useRef` requires initial value: `useRef<T>(undefined)` not `useRef<T>()`
 - Zustand persist: use `partialize` to exclude transient state
 - Barrel exports in `components/index.ts` and `hooks/index.ts` must be updated for each new file
-- Mobile: no hooks/index.ts barrel - hooks imported directly by path
-- Mobile: expo-secure-store for tokens (NOT AsyncStorage)
+- Mobile: hooks imported directly by path (no barrel)
 
 ## Docker Deployment
 

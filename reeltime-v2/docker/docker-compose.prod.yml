@@ -6,14 +6,10 @@
 ## 3. Ajouter les variables d'environnement (voir ci-dessous)
 ## 4. Deploy the stack
 ##
-## Variables d'environnement requises :
-##   JWT_SECRET          - openssl rand -hex 32
-##   JWT_REFRESH_SECRET  - openssl rand -hex 32
-##
 ## Variables optionnelles :
-##   CORS_ORIGIN         - Origines autorisées (défaut: *)
-##   LOG_LEVEL           - trace|debug|info|warn|error (défaut: info)
-##   PORT                - Port exposé (défaut: 5000)
+##   CORS_ORIGIN         - Origines autorisees (defaut: *)
+##   LOG_LEVEL           - trace|debug|info|warn|error (defaut: info)
+##   PORT                - Port expose (defaut: 5000)
 
 services:
   api:
@@ -21,8 +17,6 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: file:/app/data/reeltime.db
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       CORS_ORIGIN: ${CORS_ORIGIN:-*}
       NODE_ENV: production
       SKIP_PRELOAD: "false"

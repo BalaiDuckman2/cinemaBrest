@@ -8,13 +8,4 @@ export const queryKeys = {
     all: ['cinemas'] as const,
     detail: (id: string) => ['cinemas', 'detail', id] as const,
   },
-  watchlist: {
-    all: ['watchlist'] as const,
-  },
-  alertes: {
-    all: ['alertes'] as const,
-  },
-  auth: {
-    me: ['auth', 'me'] as const,
-  },
 } as const;

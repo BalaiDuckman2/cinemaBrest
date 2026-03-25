@@ -41,11 +41,9 @@ interface DayAccordionProps {
   dateStr: string;
   cinemas: Record<string, ShowtimeEntry[]>;
   defaultOpen: boolean;
-  isInWatchlist?: (cinemaName: string, date: string, time: string) => boolean;
-  onToggleWatchlist?: (showtime: ShowtimeEntry) => void;
 }
 
-function DayAccordion({ dateStr, cinemas, defaultOpen, isInWatchlist, onToggleWatchlist }: DayAccordionProps) {
+function DayAccordion({ dateStr, cinemas, defaultOpen }: DayAccordionProps) {
   const [open, setOpen] = useState(defaultOpen);
   const { dayName, dayNumber, month } = parseDateParts(dateStr);
 
@@ -87,8 +85,6 @@ function DayAccordion({ dateStr, cinemas, defaultOpen, isInWatchlist, onToggleWa
                     key={st.id}
                     showtime={st}
                     compact
-                    saved={isInWatchlist?.(st.cinemaName, st.date, st.time) ?? false}
-                    onLongPress={onToggleWatchlist ? () => onToggleWatchlist(st) : undefined}
                   />
                 ))}
               </View>
@@ -196,13 +192,9 @@ const accordionStyles = StyleSheet.create({
 
 interface FilmShowtimesProps {
   showtimes: ShowtimeEntry[];
-  filmTitle?: string;
-  filmPosterUrl?: string | null;
-  isInWatchlist?: (cinemaName: string, date: string, time: string) => boolean;
-  onToggleWatchlist?: (showtime: ShowtimeEntry) => void;
 }
 
-export function FilmShowtimes({ showtimes, isInWatchlist, onToggleWatchlist }: FilmShowtimesProps) {
+export function FilmShowtimes({ showtimes }: FilmShowtimesProps) {
   if (showtimes.length === 0) {
     return (
       <Text style={styles.emptyText}>
@@ -231,8 +223,6 @@ export function FilmShowtimes({ showtimes, isInWatchlist, onToggleWatchlist }: F
           dateStr={date}
           cinemas={grouped[date]}
           defaultOpen={idx === 0}
-          isInWatchlist={isInWatchlist}
-          onToggleWatchlist={onToggleWatchlist}
         />
       ))}
     </View>

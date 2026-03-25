@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { WeekNavigator } from '../components/WeekNavigator';
 import { FilmGrid } from '../components/FilmGrid';
 import { FilmDrawer } from '../components/FilmDrawer';
@@ -7,16 +6,12 @@ import { FilmGridSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
 import { FilterBar } from '../components/filters';
-import { AlertForm } from '../components/alerts';
 import { useFilms } from '../hooks/useFilms';
 import { useWeekNavigation } from '../hooks/useWeekNavigation';
 import { useFilmDrawer } from '../hooks/useFilmDrawer';
 import { useFilteredFilms } from '../hooks/useFilteredFilms';
 import { useCinemas } from '../hooks/useCinemas';
 import { useFiltersStore } from '../stores/filtersStore';
-import { useAuthStore } from '../stores/authStore';
-
-const ALERT_PENDING_KEY = 'reeltime_pending_alert_title';
 
 function formatWeekLabel(weekStart?: string, weekEnd?: string): string {
   if (!weekStart || !weekEnd) return '';
@@ -56,45 +51,16 @@ function ScrollToTopButton() {
 }
 
 export function HomePage() {
-  const navigate = useNavigate();
   const { weekOffset, goToNextWeek, goToPrevWeek, goToToday } = useWeekNavigation();
   const { data, isLoading, isError, refetch } = useFilms(weekOffset);
   const { isOpen, selectedFilm, openDrawer, closeDrawer } = useFilmDrawer();
   const { data: cinemas = [] } = useCinemas();
   const resetAll = useFiltersStore((s) => s.resetAll);
   const searchQuery = useFiltersStore((s) => s.searchQuery);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-
-  const [showAlertForm, setShowAlertForm] = useState(false);
-  const [alertDefaultTitle, setAlertDefaultTitle] = useState('');
 
   const { filteredFilms, activeFilterCount, hasActiveFilters } = useFilteredFilms(
     data?.films ?? [],
   );
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      const pendingTitle = sessionStorage.getItem(ALERT_PENDING_KEY);
-      if (pendingTitle) {
-        sessionStorage.removeItem(ALERT_PENDING_KEY);
-        setAlertDefaultTitle(pendingTitle);
-        setShowAlertForm(true);
-      }
-    }
-  }, [isAuthenticated]);
-
-  const handleCreateAlert = () => {
-    const title = searchQuery.trim();
-    if (isAuthenticated) {
-      setAlertDefaultTitle(title);
-      setShowAlertForm(true);
-    } else {
-      if (title) {
-        sessionStorage.setItem(ALERT_PENDING_KEY, title);
-      }
-      navigate('/login', { state: { from: { pathname: '/' } } });
-    }
-  };
 
   const weekLabel = formatWeekLabel(data?.meta.weekStart, data?.meta.weekEnd);
   const hasFilms = data && data.films.length > 0;
@@ -151,25 +117,13 @@ export function HomePage() {
             Essayez de modifier vos filtres
           </p>
 
-          <div className="flex flex-col items-center gap-3">
-            <button
-              type="button"
-              onClick={resetAll}
-              className="font-bebas rounded bg-rouge-cinema px-5 py-2 text-sm text-creme-ecran uppercase tracking-wide transition-colors hover:bg-bordeaux-profond"
-            >
-              Reinitialiser les filtres
-            </button>
-
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={handleCreateAlert}
-                className="font-bebas rounded bg-or-antique px-5 py-2 text-sm text-noir-velours uppercase tracking-wide transition-colors hover:bg-jaune-marquise"
-              >
-                Creer une alerte
-              </button>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={resetAll}
+            className="font-bebas rounded bg-rouge-cinema px-5 py-2 text-sm text-creme-ecran uppercase tracking-wide transition-colors hover:bg-bordeaux-profond"
+          >
+            Reinitialiser les filtres
+          </button>
         </div>
       )}
 
@@ -179,14 +133,6 @@ export function HomePage() {
 
       {/* Film drawer */}
       <FilmDrawer film={selectedFilm} isOpen={isOpen} onClose={closeDrawer} />
-
-      {/* Alert creation modal */}
-      {showAlertForm && (
-        <AlertForm
-          defaultTitle={alertDefaultTitle}
-          onClose={() => setShowAlertForm(false)}
-        />
-      )}
     </div>
   );
 }
