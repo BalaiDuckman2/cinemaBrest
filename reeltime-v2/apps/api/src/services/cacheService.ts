@@ -215,16 +215,22 @@ async function setInL2(
     });
     if (!film) continue;
 
-    await prisma.showtime.create({
-      data: {
-        filmId: film.id,
-        cinemaId: cinema.id,
-        date: st.date,
-        startsAt: new Date(st.startsAt),
-        version: mapVersionToPrisma(st.version),
-        bookingUrl: st.bookingUrl,
-      },
-    });
+    try {
+      await prisma.showtime.create({
+        data: {
+          filmId: film.id,
+          cinemaId: cinema.id,
+          date: st.date,
+          startsAt: new Date(st.startsAt),
+          version: mapVersionToPrisma(st.version),
+          bookingUrl: st.bookingUrl,
+        },
+      });
+    } catch (err: unknown) {
+      // Skip duplicate showtimes (same cinema+film+startsAt)
+      if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') continue;
+      throw err;
+    }
   }
 
   // Update cache metadata
