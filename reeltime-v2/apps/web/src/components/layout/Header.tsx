@@ -2,12 +2,12 @@ import { Link } from 'react-router-dom';
 
 export function Header() {
   return (
-    <header className="stage-curtain film-strip-border sticky top-0 z-50 shadow-xl">
+    <header className="stage-curtain sticky top-0 z-50 shadow-xl border-b-2 border-or-antique">
       <div className="container mx-auto px-3 sm:px-4">
         <div className="flex items-center justify-between gap-3">
           <Link
             to="/"
-            className="flex items-center gap-2 sm:gap-4 hover:opacity-80 transition-opacity cursor-pointer flex-1 py-4"
+            className="flex items-center gap-2 sm:gap-4 hover:opacity-80 transition-opacity cursor-pointer flex-1 py-2"
           >
             <span className="text-3xl sm:text-4xl">🎬</span>
             <div>
