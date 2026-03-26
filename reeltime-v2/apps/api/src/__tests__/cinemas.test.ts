@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { CINEMAS, getCinemaByAllocineId } from '../config/cinemas.js';
 
 describe('CINEMAS config', () => {
-  it('defines exactly 6 cinemas', () => {
-    expect(CINEMAS).toHaveLength(6);
+  it('defines exactly 12 cinemas', () => {
+    expect(CINEMAS).toHaveLength(12);
   });
 
   it('each cinema has required fields', () => {
@@ -17,11 +17,14 @@ describe('CINEMAS config', () => {
     }
   });
 
-  it('includes Brest, Landerneau and Lannion cinemas', () => {
+  it('includes all configured cities', () => {
     const cities = new Set(CINEMAS.map((c) => c.city));
     expect(cities.has('Brest')).toBe(true);
     expect(cities.has('Landerneau')).toBe(true);
     expect(cities.has('Lannion')).toBe(true);
+    expect(cities.has('Morlaix')).toBe(true);
+    expect(cities.has('Perros-Guirec')).toBe(true);
+    expect(cities.has('Quimper')).toBe(true);
   });
 
   it('all allocineIds are unique', () => {

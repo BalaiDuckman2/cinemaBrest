@@ -2,18 +2,35 @@ import { useState } from 'react';
 import { useFiltersStore } from '../../stores/filtersStore';
 import type { SortOption, DayFilter, TimeSlotFilter, MinAgeFilter } from '../../stores/filtersStore';
 
+const DEPARTMENTS = [
+  { label: 'Finist\u00e8re (29)', cities: ['Brest', 'Landerneau', 'Morlaix', 'Quimper'] },
+  { label: 'C\u00f4tes-d\'Armor (22)', cities: ['Lannion', 'Perros-Guirec'] },
+];
+
 const CINEMA_SHORT_NAMES: Record<string, string> = {
   'Les Studios': 'Studios',
   'CGR Brest Le Celtic': 'CGR',
-  'Multiplexe Liberté': 'Liberté',
-  'Pathé Capucins': 'Pathé',
-  'Ciné Galaxy': 'Galaxy',
-  'Les Baladins': 'Baladins',
+  'Multiplexe Libert\u00e9': 'Libert\u00e9',
+  'Path\u00e9 Capucins': 'Path\u00e9',
+  'Cin\u00e9 Galaxy': 'Galaxy',
+  'La Salamandre': 'Salamandre',
+  'Cin\u00e9ville Morlaix': 'Cin\u00e9ville M.',
+  'Cin\u00e9ville Quimper': 'Cin\u00e9ville Q.',
+  'Katorza': 'Katorza',
+  'Quai Dupleix': 'Dupleix',
 };
+
+function getShortName(name: string, city: string): string {
+  if (name === 'Les Baladins') {
+    return city === 'Perros-Guirec' ? 'Baladins P-G' : 'Baladins Lan.';
+  }
+  return CINEMA_SHORT_NAMES[name] ?? name;
+}
 
 interface Cinema {
   id: string;
   name: string;
+  city: string;
 }
 
 interface FilterBarProps {
@@ -25,6 +42,11 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
   const [expanded, setExpanded] = useState(false);
   const selectedCinemas = useFiltersStore((s) => s.selectedCinemas);
   const toggleCinema = useFiltersStore((s) => s.toggleCinema);
+  const setSelectedCinemas = useFiltersStore((s) => s.setSelectedCinemas);
+  const selectedDepartment = useFiltersStore((s) => s.selectedDepartment);
+  const setDepartment = useFiltersStore((s) => s.setDepartment);
+  const selectedCity = useFiltersStore((s) => s.selectedCity);
+  const setCity = useFiltersStore((s) => s.setCity);
   const version = useFiltersStore((s) => s.version);
   const setVersion = useFiltersStore((s) => s.setVersion);
   const sort = useFiltersStore((s) => s.sort);
@@ -37,6 +59,53 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
   const setMinAge = useFiltersStore((s) => s.setMinAge);
   const searchQuery = useFiltersStore((s) => s.searchQuery);
   const setSearchQuery = useFiltersStore((s) => s.setSearchQuery);
+
+  // Compute available cities based on selected department
+  const availableCities = selectedDepartment
+    ? DEPARTMENTS.find((d) => d.label === selectedDepartment)?.cities ?? []
+    : DEPARTMENTS.flatMap((d) => d.cities);
+
+  // Filter visible cinema chips based on department/city selection
+  const visibleCinemas = cinemas.filter((cinema) => {
+    if (selectedCity) return cinema.city === selectedCity;
+    if (selectedDepartment) return availableCities.includes(cinema.city);
+    return true;
+  });
+
+  const handleDepartmentChange = (value: string) => {
+    const dept = value === 'all' ? null : value;
+    setDepartment(dept);
+    setCity(null);
+
+    if (!dept) {
+      setSelectedCinemas([]);
+      return;
+    }
+
+    const deptCities = DEPARTMENTS.find((d) => d.label === dept)?.cities ?? [];
+    const deptCinemaIds = cinemas.filter((c) => deptCities.includes(c.city)).map((c) => c.id);
+    setSelectedCinemas(deptCinemaIds);
+  };
+
+  const handleCityChange = (value: string) => {
+    const city = value === 'all' ? null : value;
+    setCity(city);
+
+    if (!city) {
+      // Reset to department-level selection
+      if (selectedDepartment) {
+        const deptCities = DEPARTMENTS.find((d) => d.label === selectedDepartment)?.cities ?? [];
+        const deptCinemaIds = cinemas.filter((c) => deptCities.includes(c.city)).map((c) => c.id);
+        setSelectedCinemas(deptCinemaIds);
+      } else {
+        setSelectedCinemas([]);
+      }
+      return;
+    }
+
+    const cityCinemaIds = cinemas.filter((c) => c.city === city).map((c) => c.id);
+    setSelectedCinemas(cityCinemaIds);
+  };
 
   const handleVersionChange = (value: string) => {
     setVersion(value === 'all' ? null : (value as 'VF' | 'VO' | 'VOST'));
@@ -106,11 +175,11 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
               onChange={(e) => setSort(e.target.value as SortOption)}
               className={selectClass}
             >
-              <option value="popularity">Popularité</option>
-              <option value="alphabetical">A→Z</option>
-              <option value="year-desc">+ Récent</option>
+              <option value="popularity">Popularit\u00e9</option>
+              <option value="alphabetical">A\u2192Z</option>
+              <option value="year-desc">+ R\u00e9cent</option>
               <option value="year-asc">+ Ancien</option>
-              <option value="showtimes">Nb séances</option>
+              <option value="showtimes">Nb s\u00e9ances</option>
             </select>
 
             <select
@@ -147,8 +216,8 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
             >
               <option value="all">Tous horaires</option>
               <option value="morning">Matin</option>
-              <option value="afternoon">Après-midi</option>
-              <option value="evening">Soirée</option>
+              <option value="afternoon">Apr\u00e8s-midi</option>
+              <option value="evening">Soir\u00e9e</option>
               <option value="night">Nuit</option>
             </select>
 
@@ -167,12 +236,37 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
             </select>
           </div>
 
+          {/* Department & City dropdowns */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <select
+              value={selectedDepartment ?? 'all'}
+              onChange={(e) => handleDepartmentChange(e.target.value)}
+              className={selectClass}
+            >
+              <option value="all">Tous d\u00e9partements</option>
+              {DEPARTMENTS.map((dept) => (
+                <option key={dept.label} value={dept.label}>{dept.label}</option>
+              ))}
+            </select>
+
+            <select
+              value={selectedCity ?? 'all'}
+              onChange={(e) => handleCityChange(e.target.value)}
+              className={selectClass}
+            >
+              <option value="all">Toutes villes</option>
+              {availableCities.map((city) => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Cinema chips with checkboxes */}
           <div className="flex flex-wrap gap-1.5">
-            {cinemas.map((cinema) => {
+            {visibleCinemas.map((cinema) => {
               const isSelected =
                 selectedCinemas.length === 0 || selectedCinemas.includes(cinema.id);
-              const shortName = CINEMA_SHORT_NAMES[cinema.name] ?? cinema.name;
+              const shortName = getShortName(cinema.name, cinema.city);
 
               return (
                 <label

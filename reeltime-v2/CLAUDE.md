@@ -105,13 +105,19 @@ cd apps/api && npx tsc --build
 
 ## Cinemas
 
-6 cinemas configured in `apps/api/src/config/cinemas.ts`:
+12 cinemas configured in `apps/api/src/config/cinemas.ts`:
 - Les Studios (Brest) - P0153
 - CGR Brest Le Celtic (Brest) - P0151
 - Multiplexe Liberté (Brest) - P0417
 - Pathé Capucins (Brest) - W2920
 - Ciné Galaxy (Landerneau) - G02PD
 - Les Baladins (Lannion) - P0328
+- La Salamandre (Morlaix) - P1883
+- Cinéville Morlaix (Morlaix) - G0FOX
+- Les Baladins (Perros-Guirec) - P0326
+- Cinéville Quimper (Quimper) - P0299
+- Katorza (Quimper) - P0633
+- Quai Dupleix (Quimper) - W2900
 
 ## Design System (Vintage Cinema)
 

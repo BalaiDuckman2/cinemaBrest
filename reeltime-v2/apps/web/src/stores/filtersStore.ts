@@ -9,6 +9,8 @@ export type MinAgeFilter = 0 | 1 | 5 | 10 | 20 | 30 | 50;
 interface FiltersState {
   searchQuery: string;
   selectedCinemas: string[];
+  selectedDepartment: string | null;
+  selectedCity: string | null;
   version: 'VO' | 'VF' | 'VOST' | null;
   minTime: string | null;
   minRating: number | null;
@@ -18,6 +20,9 @@ interface FiltersState {
   minAge: MinAgeFilter;
   setSearchQuery: (q: string) => void;
   toggleCinema: (cinemaId: string) => void;
+  setSelectedCinemas: (ids: string[]) => void;
+  setDepartment: (dept: string | null) => void;
+  setCity: (city: string | null) => void;
   setVersion: (v: 'VO' | 'VF' | 'VOST' | null) => void;
   setMinTime: (t: string | null) => void;
   setMinRating: (r: number | null) => void;
@@ -33,6 +38,8 @@ export const useFiltersStore = create<FiltersState>()(
     (set) => ({
       searchQuery: '',
       selectedCinemas: [],
+      selectedDepartment: null,
+      selectedCity: null,
       version: null,
       minTime: null,
       minRating: null,
@@ -47,6 +54,9 @@ export const useFiltersStore = create<FiltersState>()(
             ? state.selectedCinemas.filter((id) => id !== cinemaId)
             : [...state.selectedCinemas, cinemaId],
         })),
+      setSelectedCinemas: (selectedCinemas) => set({ selectedCinemas }),
+      setDepartment: (selectedDepartment) => set({ selectedDepartment }),
+      setCity: (selectedCity) => set({ selectedCity }),
       setVersion: (version) => set({ version }),
       setMinTime: (minTime) => set({ minTime }),
       setMinRating: (minRating) => set({ minRating }),
@@ -55,12 +65,14 @@ export const useFiltersStore = create<FiltersState>()(
       setTimeSlot: (timeSlot) => set({ timeSlot }),
       setMinAge: (minAge) => set({ minAge }),
       resetAll: () =>
-        set({ searchQuery: '', selectedCinemas: [], version: null, minTime: null, minRating: null, sort: 'popularity', dayFilter: 'all', timeSlot: 'all', minAge: 0 }),
+        set({ searchQuery: '', selectedCinemas: [], selectedDepartment: null, selectedCity: null, version: null, minTime: null, minRating: null, sort: 'popularity', dayFilter: 'all', timeSlot: 'all', minAge: 0 }),
     }),
     {
       name: 'reeltime-filters',
       partialize: (state) => ({
         selectedCinemas: state.selectedCinemas,
+        selectedDepartment: state.selectedDepartment,
+        selectedCity: state.selectedCity,
         version: state.version,
         minTime: state.minTime,
         minRating: state.minRating,
