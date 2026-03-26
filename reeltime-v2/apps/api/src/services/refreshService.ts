@@ -1,5 +1,5 @@
 import { invalidateAllL1, getShowtimes } from './cacheService.js';
-import { CINEMAS, type CinemaConfig } from '../config/cinemas.js';
+import { CINEMAS } from '../config/cinemas.js';
 import { prisma } from '../lib/prisma.js';
 
 interface SyncState {
@@ -94,8 +94,9 @@ export async function runFullSync(logger: Logger): Promise<SyncResult> {
     'Starting full sync',
   );
 
-  // Invalidate L1 cache so stale data is replaced progressively
+  // Invalidate L1 + L2 metadata to force fresh AlloCiné re-fetch
   invalidateAllL1();
+  await prisma.cacheMetadata.deleteMany();
 
   for (const cinema of CINEMAS) {
     const cinemaStart = Date.now();

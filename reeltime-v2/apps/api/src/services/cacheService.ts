@@ -16,7 +16,7 @@ import {
 import { Version as PrismaVersion } from '../generated/prisma/index.js';
 import { Version } from '@reeltime/types';
 
-const CACHE_TTL_SECONDS = 21_600; // 6 hours
+const CACHE_TTL_SECONDS = 90_000; // 25 hours (covers 24h sync interval + 1h buffer)
 const EMPTY_CACHE_TTL_SECONDS = 3_600; // 1 hour for empty results (AlloCiné may add data later)
 
 // --- L1: In-memory cache (node-cache) ---
