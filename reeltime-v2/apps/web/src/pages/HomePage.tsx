@@ -82,7 +82,7 @@ export function HomePage() {
 
       {/* Filters */}
       {!isLoading && !isError && hasFilms && (
-        <div className="mb-4">
+        <div className="-mx-2 px-2 sm:-mx-4 sm:px-4 pt-2 pb-3">
           <FilterBar cinemas={cinemas} activeFilterCount={activeFilterCount} />
         </div>
       )}

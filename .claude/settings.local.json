@@ -39,7 +39,14 @@
       "Bash(cd:*)",
       "Bash(git commit:*)",
       "Bash(docker images:*)",
-      "Bash(docker login:*)"
+      "Bash(docker login:*)",
+      "WebSearch",
+      "WebFetch(domain:mapcarta.com)",
+      "WebFetch(domain:www.geodruid.com)",
+      "WebFetch(domain:www.baiedemorlaix.bzh)",
+      "Bash(pnpm turbo:*)",
+      "Bash(npx tsc:*)",
+      "Bash(pnpm dev:*)"
     ],
     "deny": [],
     "ask": []

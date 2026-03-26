@@ -171,6 +171,23 @@ select option {
   color: white;
 }
 
+/* === FILTER PANEL ANIMATION === */
+.filter-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 300ms ease-in-out, opacity 200ms ease-in-out;
+}
+
+.filter-panel-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.filter-panel > div {
+  overflow: hidden;
+}
+
 /* === DRAWER ANIMATION === */
 #filmDrawer {
   will-change: transform;
