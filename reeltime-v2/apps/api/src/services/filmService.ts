@@ -246,9 +246,27 @@ export async function getFilmsWithFilters(
   }
 
   // Version filter -- sub-filter showtimes, then drop films with none left
+  // For VO/VF: keep films that only have the opposite version (French films in VF = VO original)
   if (filters.version) {
     films = films
       .map((film) => {
+        if (filters.version === 'VO') {
+          const voShowtimes = film.showtimes.filter((st) => st.version === 'VO' || st.version === 'VOST');
+          if (voShowtimes.length > 0) {
+            return { ...film, showtimes: voShowtimes, totalShowtimes: voShowtimes.length };
+          }
+          // No VO/VOST → likely French film where VF = original language, keep all
+          return film;
+        }
+        if (filters.version === 'VF') {
+          const vfShowtimes = film.showtimes.filter((st) => st.version === 'VF');
+          if (vfShowtimes.length > 0) {
+            return { ...film, showtimes: vfShowtimes, totalShowtimes: vfShowtimes.length };
+          }
+          // No VF → likely foreign film only in VO, keep all
+          return film;
+        }
+        // VOST or OTHER: exact match
         const filtered = film.showtimes.filter((st) => st.version === filters.version);
         return { ...film, showtimes: filtered, totalShowtimes: filtered.length };
       })

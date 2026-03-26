@@ -79,10 +79,12 @@ export function useFilteredFilms(films: FilmListItem[]) {
       result = result
         .map((film) => {
           if (version === 'VO') {
-            return {
-              ...film,
-              showtimes: film.showtimes.filter((st) => st.version === 'VO' || st.version === 'VOST'),
-            };
+            const voShowtimes = film.showtimes.filter((st) => st.version === 'VO' || st.version === 'VOST');
+            if (voShowtimes.length > 0) {
+              return { ...film, showtimes: voShowtimes };
+            }
+            // No VO/VOST at all → likely a French film where VF = original language, keep all
+            return film;
           }
           // VF filter: keep VF, and also keep VO for films with no VF (French films)
           const vfShowtimes = film.showtimes.filter((st) => st.version === 'VF');
