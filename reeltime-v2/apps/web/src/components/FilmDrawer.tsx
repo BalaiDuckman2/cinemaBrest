@@ -212,7 +212,7 @@ function BottomSheet({ film, onClose, animating }: BottomSheetProps) {
           </div>
 
           {/* Showtimes */}
-          <FilmShowtimes showtimes={film.showtimes} />
+          <FilmShowtimes showtimes={film.showtimes} film={film} />
 
           {/* Secondary info */}
           <div className="border-t-2 border-sepia-chaud/30 pt-6 space-y-3 text-sm">

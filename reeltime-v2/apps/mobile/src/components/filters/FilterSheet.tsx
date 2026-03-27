@@ -6,16 +6,9 @@ import { VersionChip } from './VersionChip';
 import { TimeSlider } from './TimeSlider';
 import { RatingSlider } from './RatingSlider';
 import { useFiltersStore } from '../../stores/useFiltersStore';
+import { useCinemas } from '../../hooks/useCinemas';
+import { DEPARTMENTS, getShortName } from '../../utils/cinemaConstants';
 import type { DayFilter, TimeSlotFilter, MinAgeFilter } from '../../stores/useFiltersStore';
-
-interface Cinema {
-  id: string;
-  name: string;
-}
-
-interface FilterSheetProps {
-  cinemas: Cinema[];
-}
 
 const DAY_OPTIONS: { value: DayFilter; label: string }[] = [
   { value: 'all', label: 'Tous' },
@@ -63,15 +56,66 @@ function FilterChip({ label, isSelected, onPress }: { label: string; isSelected:
   );
 }
 
-export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
-  function FilterSheet({ cinemas }, ref) {
-    const snapPoints = useMemo(() => ['60%', '90%'], []);
+export const FilterSheet = forwardRef<BottomSheet>(
+  function FilterSheet(_props, ref) {
+    const snapPoints = useMemo(() => ['70%', '92%'], []);
+    const { data: cinemas = [] } = useCinemas();
+    const selectedCinemas = useFiltersStore((s) => s.selectedCinemas);
+    const setSelectedCinemas = useFiltersStore((s) => s.setSelectedCinemas);
+    const selectedDepartment = useFiltersStore((s) => s.selectedDepartment);
+    const setDepartment = useFiltersStore((s) => s.setDepartment);
+    const selectedCity = useFiltersStore((s) => s.selectedCity);
+    const setCity = useFiltersStore((s) => s.setCity);
     const dayFilter = useFiltersStore((s) => s.dayFilter);
     const setDayFilter = useFiltersStore((s) => s.setDayFilter);
     const timeSlot = useFiltersStore((s) => s.timeSlot);
     const setTimeSlot = useFiltersStore((s) => s.setTimeSlot);
     const minAge = useFiltersStore((s) => s.minAge);
     const setMinAge = useFiltersStore((s) => s.setMinAge);
+
+    const availableCities = selectedDepartment
+      ? DEPARTMENTS.find((d) => d.label === selectedDepartment)?.cities ?? []
+      : DEPARTMENTS.flatMap((d) => d.cities);
+
+    const visibleCinemas = cinemas.filter((cinema) => {
+      if (selectedCity) return cinema.city === selectedCity;
+      if (selectedDepartment) return availableCities.includes(cinema.city);
+      return true;
+    });
+
+    const handleDepartmentChange = useCallback((value: string) => {
+      const dept = value === 'all' ? null : value;
+      setDepartment(dept);
+      setCity(null);
+
+      if (!dept) {
+        setSelectedCinemas([]);
+        return;
+      }
+
+      const deptCities = DEPARTMENTS.find((d) => d.label === dept)?.cities ?? [];
+      const deptCinemaIds = cinemas.filter((c) => deptCities.includes(c.city)).map((c) => c.id);
+      setSelectedCinemas(deptCinemaIds);
+    }, [cinemas, setDepartment, setCity, setSelectedCinemas]);
+
+    const handleCityChange = useCallback((value: string) => {
+      const city = value === 'all' ? null : value;
+      setCity(city);
+
+      if (!city) {
+        if (selectedDepartment) {
+          const deptCities = DEPARTMENTS.find((d) => d.label === selectedDepartment)?.cities ?? [];
+          const deptCinemaIds = cinemas.filter((c) => deptCities.includes(c.city)).map((c) => c.id);
+          setSelectedCinemas(deptCinemaIds);
+        } else {
+          setSelectedCinemas([]);
+        }
+        return;
+      }
+
+      const cityCinemaIds = cinemas.filter((c) => c.city === city).map((c) => c.id);
+      setSelectedCinemas(cityCinemaIds);
+    }, [cinemas, selectedDepartment, setCity, setSelectedCinemas]);
 
     const handleSheetChanges = useCallback((_index: number) => {
       // No-op, filters apply instantly
@@ -96,14 +140,50 @@ export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
           {/* Divider */}
           <View style={styles.divider} />
 
-          {/* Cinema chips */}
-          <Text style={styles.sectionLabel}>CINEMAS</Text>
+          {/* Department chips */}
+          <Text style={styles.sectionLabel}>DÉPARTEMENT</Text>
           <View style={styles.wrapRow}>
-            {cinemas.map((cinema) => (
+            <FilterChip
+              label="Tous"
+              isSelected={selectedDepartment === null}
+              onPress={() => handleDepartmentChange('all')}
+            />
+            {DEPARTMENTS.map((dept) => (
+              <FilterChip
+                key={dept.label}
+                label={dept.label}
+                isSelected={selectedDepartment === dept.label}
+                onPress={() => handleDepartmentChange(selectedDepartment === dept.label ? 'all' : dept.label)}
+              />
+            ))}
+          </View>
+
+          {/* City chips */}
+          <Text style={[styles.sectionLabel, styles.sectionSpacing]}>VILLE</Text>
+          <View style={styles.wrapRow}>
+            <FilterChip
+              label="Toutes"
+              isSelected={selectedCity === null}
+              onPress={() => handleCityChange('all')}
+            />
+            {availableCities.map((city) => (
+              <FilterChip
+                key={city}
+                label={city}
+                isSelected={selectedCity === city}
+                onPress={() => handleCityChange(selectedCity === city ? 'all' : city)}
+              />
+            ))}
+          </View>
+
+          {/* Cinema chips */}
+          <Text style={[styles.sectionLabel, styles.sectionSpacing]}>CINÉMAS</Text>
+          <View style={styles.wrapRow}>
+            {visibleCinemas.map((cinema) => (
               <CinemaChip
                 key={cinema.id}
                 cinemaId={cinema.id}
-                cinemaName={cinema.name}
+                cinemaName={getShortName(cinema.name, cinema.city)}
               />
             ))}
           </View>

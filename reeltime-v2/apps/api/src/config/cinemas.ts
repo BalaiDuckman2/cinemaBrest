@@ -109,3 +109,15 @@ export const CINEMAS: CinemaConfig[] = [
 export function getCinemaByAllocineId(id: string): CinemaConfig | undefined {
   return CINEMAS.find((c) => c.allocineId === id);
 }
+
+/**
+ * Build a film-specific booking URL.
+ * - Les Studios: direct film page (uses AlloCiné film ID)
+ * - All others: AlloCiné film page (universal, always film-specific)
+ */
+export function buildBookingUrl(cinemaAllocineId: string, filmAllocineId: number): string {
+  if (cinemaAllocineId === 'P0153') {
+    return `https://www.cine-studios.fr/film/${filmAllocineId}/`;
+  }
+  return `https://www.allocine.fr/film/fichefilm_gen_cfilm=${filmAllocineId}.html`;
+}

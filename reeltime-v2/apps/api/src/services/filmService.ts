@@ -1,5 +1,5 @@
 import { getShowtimes } from './cacheService.js';
-import { CINEMAS, getCinemaByAllocineId } from '../config/cinemas.js';
+import { CINEMAS, getCinemaByAllocineId, buildBookingUrl } from '../config/cinemas.js';
 import { generateLetterboxdUrl } from '../utils/letterboxd.js';
 import { matchesSearch } from '../utils/searchUtils.js';
 import { prisma } from '../lib/prisma.js';
@@ -115,7 +115,7 @@ export async function getFilmsForWeek(weekOffset: number): Promise<FilmListRespo
           version: st.version,
           cinemaId: st.cinemaAllocineId,
           cinemaName,
-          bookingUrl: st.bookingUrl,
+          bookingUrl: st.bookingUrl ?? buildBookingUrl(st.cinemaAllocineId, st.filmAllocineId),
         };
 
         // Find the matching film
@@ -198,7 +198,7 @@ export async function getFilmById(id: number): Promise<FilmDetailResponse | null
       version: st.version,
       cinemaId: st.cinema.allocineId,
       cinemaName,
-      bookingUrl: st.bookingUrl,
+      bookingUrl: st.bookingUrl ?? buildBookingUrl(st.cinema.allocineId, film.allocineId),
     });
   }
 
@@ -329,7 +329,7 @@ export async function searchAllFilms(
       version: st.version,
       cinemaId: st.cinema.allocineId,
       cinemaName: st.cinema.name,
-      bookingUrl: st.bookingUrl,
+      bookingUrl: st.bookingUrl ?? buildBookingUrl(st.cinema.allocineId, film.allocineId),
     }));
 
     allResults.push({

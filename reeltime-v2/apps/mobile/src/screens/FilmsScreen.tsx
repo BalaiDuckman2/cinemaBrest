@@ -16,6 +16,8 @@ import { useFiltersStore } from '../stores/useFiltersStore';
 import { useFilms } from '../hooks/useFilms';
 import { useWeekNavigation } from '../hooks/useWeekNavigation';
 import { useFilteredFilms } from '../hooks/useFilteredFilms';
+import { useCinemas } from '../hooks/useCinemas';
+import { getShortName } from '../utils/cinemaConstants';
 import { Header } from '../components/Header';
 import { FilmCard } from '../components/FilmCard';
 import { FilmBottomSheet } from '../components/FilmBottomSheet';
@@ -46,24 +48,13 @@ export function FilmsScreen() {
   const filterSheetRef = useRef<BottomSheet>(null);
   const inputRef = useRef<TextInput>(null);
 
-  // Extract unique cinemas from film data
-  const cinemas = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const film of films) {
-      for (const st of film.showtimes) {
-        if (!map.has(st.cinemaId)) {
-          map.set(st.cinemaId, st.cinemaName);
-        }
-      }
-    }
-    return Array.from(map, ([id, name]) => ({ id, name }));
-  }, [films]);
+  const { data: cinemaList = [] } = useCinemas();
 
   const cinemaNames = useMemo(() => {
     const map = new Map<string, string>();
-    for (const c of cinemas) map.set(c.id, c.name);
+    for (const c of cinemaList) map.set(c.id, getShortName(c.name, c.city));
     return map;
-  }, [cinemas]);
+  }, [cinemaList]);
 
   const handleSearchSubmit = useCallback(() => {
     const trimmed = searchQuery.trim();
@@ -240,7 +231,7 @@ export function FilmsScreen() {
         )}
 
         {/* Filter Bottom Sheet */}
-        <FilterSheet ref={filterSheetRef} cinemas={cinemas} />
+        <FilterSheet ref={filterSheetRef} />
 
         {/* Film Detail Bottom Sheet */}
         <FilmBottomSheet film={selectedFilm} onClose={handleCloseSheet} />

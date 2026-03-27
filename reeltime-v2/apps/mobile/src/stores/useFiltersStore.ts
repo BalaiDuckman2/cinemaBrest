@@ -9,6 +9,8 @@ export type MinAgeFilter = 0 | 1 | 5 | 10 | 20 | 30 | 50;
 export interface FiltersState {
   searchQuery: string;
   selectedCinemas: string[];
+  selectedDepartment: string | null;
+  selectedCity: string | null;
   version: 'VO' | 'VF' | 'VOST' | null;
   minTime: string | null;
   minRating: number | null;
@@ -19,6 +21,9 @@ export interface FiltersState {
 
   setSearchQuery: (query: string) => void;
   toggleCinema: (cinemaId: string) => void;
+  setSelectedCinemas: (ids: string[]) => void;
+  setDepartment: (dept: string | null) => void;
+  setCity: (city: string | null) => void;
   setVersion: (version: 'VO' | 'VF' | 'VOST' | null) => void;
   setMinTime: (time: string | null) => void;
   setMinRating: (rating: number | null) => void;
@@ -36,6 +41,8 @@ export const useFiltersStore = create<FiltersState>()(
     (set) => ({
       searchQuery: '',
       selectedCinemas: [],
+      selectedDepartment: null,
+      selectedCity: null,
       version: null,
       minTime: null,
       minRating: null,
@@ -52,6 +59,12 @@ export const useFiltersStore = create<FiltersState>()(
             ? state.selectedCinemas.filter((id) => id !== cinemaId)
             : [...state.selectedCinemas, cinemaId],
         })),
+
+      setSelectedCinemas: (selectedCinemas) => set({ selectedCinemas }),
+
+      setDepartment: (selectedDepartment) => set({ selectedDepartment }),
+
+      setCity: (selectedCity) => set({ selectedCity }),
 
       setVersion: (version) => set({ version }),
 
@@ -84,6 +97,8 @@ export const useFiltersStore = create<FiltersState>()(
         set({
           searchQuery: '',
           selectedCinemas: [],
+          selectedDepartment: null,
+          selectedCity: null,
           version: null,
           minTime: null,
           minRating: null,
@@ -97,6 +112,8 @@ export const useFiltersStore = create<FiltersState>()(
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         selectedCinemas: state.selectedCinemas,
+        selectedDepartment: state.selectedDepartment,
+        selectedCity: state.selectedCity,
         version: state.version,
         minTime: state.minTime,
         minRating: state.minRating,

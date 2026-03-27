@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import type { ShowtimeEntry } from '../types/components';
 
 const DAYS_FR = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
@@ -55,11 +56,21 @@ function groupShowtimes(showtimes: ShowtimeEntry[]): GroupedByDateCinema {
   return byDate;
 }
 
-interface FilmShowtimesProps {
-  showtimes: ShowtimeEntry[];
+interface FilmShowtimesFilm {
+  title: string;
+  year: number;
+  posterUrl: string | null;
+  runtime: number | null;
+  director: string | null;
+  genres: string[];
 }
 
-export function FilmShowtimes({ showtimes }: FilmShowtimesProps) {
+interface FilmShowtimesProps {
+  showtimes: ShowtimeEntry[];
+  film: FilmShowtimesFilm;
+}
+
+export function FilmShowtimes({ showtimes, film }: FilmShowtimesProps) {
   if (showtimes.length === 0) {
     return (
       <div className="mb-8">
@@ -136,19 +147,26 @@ export function FilmShowtimes({ showtimes }: FilmShowtimesProps) {
                       </h5>
                       <div className="flex flex-wrap gap-2">
                         {times.map((st) => (
-                          <a
+                          <Link
                             key={st.id}
-                            href={st.bookingUrl || undefined}
-                            target={st.bookingUrl ? '_blank' : undefined}
-                            rel={st.bookingUrl ? 'noopener noreferrer' : undefined}
+                            to={`/reservation/${st.id}`}
+                            state={{
+                              film: {
+                                title: film.title,
+                                year: film.year,
+                                posterUrl: film.posterUrl,
+                                runtime: film.runtime,
+                                director: film.director,
+                                genres: film.genres,
+                              },
+                              showtime: st,
+                            }}
                             style={{
                               position: 'relative',
                               background: 'linear-gradient(135deg, #D32F2F 0%, #C62828 100%)',
                               boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
                             }}
-                            className={`font-bebas text-creme-ecran border-or-antique px-3 py-2 rounded-md text-xs uppercase tracking-wider border-2 hover:border-jaune-marquise transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${
-                              st.bookingUrl ? 'cursor-pointer' : 'cursor-default'
-                            }`}
+                            className="font-bebas text-creme-ecran border-or-antique px-3 py-2 rounded-md text-xs uppercase tracking-wider border-2 hover:border-jaune-marquise transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
                           >
                             <span className="font-bold text-sm block leading-none">
                               {st.time}
@@ -169,7 +187,7 @@ export function FilmShowtimes({ showtimes }: FilmShowtimesProps) {
                                 borderBottomLeftRadius: '8px',
                               }}
                             />
-                          </a>
+                          </Link>
                         ))}
                       </div>
                     </div>
