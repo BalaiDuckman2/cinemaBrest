@@ -28,6 +28,24 @@ async function start() {
   await seedCinemas();
   app.log.info(`Cinemas seeded: ${CINEMAS.length} upserted`);
 
+  // Initial sync strategy: API must never serve empty.
+  //   - If DB is empty (first deploy) → BLOCKING sync before listen()
+  //   - If DB already has cached data → background sync (non-blocking)
+  if (!config.skipPreload) {
+    const cachedEntries = await prisma.cacheMetadata.count();
+    if (cachedEntries === 0) {
+      app.log.info('No cached showtimes found — running blocking initial sync before accepting requests...');
+      await runFullSync(app.log);
+    } else {
+      app.log.info({ cachedEntries }, 'Existing cache detected, starting background sync (async)');
+      runFullSync(app.log).catch((err) =>
+        app.log.error(err, 'Background sync failed'),
+      );
+    }
+  } else {
+    app.log.info('SKIP_PRELOAD=true, skipping initial data preload');
+  }
+
   try {
     await app.listen({ port: config.port, host: config.host });
     app.log.info(
@@ -45,18 +63,8 @@ async function start() {
     process.exit(1);
   }
 
-  // Start the midnight sync scheduler
+  // Start the recurring background sync scheduler (every 6 hours)
   startCacheScheduler(app.log);
-
-  // Initial sync (unless SKIP_PRELOAD is true)
-  if (!config.skipPreload) {
-    app.log.info('Starting initial data preload (async)...');
-    runFullSync(app.log).catch((err) =>
-      app.log.error(err, 'Initial preload failed'),
-    );
-  } else {
-    app.log.info('SKIP_PRELOAD=true, skipping initial data preload');
-  }
 
   // Graceful shutdown
   const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM'];

@@ -12,9 +12,9 @@ interface Logger {
 
 export function startCacheScheduler(logger: Logger): void {
   scheduledTask = cron.schedule(
-    '0 0 * * *',
+    '0 */6 * * *',
     async () => {
-      logger.info({ msg: 'Midnight sync triggered' });
+      logger.info({ msg: 'Scheduled background sync triggered' });
       await runFullSync(logger);
     },
     {
@@ -24,7 +24,7 @@ export function startCacheScheduler(logger: Logger): void {
 
   logger.info(
     { timezone: config.timezone },
-    'Cache scheduler started (midnight daily)',
+    'Cache scheduler started (every 6 hours)',
   );
 }
 

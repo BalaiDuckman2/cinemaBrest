@@ -246,6 +246,9 @@ async function setInL2(
 }
 
 // --- Main cache lookup chain ---
+// Read-only: serves cache only (L1 → L2 valid → L2 stale → empty).
+// NEVER calls AlloCiné synchronously — that path belongs to fetchAndCacheShowtimes(),
+// invoked exclusively by the background sync (refreshService).
 
 export async function getShowtimes(
   cinemaAllocineId: string,
@@ -260,7 +263,7 @@ export async function getShowtimes(
     return { data: l1Data, source: 'l1', stale: false };
   }
 
-  // L2: Database (check validity first)
+  // L2: Database (still within TTL)
   const l2Valid = await isL2Valid(cinemaAllocineId, date);
   if (l2Valid) {
     const l2Data = await getFromL2(cinemaAllocineId, date);
@@ -271,12 +274,29 @@ export async function getShowtimes(
     }
   }
 
-  // L3: AlloCine scraper
+  // L2 stale: TTL expired but data is still in DB — serve it (background sync will refresh).
   cacheMissesTotal.inc({ level: 'L1' });
+  const staleData = await getFromL2(cinemaAllocineId, date);
+  if (staleData) {
+    setInL1(key, staleData, EMPTY_CACHE_TTL_SECONDS);
+    return { data: staleData, source: 'l2-stale', stale: true };
+  }
+
+  // No data at all — return empty. Background sync will populate eventually.
+  return { data: { films: [], showtimes: [] }, source: 'empty', stale: true };
+}
+
+// Write path: scrapes AlloCiné and writes to L1+L2.
+// Used exclusively by the background sync (refreshService.ts), never from HTTP handlers.
+
+export async function fetchAndCacheShowtimes(
+  cinemaAllocineId: string,
+  date: string,
+): Promise<CachedResult> {
+  const key = buildCacheKey(cinemaAllocineId, date);
   const dateObj = new Date(date + 'T00:00:00');
   const freshData = await getShowtimesForCinema(cinemaAllocineId, dateObj);
 
-  // If scraper returned data (even empty), cache it
   if (freshData.films.length > 0 || freshData.showtimes.length > 0) {
     try {
       await setInL2(cinemaAllocineId, date, freshData);
@@ -287,14 +307,7 @@ export async function getShowtimes(
     return { data: freshData, source: 'allocine', stale: false };
   }
 
-  // Scraper returned empty -- try stale L2 data as fallback
-  const staleData = await getFromL2(cinemaAllocineId, date);
-  if (staleData && (staleData.films.length > 0 || staleData.showtimes.length > 0)) {
-    setInL1(key, staleData);
-    return { data: staleData, source: 'l2-stale', stale: true };
-  }
-
-  // Cache empty results with shorter TTL (AlloCiné may publish data later for future dates)
+  // AlloCiné returned empty — cache with short TTL so we retry sooner.
   const emptyData: CachedShowtimeData = { films: [], showtimes: [] };
   try {
     await setInL2(cinemaAllocineId, date, emptyData, EMPTY_CACHE_TTL_SECONDS);

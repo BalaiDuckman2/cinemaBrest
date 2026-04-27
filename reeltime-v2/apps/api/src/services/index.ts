@@ -8,6 +8,7 @@ export {
 } from './allocineParser.js';
 export {
   getShowtimes,
+  fetchAndCacheShowtimes,
   invalidateCache,
   invalidateL1,
   invalidateAllL1,

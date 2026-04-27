@@ -1,4 +1,4 @@
-import { invalidateAllL1, getShowtimes } from './cacheService.js';
+import { fetchAndCacheShowtimes } from './cacheService.js';
 import { CINEMAS } from '../config/cinemas.js';
 import { prisma } from '../lib/prisma.js';
 
@@ -94,9 +94,9 @@ export async function runFullSync(logger: Logger): Promise<SyncResult> {
     'Starting full sync',
   );
 
-  // Invalidate L1 + L2 metadata to force fresh AlloCiné re-fetch
-  invalidateAllL1();
-  await prisma.cacheMetadata.deleteMany();
+  // Do NOT invalidate the cache before syncing — fetchAndCacheShowtimes
+  // overwrites entries in place via upsert, so HTTP requests keep being served
+  // from the existing cache while the sync runs.
 
   for (const cinema of CINEMAS) {
     const cinemaStart = Date.now();
@@ -108,7 +108,7 @@ export async function runFullSync(logger: Logger): Promise<SyncResult> {
         const date = addDays(today, dayOffset);
         const dateStr = formatDate(date);
 
-        const cached = await getShowtimes(cinema.allocineId, dateStr);
+        const cached = await fetchAndCacheShowtimes(cinema.allocineId, dateStr);
         cinemaFilms += cached.data.films.length;
         cinemaShowtimes += cached.data.showtimes.length;
       }

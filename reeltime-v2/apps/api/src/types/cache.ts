@@ -7,7 +7,7 @@ export interface CachedShowtimeData {
 
 export interface CachedResult {
   data: CachedShowtimeData;
-  source: 'l1' | 'l2' | 'allocine' | 'l2-stale' | 'none';
+  source: 'l1' | 'l2' | 'allocine' | 'l2-stale' | 'none' | 'empty';
   stale: boolean;
   error?: boolean;
 }
