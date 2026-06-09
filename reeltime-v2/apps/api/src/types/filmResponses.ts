@@ -16,6 +16,7 @@ export interface FilmListItem {
   genres: string[];
   filmAge: number | null;
   rating: number | null;
+  letterboxdRating: number | null;
   totalShowtimes: number;
   letterboxdUrl: string;
   showtimes: ShowtimeEntry[];
@@ -44,6 +45,7 @@ export interface FilmDetailResponse {
   genres: string[];
   runtime: number | null;
   rating: number | null;
+  letterboxdRating: number | null;
   filmAge: number | null;
   letterboxdUrl: string;
   showtimesByDate: Record<string, Record<string, ShowtimeEntry[]>>;
