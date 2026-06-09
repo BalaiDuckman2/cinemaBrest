@@ -10,7 +10,11 @@ interface Logger {
 }
 
 const STALE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
-const BATCH_LIMIT = 40; // cap work per run to stay gentle on TMDB/Letterboxd
+// Enrich the whole catalogue in one background run. Politeness toward
+// TMDB/Letterboxd is enforced by the rate limiter below (one call per 1.5s),
+// not by capping the batch — a low cap (was 40) left most films unrated.
+// This high value is only a safety valve against an unbounded run.
+const MAX_FILMS_PER_RUN = 2000;
 const rateLimiter = new RateLimiter(1500);
 
 let isEnriching = false;
@@ -34,7 +38,7 @@ export async function runLetterboxdEnrichment(logger: Logger): Promise<void> {
         OR: [{ letterboxdFetchedAt: null }, { letterboxdFetchedAt: { lt: staleBefore } }],
       },
       select: { id: true, title: true, year: true, productionYear: true },
-      take: BATCH_LIMIT,
+      take: MAX_FILMS_PER_RUN,
     });
 
     logger.info({ count: films.length }, 'Letterboxd enrichment started');
