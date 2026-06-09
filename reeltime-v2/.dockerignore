@@ -35,9 +35,6 @@ Thumbs.db
 **/*.md
 !packages/*/README.md
 
-# Mobile app (not needed for Docker)
-apps/mobile
-
 # Misc
 nul
 *.tsbuildinfo

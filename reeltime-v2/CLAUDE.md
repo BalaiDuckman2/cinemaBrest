@@ -14,8 +14,7 @@ ReelTime v2 is a monorepo application that aggregates cinema showtimes from Allo
 reeltime-v2/
 ├── apps/
 │   ├── api/          # Fastify 5 + Prisma + SQLite/PostgreSQL
-│   ├── web/          # React 19 + Vite 6 + Tailwind 3 + React Query 5 + Zustand
-│   └── mobile/       # Expo 52 + React Native 0.76 + React Navigation 7
+│   └── web/          # React 19 + Vite 6 + Tailwind 3 + React Query 5 + Zustand
 ├── packages/
 │   ├── types/        # Shared TypeScript types (@reeltime/types)
 │   └── config/       # Shared configs - Tailwind, ESLint (@reeltime/config)
@@ -42,7 +41,6 @@ pnpm lint
 # Dev individual apps
 pnpm turbo run dev --filter=@reeltime/api
 pnpm turbo run dev --filter=@reeltime/web
-cd apps/mobile && expo start
 
 # Build individual apps
 pnpm turbo run build --filter=@reeltime/api
@@ -64,9 +62,6 @@ npx tsx prisma/seed.ts     # Seed cinemas
 ```bash
 # Web
 cd apps/web && npx tsc --noEmit && npx vite build
-
-# Mobile
-cd apps/mobile && npx tsc --noEmit
 
 # API
 cd apps/api && npx tsc --build
@@ -94,14 +89,7 @@ cd apps/api && npx tsc --build
 - **Hooks**: `src/hooks/` - useFilms, useFilmDrawer, useWeekNavigation, useFilteredFilms, useCinemas, useMediaQuery
 - **Styles**: Tailwind CSS with vintage cinema theme
 
-### Mobile (`apps/mobile`) - Expo + React Native
-
-- **Entry**: `index.ts` → `App.tsx`
-- **Screens**: `src/screens/` - FilmsScreen, FilmDetailScreen
-- **Navigation**: `src/navigation/` - React Navigation with bottom tabs + stacks
-- **Components**: `src/components/` - native UI components (FilmCard, FilmBottomSheet, FilmShowtimes, WeekNavigator, FilterSheet)
-- **State**: Zustand store in `src/stores/useFiltersStore.ts`
-- **API**: `src/api/` - filmsApi
+> **Note**: The Expo/React Native mobile app lives on the dedicated `mobile` branch (removed from `main` to focus development on web). Restore with `git checkout mobile -- reeltime-v2/apps/mobile` if needed.
 
 ## Cinemas
 
@@ -150,9 +138,6 @@ cd apps/api && npx tsc --build
 ### Web Environment (`apps/web/.env`)
 - `VITE_API_URL` - API base URL (default: http://localhost:3000)
 
-### Mobile Environment (`apps/mobile/.env`)
-- `EXPO_PUBLIC_API_URL` - API base URL
-
 ## Key Patterns
 
 - API responses wrapped in `{ data: ... }` or `{ data: ..., meta: ... }`
@@ -160,7 +145,6 @@ cd apps/api && npx tsc --build
 - React 19 `useRef` requires initial value: `useRef<T>(undefined)` not `useRef<T>()`
 - Zustand persist: use `partialize` to exclude transient state
 - Barrel exports in `components/index.ts` and `hooks/index.ts` must be updated for each new file
-- Mobile: hooks imported directly by path (no barrel)
 
 ## Docker Deployment
 
