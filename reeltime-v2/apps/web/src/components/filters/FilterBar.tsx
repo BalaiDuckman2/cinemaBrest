@@ -76,6 +76,8 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
   const setTimeSlot = useFiltersStore((s) => s.setTimeSlot);
   const minAge = useFiltersStore((s) => s.minAge);
   const setMinAge = useFiltersStore((s) => s.setMinAge);
+  const minLetterboxdRating = useFiltersStore((s) => s.minLetterboxdRating);
+  const setMinLetterboxdRating = useFiltersStore((s) => s.setMinLetterboxdRating);
   const searchQuery = useFiltersStore((s) => s.searchQuery);
   const setSearchQuery = useFiltersStore((s) => s.setSearchQuery);
   const resetAll = useFiltersStore((s) => s.resetAll);
@@ -145,6 +147,9 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
   }
   if (minAge !== 0) {
     activeTags.push({ label: `+${minAge} ans`, onRemove: () => setMinAge(0) });
+  }
+  if (minLetterboxdRating !== null) {
+    activeTags.push({ label: `LB ≥ ${minLetterboxdRating}`, onRemove: () => setMinLetterboxdRating(null) });
   }
   if (selectedDepartment !== null) {
     activeTags.push({ label: selectedDepartment, onRemove: () => handleDepartmentChange('all') });
@@ -309,6 +314,20 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
                 <option value="20">+20 ans</option>
                 <option value="30">+30 ans</option>
                 <option value="50">+50 ans</option>
+              </select>
+
+              <select
+                value={minLetterboxdRating ?? 'all'}
+                onChange={(e) =>
+                  setMinLetterboxdRating(e.target.value === 'all' ? null : Number(e.target.value))
+                }
+                className={selectClass}
+              >
+                <option value="all">Toute note LB</option>
+                <option value="3">LB ≥ 3</option>
+                <option value="3.5">LB ≥ 3.5</option>
+                <option value="4">LB ≥ 4</option>
+                <option value="4.5">LB ≥ 4.5</option>
               </select>
             </div>
 

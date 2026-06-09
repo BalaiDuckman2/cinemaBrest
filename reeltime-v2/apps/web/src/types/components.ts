@@ -7,6 +7,7 @@ export interface FilmListItem {
   year: number;
   posterUrl: string | null;
   rating: number | null;
+  letterboxdRating: number | null;
   filmAge: number | null;
   synopsis: string | null;
   director: string | null;
