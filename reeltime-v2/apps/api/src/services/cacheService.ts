@@ -123,6 +123,7 @@ async function getFromL2(
         runtime: st.film.runtime,
         genres: JSON.parse(st.film.genres),
         filmAge: st.film.filmAge,
+        letterboxdRating: st.film.letterboxdRating,
       });
     }
 

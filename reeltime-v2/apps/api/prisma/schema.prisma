@@ -52,6 +52,9 @@ model Film {
   runtime        Int?
   genres         String    @default("[]")
   filmAge        Int?      @map("film_age")
+  tmdbId              Int?      @map("tmdb_id")
+  letterboxdRating    Float?    @map("letterboxd_rating")
+  letterboxdFetchedAt DateTime? @map("letterboxd_fetched_at")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 

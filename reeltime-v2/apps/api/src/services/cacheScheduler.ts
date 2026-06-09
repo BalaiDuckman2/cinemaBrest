@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import { runFullSync } from './refreshService.js';
+import { runLetterboxdEnrichment } from './letterboxdService.js';
 import { config } from '../config/index.js';
 
 let scheduledTask: cron.ScheduledTask | null = null;
@@ -16,6 +17,8 @@ export function startCacheScheduler(logger: Logger): void {
     async () => {
       logger.info({ msg: 'Scheduled background sync triggered' });
       await runFullSync(logger);
+      // Background enrichment — never blocks the schedule or HTTP path.
+      void runLetterboxdEnrichment(logger);
     },
     {
       timezone: config.timezone,
@@ -35,4 +38,5 @@ export function stopCacheScheduler(): void {
 
 export async function preloadAll(logger: Logger): Promise<void> {
   await runFullSync(logger);
+  void runLetterboxdEnrichment(logger);
 }

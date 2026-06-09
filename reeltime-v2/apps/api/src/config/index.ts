@@ -7,4 +7,5 @@ export const config = {
   logLevel: process.env.LOG_LEVEL || 'info',
   skipPreload: process.env.SKIP_PRELOAD === 'true',
   timezone: process.env.TIMEZONE || 'Europe/Paris',
+  tmdbApiKey: process.env.TMDB_API_KEY || '',
 } as const;
