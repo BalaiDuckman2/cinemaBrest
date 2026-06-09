@@ -186,6 +186,11 @@ function BottomSheet({ film, onClose, animating }: BottomSheetProps) {
                   Il y a {film.filmAge} ans
                 </span>
               )}
+              {film.letterboxdRating != null && (
+                <p className="font-crimson text-or-antique text-sm mt-2">
+                  ★ {film.letterboxdRating.toFixed(1)} Letterboxd
+                </p>
+              )}
               {film.letterboxdUrl && (
                 <a
                   href={film.letterboxdUrl}

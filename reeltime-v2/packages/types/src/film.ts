@@ -10,6 +10,7 @@ export const FilmSchema = z.object({
   cast: z.array(z.string()),
   director: z.string().nullable().optional(),
   rating: z.number().min(0).max(5).nullable().optional(),
+  letterboxdRating: z.number().min(0).max(5).nullable().optional(),
   productionYear: z.number().int().nullable().optional(),
   releaseDate: z.string().nullable().optional(),
   runtime: z.number().int().nullable().optional(),

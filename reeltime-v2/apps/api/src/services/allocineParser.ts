@@ -50,6 +50,7 @@ export interface ParsedFilm {
   runtime: number | null;
   genres: string[];
   filmAge: number | null;
+  letterboxdRating: number | null;
 }
 
 export interface ParsedShowtime {
@@ -244,6 +245,7 @@ export function parseAllocineResponse(
         runtime: parseRuntime(movie.runtime),
         genres: (movie.genres ?? []).map((g) => g.translate).filter(Boolean),
         filmAge,
+        letterboxdRating: null,
       });
     }
 

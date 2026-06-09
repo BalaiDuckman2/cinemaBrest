@@ -145,6 +145,7 @@ cd apps/api && npx tsc --build
 - `LOG_LEVEL` - trace | debug | info | warn | error | fatal
 - `SKIP_PRELOAD` - Skip 60-day preload at startup (true for dev)
 - `TIMEZONE` - Default: Europe/Paris
+- `TMDB_API_KEY` - Clé API TMDB pour l'enrichissement des notes Letterboxd
 
 ### Web Environment (`apps/web/.env`)
 - `VITE_API_URL` - API base URL (default: http://localhost:3000)
