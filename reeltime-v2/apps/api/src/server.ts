@@ -6,7 +6,7 @@ import { startCacheScheduler, stopCacheScheduler } from './services/cacheSchedul
 import { runFullSync } from './services/refreshService.js';
 import { runLetterboxdEnrichment } from './services/letterboxdService.js';
 
-async function seedCinemas() {
+async function seedCinemas(): Promise<number> {
   for (const cinema of CINEMAS) {
     await prisma.cinema.upsert({
       where: { allocineId: cinema.allocineId },
@@ -20,14 +20,21 @@ async function seedCinemas() {
       create: cinema,
     });
   }
+
+  // Config is the source of truth: prune cinemas no longer listed in CINEMAS.
+  // Their showtimes are removed automatically via onDelete: Cascade.
+  const { count } = await prisma.cinema.deleteMany({
+    where: { allocineId: { notIn: CINEMAS.map((c) => c.allocineId) } },
+  });
+  return count;
 }
 
 async function start() {
   const app = await buildApp();
 
-  // Seed cinemas into DB (idempotent upsert)
-  await seedCinemas();
-  app.log.info(`Cinemas seeded: ${CINEMAS.length} upserted`);
+  // Seed cinemas into DB (idempotent upsert + prune of cinemas removed from config)
+  const prunedCinemas = await seedCinemas();
+  app.log.info(`Cinemas seeded: ${CINEMAS.length} upserted, ${prunedCinemas} pruned`);
 
   // Initial sync strategy: API must never serve empty.
   //   - If DB is empty (first deploy) → BLOCKING sync before listen()

@@ -4,7 +4,6 @@ import type { SortOption, DayFilter, TimeSlotFilter, MinAgeFilter } from '../../
 
 const DEPARTMENTS = [
   { label: 'Finist\u00e8re (29)', cities: ['Brest', 'Landerneau', 'Morlaix', 'Quimper'] },
-  { label: 'C\u00f4tes-d\'Armor (22)', cities: ['Lannion', 'Perros-Guirec'] },
 ];
 
 const CINEMA_SHORT_NAMES: Record<string, string> = {
@@ -20,10 +19,7 @@ const CINEMA_SHORT_NAMES: Record<string, string> = {
   'Quai Dupleix': 'Dupleix',
 };
 
-function getShortName(name: string, city: string): string {
-  if (name === 'Les Baladins') {
-    return city === 'Perros-Guirec' ? 'Baladins P-G' : 'Baladins Lan.';
-  }
+function getShortName(name: string): string {
   return CINEMA_SHORT_NAMES[name] ?? name;
 }
 
@@ -344,7 +340,7 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
               {visibleCinemas.map((cinema) => {
                 const isSelected =
                   selectedCinemas.length === 0 || selectedCinemas.includes(cinema.id);
-                const shortName = getShortName(cinema.name, cinema.city);
+                const shortName = getShortName(cinema.name);
 
                 return (
                   <label

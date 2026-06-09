@@ -44,14 +44,6 @@ const cinemas = [
     longitude: -4.2544,
   },
   {
-    allocineId: 'P0328',
-    name: 'Les Baladins',
-    address: '17 Rue des Chapeliers, 22300 Lannion',
-    city: 'Lannion',
-    latitude: 48.7322,
-    longitude: -3.4598,
-  },
-  {
     allocineId: 'P1883',
     name: 'La Salamandre',
     address: '39 ter Quai du Léon, 29600 Morlaix',
@@ -66,14 +58,6 @@ const cinemas = [
     city: 'Morlaix',
     latitude: 48.5348,
     longitude: -3.7905,
-  },
-  {
-    allocineId: 'P0326',
-    name: 'Les Baladins',
-    address: '27 Boulevard Thalassa, 22700 Perros-Guirec',
-    city: 'Perros-Guirec',
-    latitude: 48.8271,
-    longitude: -3.4827,
   },
   {
     allocineId: 'P0299',

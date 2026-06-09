@@ -13,7 +13,6 @@ const CINEMA_SHORT_NAMES: Record<string, string> = {
   'Multiplexe Liberté': 'Liberté',
   'Pathé Capucins': 'Pathé',
   'Ciné Galaxy': 'Galaxy',
-  'Les Baladins': 'Baladins',
 };
 
 function extractDate(datetime: string): string {
