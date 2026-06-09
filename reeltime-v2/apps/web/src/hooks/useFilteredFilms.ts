@@ -49,7 +49,6 @@ export function useFilteredFilms(films: FilmListItem[]) {
   const version = useFiltersStore((s) => s.version);
   const minTime = useFiltersStore((s) => s.minTime);
   const minRating = useFiltersStore((s) => s.minRating);
-  const minLetterboxdRating = useFiltersStore((s) => s.minLetterboxdRating);
   const sort = useFiltersStore((s) => s.sort);
   const dayFilter = useFiltersStore((s) => s.dayFilter);
   const timeSlot = useFiltersStore((s) => s.timeSlot);
@@ -149,22 +148,16 @@ export function useFilteredFilms(films: FilmListItem[]) {
           return (a.year ?? 0) - (b.year ?? 0);
         case 'showtimes':
           return b.showtimes.length - a.showtimes.length;
+        case 'letterboxd':
+          return (b.letterboxdRating ?? -1) - (a.letterboxdRating ?? -1);
         case 'popularity':
         default:
           return (b.rating ?? 0) - (a.rating ?? 0);
       }
     });
 
-    // Soft prioritization by Letterboxd rating: nothing is hidden — films at or
-    // above the threshold float to the top, others (lower or unrated) sink, while
-    // keeping the active sort order within each group.
-    if (minLetterboxdRating !== null) {
-      const meets = (f: FilmListItem) => (f.letterboxdRating ?? -1) >= minLetterboxdRating;
-      result = [...result].sort((a, b) => Number(meets(b)) - Number(meets(a)));
-    }
-
     return result;
-  }, [films, searchQuery, selectedCinemas, version, minTime, minRating, sort, dayFilter, timeSlot, minAge, minLetterboxdRating]);
+  }, [films, searchQuery, selectedCinemas, version, minTime, minRating, sort, dayFilter, timeSlot, minAge]);
 
   const activeFilterCount =
     (searchQuery ? 1 : 0) +
@@ -174,8 +167,7 @@ export function useFilteredFilms(films: FilmListItem[]) {
     (timeSlot !== 'all' ? 1 : 0) +
     (minAge > 0 ? 1 : 0) +
     (minTime ? 1 : 0) +
-    (minRating !== null ? 1 : 0) +
-    (minLetterboxdRating !== null ? 1 : 0);
+    (minRating !== null ? 1 : 0);
 
   return { filteredFilms, activeFilterCount, hasActiveFilters: activeFilterCount > 0 };
 }

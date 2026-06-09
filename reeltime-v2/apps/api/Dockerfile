@@ -25,6 +25,9 @@ RUN pnpm --filter=@reeltime/api deploy --prod /app/pruned
 RUN cd apps/api && DATABASE_URL=file:/tmp/template.db npx prisma db push --skip-generate --accept-data-loss 2>&1
 RUN cd apps/api && DATABASE_URL=file:/tmp/template.db npx tsx prisma/seed.ts
 
+# Compute schema hash so the runtime can detect when a new image has a different schema
+RUN sha256sum apps/api/prisma/schema.prisma | cut -d' ' -f1 > /tmp/schema_hash
+
 # Stage 2: Production
 FROM node:20-alpine
 RUN apk add --no-cache wget && \
@@ -45,8 +48,9 @@ COPY --from=builder /app/apps/api/src/generated ./dist/generated
 # Copy workspace packages that the API depends on
 COPY --from=builder /app/packages/types ./node_modules/@reeltime/types
 
-# Copy template database
+# Copy template database and its schema hash
 COPY --from=builder /tmp/template.db /app/template.db
+COPY --from=builder /tmp/schema_hash /app/schema_hash
 
 # Create data directory for SQLite
 RUN mkdir -p /app/data && chown appuser:appgroup /app/data
@@ -60,5 +64,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD wget -qO- http://localhost:3000/healthcheck || exit 1
 
-# Copy template DB if no database exists, then start server
-CMD ["sh", "-c", "[ -f /app/data/reeltime.db ] || cp /app/template.db /app/data/reeltime.db; node dist/server.js"]
+# Apply template DB when absent or when schema changed since last deploy
+CMD ["sh", "-c", "if [ ! -f /app/data/reeltime.db ] || [ ! -f /app/data/.schema_hash ] || ! diff -q /app/schema_hash /app/data/.schema_hash > /dev/null 2>&1; then echo 'Schema changed or DB absent — applying fresh template'; cp /app/template.db /app/data/reeltime.db && cp /app/schema_hash /app/data/.schema_hash; fi; node dist/server.js"]

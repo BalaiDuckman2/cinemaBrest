@@ -4,6 +4,7 @@ import { CINEMAS } from './config/cinemas.js';
 import { prisma } from './lib/prisma.js';
 import { startCacheScheduler, stopCacheScheduler } from './services/cacheScheduler.js';
 import { runFullSync } from './services/refreshService.js';
+import { runLetterboxdEnrichment } from './services/letterboxdService.js';
 
 async function seedCinemas() {
   for (const cinema of CINEMAS) {
@@ -36,11 +37,13 @@ async function start() {
     if (cachedEntries === 0) {
       app.log.info('No cached showtimes found — running blocking initial sync before accepting requests...');
       await runFullSync(app.log);
+      // Kick off Letterboxd enrichment right after first sync (non-blocking)
+      void runLetterboxdEnrichment(app.log);
     } else {
       app.log.info({ cachedEntries }, 'Existing cache detected, starting background sync (async)');
-      runFullSync(app.log).catch((err) =>
-        app.log.error(err, 'Background sync failed'),
-      );
+      runFullSync(app.log)
+        .then(() => runLetterboxdEnrichment(app.log))
+        .catch((err) => app.log.error(err, 'Background sync failed'));
     }
   } else {
     app.log.info('SKIP_PRELOAD=true, skipping initial data preload');

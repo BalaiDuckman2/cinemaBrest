@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type SortOption = 'popularity' | 'alphabetical' | 'year-desc' | 'year-asc' | 'showtimes';
+export type SortOption = 'popularity' | 'alphabetical' | 'year-desc' | 'year-asc' | 'showtimes' | 'letterboxd';
 export type DayFilter = 'all' | 'weekday' | 'weekend' | '0' | '1' | '2' | '3' | '4' | '5' | '6';
 export type TimeSlotFilter = 'all' | 'morning' | 'afternoon' | 'evening' | 'night';
 export type MinAgeFilter = 0 | 1 | 5 | 10 | 20 | 30 | 50;
@@ -14,7 +14,6 @@ interface FiltersState {
   version: 'VO' | 'VF' | 'VOST' | null;
   minTime: string | null;
   minRating: number | null;
-  minLetterboxdRating: number | null;
   sort: SortOption;
   dayFilter: DayFilter;
   timeSlot: TimeSlotFilter;
@@ -27,7 +26,6 @@ interface FiltersState {
   setVersion: (v: 'VO' | 'VF' | 'VOST' | null) => void;
   setMinTime: (t: string | null) => void;
   setMinRating: (r: number | null) => void;
-  setMinLetterboxdRating: (r: number | null) => void;
   setSort: (s: SortOption) => void;
   setDayFilter: (d: DayFilter) => void;
   setTimeSlot: (t: TimeSlotFilter) => void;
@@ -45,7 +43,6 @@ export const useFiltersStore = create<FiltersState>()(
       version: null,
       minTime: null,
       minRating: null,
-      minLetterboxdRating: null,
       sort: 'popularity',
       dayFilter: 'all',
       timeSlot: 'all',
@@ -63,13 +60,12 @@ export const useFiltersStore = create<FiltersState>()(
       setVersion: (version) => set({ version }),
       setMinTime: (minTime) => set({ minTime }),
       setMinRating: (minRating) => set({ minRating }),
-      setMinLetterboxdRating: (minLetterboxdRating) => set({ minLetterboxdRating }),
       setSort: (sort) => set({ sort }),
       setDayFilter: (dayFilter) => set({ dayFilter }),
       setTimeSlot: (timeSlot) => set({ timeSlot }),
       setMinAge: (minAge) => set({ minAge }),
       resetAll: () =>
-        set({ searchQuery: '', selectedCinemas: [], selectedDepartment: null, selectedCity: null, version: null, minTime: null, minRating: null, minLetterboxdRating: null, sort: 'popularity', dayFilter: 'all', timeSlot: 'all', minAge: 0 }),
+        set({ searchQuery: '', selectedCinemas: [], selectedDepartment: null, selectedCity: null, version: null, minTime: null, minRating: null, sort: 'popularity', dayFilter: 'all', timeSlot: 'all', minAge: 0 }),
     }),
     {
       name: 'reeltime-filters',
@@ -80,7 +76,6 @@ export const useFiltersStore = create<FiltersState>()(
         version: state.version,
         minTime: state.minTime,
         minRating: state.minRating,
-        minLetterboxdRating: state.minLetterboxdRating,
         sort: state.sort,
         dayFilter: state.dayFilter,
         timeSlot: state.timeSlot,

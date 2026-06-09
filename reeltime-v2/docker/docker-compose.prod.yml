@@ -14,6 +14,8 @@
 services:
   api:
     image: ghcr.io/balaiduckman2/cinemabrest/reeltime-api:latest
+    container_name: reeltime-api
+    user: "0:0"
     restart: unless-stopped
     environment:
       DATABASE_URL: file:/app/data/reeltime.db
@@ -22,8 +24,9 @@ services:
       SKIP_PRELOAD: "false"
       TIMEZONE: Europe/Paris
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      TMDB_API_KEY: 7c2e5d83bc7e846ac7ea6256e969f1d9
     volumes:
-      - reeltime_data:/app/data
+      - reeltime_data6:/app/data
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/healthcheck"]
       interval: 30s
@@ -33,10 +36,8 @@ services:
 
   web:
     image: ghcr.io/balaiduckman2/cinemabrest/reeltime-web:latest
+    container_name: reeltime-web
     restart: unless-stopped
-    depends_on:
-      api:
-        condition: service_healthy
     ports:
       - "${PORT:-5000}:80"
     healthcheck:
@@ -46,4 +47,4 @@ services:
       retries: 3
 
 volumes:
-  reeltime_data:
+  reeltime_data6:
