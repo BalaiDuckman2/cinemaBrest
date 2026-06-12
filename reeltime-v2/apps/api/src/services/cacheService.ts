@@ -287,6 +287,23 @@ export async function getShowtimes(
   return { data: { films: [], showtimes: [] }, source: 'empty', stale: true };
 }
 
+// AlloCiné scrapes never carry Letterboxd ratings (they live only in the DB,
+// written by the background enrichment). Re-inject them so L1 entries built
+// from a fresh scrape don't serve null ratings until the next restart.
+async function mergeLetterboxdRatings(data: CachedShowtimeData): Promise<void> {
+  const ids = data.films.map((f) => f.allocineId);
+  if (ids.length === 0) return;
+  const rated = await prisma.film.findMany({
+    where: { allocineId: { in: ids }, letterboxdRating: { not: null } },
+    select: { allocineId: true, letterboxdRating: true },
+  });
+  const byId = new Map(rated.map((f) => [f.allocineId, f.letterboxdRating]));
+  for (const film of data.films) {
+    const rating = byId.get(film.allocineId);
+    if (rating != null) film.letterboxdRating = rating;
+  }
+}
+
 // Write path: scrapes AlloCiné and writes to L1+L2.
 // Used exclusively by the background sync (refreshService.ts), never from HTTP handlers.
 
@@ -303,6 +320,11 @@ export async function fetchAndCacheShowtimes(
       await setInL2(cinemaAllocineId, date, freshData);
     } catch (err) {
       console.warn(`[cache] Failed to store in L2 for ${cinemaAllocineId}/${date}:`, err);
+    }
+    try {
+      await mergeLetterboxdRatings(freshData);
+    } catch (err) {
+      console.warn(`[cache] Failed to merge Letterboxd ratings for ${cinemaAllocineId}/${date}:`, err);
     }
     setInL1(key, freshData);
     return { data: freshData, source: 'allocine', stale: false };

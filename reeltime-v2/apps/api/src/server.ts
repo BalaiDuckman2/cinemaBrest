@@ -54,6 +54,8 @@ async function start() {
     }
   } else {
     app.log.info('SKIP_PRELOAD=true, skipping initial data preload');
+    // Still enrich whatever films are already in the DB (no-op without TMDB_API_KEY).
+    void runLetterboxdEnrichment(app.log);
   }
 
   try {

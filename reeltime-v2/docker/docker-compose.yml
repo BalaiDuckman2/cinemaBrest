@@ -11,6 +11,7 @@ services:
       NODE_ENV: production
       SKIP_PRELOAD: "false"
       TIMEZONE: Europe/Paris
+      TMDB_API_KEY: ${TMDB_API_KEY:-}
     volumes:
       - reeltime_data:/app/data
     healthcheck:

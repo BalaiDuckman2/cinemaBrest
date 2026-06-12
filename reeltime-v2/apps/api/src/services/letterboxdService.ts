@@ -2,6 +2,7 @@ import { prisma } from '../lib/prisma.js';
 import { config } from '../config/index.js';
 import { RateLimiter } from '../utils/rateLimiter.js';
 import { fetchTmdbId, fetchLetterboxdRatingByTmdbId } from './letterboxdEnrich.js';
+import { invalidateAllL1 } from './cacheService.js';
 
 interface Logger {
   info(obj: unknown, msg?: string): void;
@@ -72,6 +73,12 @@ export async function runLetterboxdEnrichment(logger: Logger): Promise<void> {
     }
 
     logger.info({ processed: films.length, rated: updated }, 'Letterboxd enrichment complete');
+
+    // L1 entries were built before these ratings existed — drop them so the
+    // next request rebuilds from L2/DB with the fresh ratings.
+    if (updated > 0) {
+      invalidateAllL1();
+    }
   } catch (err) {
     logger.error({ error: String(err) }, 'Letterboxd enrichment run failed');
   } finally {

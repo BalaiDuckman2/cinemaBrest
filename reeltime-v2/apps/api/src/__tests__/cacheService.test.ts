@@ -50,6 +50,7 @@ vi.mock('../lib/prisma.js', () => ({
     film: {
       upsert: vi.fn(),
       findUnique: vi.fn(),
+      findMany: vi.fn(),
     },
   },
 }));
@@ -67,7 +68,10 @@ vi.mock('../plugins/prometheus.js', () => ({
   cacheEntriesL1Gauge: { set: vi.fn() },
 }));
 
-import { invalidateL1, invalidateAllL1 } from '../services/cacheService.js';
+import { invalidateL1, invalidateAllL1, fetchAndCacheShowtimes } from '../services/cacheService.js';
+import { prisma } from '../lib/prisma.js';
+import { getShowtimesForCinema } from '../services/allocineService.js';
+import type { CachedShowtimeData } from '../types/cache.js';
 import NodeCache from 'node-cache';
 
 // Access internal mock store
@@ -76,6 +80,7 @@ const mockStore = (NodeCache as unknown as { _store: Map<string, unknown> })._st
 describe('cacheService', () => {
   beforeEach(() => {
     mockStore.clear();
+    vi.clearAllMocks();
   });
 
   describe('invalidateL1', () => {
@@ -100,6 +105,60 @@ describe('cacheService', () => {
 
       invalidateAllL1();
       expect(mockStore.size).toBe(0);
+    });
+  });
+
+  describe('fetchAndCacheShowtimes', () => {
+    it('merges existing DB letterboxd ratings into the freshly scraped data stored in L1', async () => {
+      // AlloCiné scrape never knows letterboxd ratings — they come from the DB enrichment.
+      vi.mocked(getShowtimesForCinema).mockResolvedValue({
+        films: [
+          {
+            allocineId: 123,
+            title: 'Film A',
+            year: 2024,
+            posterUrl: null,
+            synopsis: null,
+            cast: [],
+            director: null,
+            rating: 3.5,
+            productionYear: 2024,
+            releaseDate: null,
+            runtime: null,
+            genres: [],
+            filmAge: 0,
+            letterboxdRating: null,
+          },
+        ],
+        showtimes: [
+          {
+            filmAllocineId: 123,
+            cinemaAllocineId: 'P0153',
+            date: '2026-06-12',
+            startsAt: '2026-06-12T20:00:00',
+            version: 'VF',
+            bookingUrl: null,
+          },
+        ],
+      } as CachedShowtimeData);
+
+      const prismaMock = vi.mocked(prisma, true);
+      prismaMock.cinema.findUnique.mockResolvedValue({ id: 1, allocineId: 'P0153' } as never);
+      prismaMock.film.upsert.mockResolvedValue({} as never);
+      prismaMock.film.findUnique.mockResolvedValue({ id: 10, allocineId: 123 } as never);
+      prismaMock.showtime.deleteMany.mockResolvedValue({ count: 0 } as never);
+      prismaMock.showtime.create.mockResolvedValue({} as never);
+      prismaMock.cacheMetadata.upsert.mockResolvedValue({} as never);
+      // The film was already enriched in a previous run
+      prismaMock.film.findMany.mockResolvedValue([
+        { allocineId: 123, letterboxdRating: 4.2 },
+      ] as never);
+
+      await fetchAndCacheShowtimes('P0153', '2026-06-12');
+
+      const cached = mockStore.get('showtimes:P0153:2026-06-12') as CachedShowtimeData;
+      expect(cached).toBeDefined();
+      expect(cached.films[0].letterboxdRating).toBe(4.2);
     });
   });
 });

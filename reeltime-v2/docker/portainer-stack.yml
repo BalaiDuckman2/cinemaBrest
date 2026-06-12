@@ -10,6 +10,7 @@
 ##   CORS_ORIGIN         - Origines autorisees (defaut: *)
 ##   LOG_LEVEL           - trace|debug|info|warn|error (defaut: info)
 ##   PORT                - Port expose (defaut: 5000)
+##   TMDB_API_KEY        - Cle API TMDB pour les notes Letterboxd (sans elle, pas d'enrichissement)
 
 services:
   api:
@@ -22,6 +23,7 @@ services:
       SKIP_PRELOAD: "false"
       TIMEZONE: Europe/Paris
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      TMDB_API_KEY: ${TMDB_API_KEY:-}
     volumes:
       - reeltime_data:/app/data
     healthcheck:
