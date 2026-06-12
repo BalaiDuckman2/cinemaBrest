@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import type { CSSProperties } from 'react';
 import type { ShowtimeEntry } from '../types/components';
 
 const DAYS_FR = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
@@ -55,21 +55,11 @@ function groupShowtimes(showtimes: ShowtimeEntry[]): GroupedByDateCinema {
   return byDate;
 }
 
-interface FilmShowtimesFilm {
-  title: string;
-  year: number;
-  posterUrl: string | null;
-  runtime: number | null;
-  director: string | null;
-  genres: string[];
-}
-
 interface FilmShowtimesProps {
   showtimes: ShowtimeEntry[];
-  film: FilmShowtimesFilm;
 }
 
-export function FilmShowtimes({ showtimes, film }: FilmShowtimesProps) {
+export function FilmShowtimes({ showtimes }: FilmShowtimesProps) {
   if (showtimes.length === 0) {
     return (
       <div className="mb-8">
@@ -145,49 +135,58 @@ export function FilmShowtimes({ showtimes, film }: FilmShowtimesProps) {
                         {shortName}
                       </h5>
                       <div className="flex flex-wrap gap-2">
-                        {times.map((st) => (
-                          <Link
-                            key={st.id}
-                            to={`/reservation/${st.id}`}
-                            state={{
-                              film: {
-                                title: film.title,
-                                year: film.year,
-                                posterUrl: film.posterUrl,
-                                runtime: film.runtime,
-                                director: film.director,
-                                genres: film.genres,
-                              },
-                              showtime: st,
-                            }}
-                            style={{
-                              position: 'relative',
-                              background: 'linear-gradient(135deg, #D32F2F 0%, #C62828 100%)',
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
-                            }}
-                            className="font-bebas text-creme-ecran border-or-antique px-3 py-2 rounded-md text-xs uppercase tracking-wider border-2 hover:border-jaune-marquise transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
-                          >
-                            <span className="font-bold text-sm block leading-none">
-                              {st.time}
-                            </span>
-                            {st.version && (
-                              <span className="text-[9px] opacity-90 block mt-0.5 leading-none">
-                                {st.version}
+                        {times.map((st) => {
+                          const pillStyle: CSSProperties = {
+                            position: 'relative',
+                            background: 'linear-gradient(135deg, #D32F2F 0%, #C62828 100%)',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                          };
+                          const pillContent = (
+                            <>
+                              <span className="font-bold text-sm block leading-none">
+                                {st.time}
                               </span>
-                            )}
-                            <div
-                              style={{
-                                position: 'absolute',
-                                top: '-2px',
-                                right: '-2px',
-                                width: '8px',
-                                height: '8px',
-                                background: '#FFF8E1',
-                                borderBottomLeftRadius: '8px',
-                              }}
-                            />
-                          </Link>
-                        ))}
+                              {st.version && (
+                                <span className="text-[9px] opacity-90 block mt-0.5 leading-none">
+                                  {st.version}
+                                </span>
+                              )}
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: '-2px',
+                                  right: '-2px',
+                                  width: '8px',
+                                  height: '8px',
+                                  background: '#FFF8E1',
+                                  borderBottomLeftRadius: '8px',
+                                }}
+                              />
+                            </>
+                          );
+
+                          return st.bookingUrl ? (
+                            <a
+                              key={st.id}
+                              href={st.bookingUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={pillStyle}
+                              className="font-bebas text-creme-ecran border-or-antique px-3 py-2 rounded-md text-xs uppercase tracking-wider border-2 hover:border-jaune-marquise transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
+                            >
+                              {pillContent}
+                            </a>
+                          ) : (
+                            <span
+                              key={st.id}
+                              style={pillStyle}
+                              title="Réservation en ligne non disponible"
+                              className="font-bebas text-creme-ecran border-or-antique px-3 py-2 rounded-md text-xs uppercase tracking-wider border-2 opacity-60 cursor-default"
+                            >
+                              {pillContent}
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                   );

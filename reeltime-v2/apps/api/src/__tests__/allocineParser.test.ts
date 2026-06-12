@@ -36,7 +36,13 @@ function makeRawResponse(overrides: Record<string, unknown> = {}) {
             {
               startsAt: '2025-01-15T14:30:00',
               diffusionVersion: 'DUBBED',
-              service: [{ name: 'Booking', url: 'https://booking.example.com' }],
+              service: ['DISABLED_ACCESS'],
+              data: {
+                ticketing: [
+                  { urls: ['https://en.example.com/booking'], type: 'DESKTOP', provider: 'en' },
+                  { urls: ['https://booking.example.com'], type: 'DESKTOP', provider: 'default' },
+                ],
+              },
             },
           ],
           ORIGINAL: [
@@ -81,6 +87,53 @@ describe('parseAllocineResponse', () => {
 
     expect(showtimes[1].version).toBe('VO');
     expect(showtimes[1].bookingUrl).toBeNull();
+  });
+
+  it('falls back to the first ticketing URL when no default provider', () => {
+    const raw = makeRawResponse({
+      results: [{
+        movie: {
+          internalId: 1, title: 'T', runtime: null, synopsis: null, poster: null,
+          genres: [], cast: null, credits: null, stats: null, productionYear: 2024, releases: [],
+        },
+        showtimes: {
+          LOCAL: [{
+            startsAt: '2025-01-15T10:00:00',
+            diffusionVersion: 'LOCAL',
+            service: ['DISABLED_ACCESS'],
+            data: {
+              ticketing: [
+                { urls: ['https://relay.example.com/seance'], type: 'DESKTOP', provider: 'relay' },
+                { urls: ['https://other.example.com'], type: 'DESKTOP', provider: 'en' },
+              ],
+            },
+          }],
+        },
+      }],
+    });
+    const { showtimes } = parseAllocineResponse(raw, 'C1');
+    expect(showtimes[0].bookingUrl).toBe('https://relay.example.com/seance');
+  });
+
+  it('returns null bookingUrl when ticketing entries have no URLs', () => {
+    const raw = makeRawResponse({
+      results: [{
+        movie: {
+          internalId: 1, title: 'T', runtime: null, synopsis: null, poster: null,
+          genres: [], cast: null, credits: null, stats: null, productionYear: 2024, releases: [],
+        },
+        showtimes: {
+          LOCAL: [{
+            startsAt: '2025-01-15T10:00:00',
+            diffusionVersion: 'LOCAL',
+            service: null,
+            data: { ticketing: [{ urls: [], type: 'DESKTOP', provider: 'default' }] },
+          }],
+        },
+      }],
+    });
+    const { showtimes } = parseAllocineResponse(raw, 'C1');
+    expect(showtimes[0].bookingUrl).toBeNull();
   });
 
   it('skips results with missing movie data', () => {

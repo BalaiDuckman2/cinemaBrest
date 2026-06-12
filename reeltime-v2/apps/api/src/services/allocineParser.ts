@@ -28,10 +28,17 @@ interface RawMovie {
   releases: Array<{ releaseDate: { date: string } | null }> | null;
 }
 
+interface RawTicketing {
+  urls: string[] | null;
+  type: string | null;
+  provider: string | null;
+}
+
 interface RawShowtime {
   startsAt: string;
   diffusionVersion: string;
-  service: Array<{ name: string; url?: string }> | null;
+  service: string[] | null;
+  data?: { ticketing: RawTicketing[] | null } | null;
 }
 
 // --- Parsed output types ---
@@ -187,10 +194,15 @@ function parseDirector(movie: RawMovie): string | null {
 
 // --- Booking URL extraction ---
 
-function extractBookingUrl(services: RawShowtime['service']): string | null {
-  if (!services) return null;
-  for (const service of services) {
-    if (service.url) return service.url;
+// The 'default' provider is the cinema's own French ticketing page;
+// other providers ('en', 'relay'...) are alternate languages or relays.
+function extractBookingUrl(data: RawShowtime['data']): string | null {
+  const ticketing = data?.ticketing;
+  if (!ticketing) return null;
+  const preferred = ticketing.find((t) => t.provider === 'default' && t.urls?.[0]);
+  if (preferred?.urls?.[0]) return preferred.urls[0];
+  for (const t of ticketing) {
+    if (t.urls?.[0]) return t.urls[0];
   }
   return null;
 }
@@ -269,7 +281,7 @@ export function parseAllocineResponse(
           date,
           startsAt,
           version: mapVersion(entry.diffusionVersion),
-          bookingUrl: extractBookingUrl(entry.service),
+          bookingUrl: extractBookingUrl(entry.data),
         });
       }
     }
