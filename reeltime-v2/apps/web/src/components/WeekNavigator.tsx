@@ -49,8 +49,8 @@ export function WeekNavigator({
             onClick={onToday}
             className="font-bebas px-3 sm:px-4 py-2 sm:py-2.5 bg-jaune-marquise hover:bg-or-antique border-2 border-or-antique rounded-lg sm:rounded-xl text-noir-velours text-sm sm:text-base font-bold uppercase tracking-wide transition-all duration-200 hover:scale-105 shadow-lg"
           >
-            <span className="hidden sm:inline">🎬 Aujourd&apos;hui</span>
-            <span className="sm:hidden">Aujourd&apos;hui</span>
+            <span className="hidden sm:inline">🎬 Cette semaine</span>
+            <span className="sm:hidden">Cette semaine</span>
           </button>
         )}
       </div>

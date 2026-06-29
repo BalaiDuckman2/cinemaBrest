@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { WeekNavigator } from '../components/WeekNavigator';
 import { FilmGrid } from '../components/FilmGrid';
 import { FilmDrawer } from '../components/FilmDrawer';
@@ -6,12 +6,15 @@ import { FilmGridSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
 import { FilterBar } from '../components/filters';
+import { DayStrip } from '../components/DayStrip';
+import { PlanningView } from '../components/PlanningView';
 import { useFilms } from '../hooks/useFilms';
 import { useWeekNavigation } from '../hooks/useWeekNavigation';
 import { useFilmDrawer } from '../hooks/useFilmDrawer';
 import { useFilteredFilms } from '../hooks/useFilteredFilms';
 import { useCinemas } from '../hooks/useCinemas';
 import { useFiltersStore } from '../stores/filtersStore';
+import { weekDatesFrom } from '../utils/dates';
 
 function formatWeekLabel(weekStart?: string, weekEnd?: string): string {
   if (!weekStart || !weekEnd) return '';
@@ -27,10 +30,16 @@ function ScrollToTopButton() {
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 300);
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        setShowScrollTop(window.scrollY > 300);
+        ticking = false;
+      });
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -38,7 +47,7 @@ function ScrollToTopButton() {
     <button
       type="button"
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      className={`fixed bottom-4 right-4 md:bottom-8 md:right-8 bg-rouge-cinema hover:bg-bordeaux-profond text-creme-ecran p-3 md:p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-50 border-2 border-or-antique ${
+      className={`fixed bottom-4 right-4 md:bottom-8 md:right-8 bg-rouge-cinema hover:bg-bordeaux-profond text-creme-ecran p-3 md:p-4 rounded-full shadow-lg transition-opacity duration-300 z-50 border-2 border-or-antique ${
         showScrollTop ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       aria-label="Retour en haut"
@@ -52,15 +61,36 @@ function ScrollToTopButton() {
 
 export function HomePage() {
   const { weekOffset, goToNextWeek, goToPrevWeek, goToToday } = useWeekNavigation();
-  const { data, isLoading, isError, refetch } = useFilms(weekOffset);
+  const { data, isLoading, isError, refetch, isPlaceholderData } = useFilms(weekOffset);
   const { isOpen, selectedFilm, openDrawer, closeDrawer } = useFilmDrawer();
   const { data: cinemas = [] } = useCinemas();
   const resetAll = useFiltersStore((s) => s.resetAll);
   const searchQuery = useFiltersStore((s) => s.searchQuery);
+  const selectedDate = useFiltersStore((s) => s.selectedDate);
+  const setSelectedDate = useFiltersStore((s) => s.setSelectedDate);
+  const viewMode = useFiltersStore((s) => s.viewMode);
+  const setViewMode = useFiltersStore((s) => s.setViewMode);
+
+  // A specific day only makes sense within the week it was picked in
+  useEffect(() => {
+    setSelectedDate(null);
+  }, [weekOffset, setSelectedDate]);
 
   const { filteredFilms, activeFilterCount, hasActiveFilters } = useFilteredFilms(
     data?.films ?? [],
   );
+
+  const weekDates = useMemo(
+    () => (data?.meta.weekStart ? weekDatesFrom(data.meta.weekStart) : []),
+    [data?.meta.weekStart],
+  );
+
+  const cityByCinemaId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const c of cinemas) map.set(c.id, c.city);
+    return map;
+  }, [cinemas]);
+  const cityOf = useCallback((cinemaId: string) => cityByCinemaId.get(cinemaId), [cityByCinemaId]);
 
   const weekLabel = formatWeekLabel(data?.meta.weekStart, data?.meta.weekEnd);
   const hasFilms = data && data.films.length > 0;
@@ -80,9 +110,38 @@ export function HomePage() {
         onToday={goToToday}
       />
 
+      {/* Day strip + view mode toggle */}
+      {!isLoading && !isError && hasFilms && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
+          <div className="flex-1 min-w-0">
+            <DayStrip dates={weekDates} value={selectedDate} onChange={setSelectedDate} />
+          </div>
+          <div className="flex shrink-0 rounded-lg border-2 border-sepia-chaud overflow-hidden self-start">
+            {([
+              ['grid', 'Affiche'],
+              ['planning', 'Planning'],
+            ] as const).map(([mode, label]) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setViewMode(mode)}
+                aria-pressed={viewMode === mode}
+                className={`font-bebas px-3 py-1.5 text-xs sm:text-sm uppercase tracking-wide transition-colors ${
+                  viewMode === mode
+                    ? 'bg-rouge-cinema text-creme-ecran'
+                    : 'bg-creme-ecran text-noir-velours hover:bg-or-antique/20'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Filters */}
       {!isLoading && !isError && hasFilms && (
-        <div className="-mx-2 px-2 sm:-mx-4 sm:px-4 pt-2 pb-3">
+        <div className="-mx-2 px-2 sm:-mx-4 sm:px-4 pb-3">
           <FilterBar cinemas={cinemas} activeFilterCount={activeFilterCount} />
         </div>
       )}
@@ -127,12 +186,33 @@ export function HomePage() {
         </div>
       )}
 
+      {!isLoading && !isError && noResults && !hasActiveFilters && selectedDate && (
+        <EmptyState
+          message="Aucune séance ce jour-là"
+          actionLabel="Voir toute la semaine"
+          onAction={() => setSelectedDate(null)}
+        />
+      )}
+
       {!isLoading && !isError && filteredFilms.length > 0 && (
-        <FilmGrid films={filteredFilms} onFilmClick={openDrawer} />
+        <div className={`transition-opacity duration-200 ${isPlaceholderData ? 'opacity-50 pointer-events-none' : ''}`}>
+          {viewMode === 'planning' ? (
+            <PlanningView films={filteredFilms} dates={weekDates} onFilmClick={openDrawer} />
+          ) : (
+            <FilmGrid films={filteredFilms} onFilmClick={openDrawer} />
+          )}
+        </div>
       )}
 
       {/* Film drawer */}
-      <FilmDrawer film={selectedFilm} isOpen={isOpen} onClose={closeDrawer} />
+      <FilmDrawer
+        film={selectedFilm}
+        isOpen={isOpen}
+        onClose={closeDrawer}
+        films={data?.films}
+        cityOf={cityOf}
+        onFilmSelect={openDrawer}
+      />
     </div>
   );
 }

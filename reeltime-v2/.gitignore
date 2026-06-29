@@ -36,6 +36,8 @@ yarn-error.log*
 .DS_Store
 *.pem
 *.tsbuildinfo
+# tsc -b emits a declaration next to vite.config.ts; it is a build artifact
+apps/web/vite.config.d.ts
 
 # Vercel
 .vercel

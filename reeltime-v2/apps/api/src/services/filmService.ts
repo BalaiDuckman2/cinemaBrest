@@ -15,28 +15,19 @@ import type { FilmFilterInput } from '../schemas/filmSchemas.js';
 
 // --- Date helpers (no external dependency) ---
 
-function formatDate(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-function addDays(date: Date, days: number): Date {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
-}
-
 function getWeekDates(weekOffset: number): { start: string; end: string; dates: string[] } {
-  const now = new Date();
-  const base = addDays(now, weekOffset * 7);
-  // Reset to start of day
-  base.setHours(0, 0, 0, 0);
+  // Calendar week Monday-Sunday, anchored on today's date in Paris.
+  // Noon UTC + UTC arithmetic keeps dates immune to server timezone and DST.
+  const base = new Date(getTodayStr() + 'T12:00:00Z');
+  const dayOfWeek = base.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  const monday = new Date(base);
+  monday.setUTCDate(base.getUTCDate() - ((dayOfWeek + 6) % 7) + weekOffset * 7);
 
   const dates: string[] = [];
   for (let i = 0; i < 7; i++) {
-    dates.push(formatDate(addDays(base, i)));
+    const d = new Date(monday);
+    d.setUTCDate(monday.getUTCDate() + i);
+    dates.push(d.toISOString().slice(0, 10));
   }
   return {
     start: dates[0],
@@ -88,6 +79,8 @@ export async function getFilmsForWeek(weekOffset: number): Promise<FilmListRespo
   const seenShowtimes = new Set<string>();
 
   for (const date of dates) {
+    // Past days of the calendar week have no watchable showtimes
+    if (date < today) continue;
     for (const cinema of CINEMAS) {
       const result = await getShowtimes(cinema.allocineId, date);
 
@@ -147,6 +140,7 @@ export async function getFilmsForWeek(weekOffset: number): Promise<FilmListRespo
       filmAge: film.filmAge,
       rating: film.rating,
       letterboxdRating: film.letterboxdRating,
+      runtime: film.runtime,
       totalShowtimes: showtimes.length,
       letterboxdUrl: generateLetterboxdUrl(film.title),
       showtimes,
@@ -344,6 +338,7 @@ export async function searchAllFilms(
       filmAge: film.filmAge,
       rating: film.rating,
       letterboxdRating: film.letterboxdRating,
+      runtime: film.runtime,
       totalShowtimes: showtimes.length,
       letterboxdUrl: generateLetterboxdUrl(film.title),
       showtimes,

@@ -18,8 +18,9 @@ export function FilmCard({ film, onClick }: FilmCardProps) {
         <img
           src={film.posterUrl ?? NO_POSTER}
           alt={film.title}
-          className="w-full h-56 sm:h-64 md:h-72 lg:h-80 object-cover"
+          className="w-full h-56 sm:h-64 md:h-72 lg:h-80 object-cover bg-beige-papier"
           loading="lazy"
+          decoding="async"
           onError={(e) => {
             e.currentTarget.src = NO_POSTER;
           }}

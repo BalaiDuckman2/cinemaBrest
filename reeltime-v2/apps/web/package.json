@@ -8,16 +8,19 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext .ts,.tsx",
+    "icons": "node scripts/generate-icons.mjs",
     "clean": "rimraf dist .turbo"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.75.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.5.0",
-    "zustand": "^5.0.0",
-    "@tanstack/react-query": "^5.75.0"
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@reeltime/config": "workspace:*",
+    "@reeltime/types": "workspace:*",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^4.4.0",
@@ -27,7 +30,6 @@
     "tailwindcss": "^3.4.17",
     "typescript": "5.9.2",
     "vite": "^6.3.0",
-    "@reeltime/config": "workspace:*",
-    "@reeltime/types": "workspace:*"
+    "vite-plugin-pwa": "^1.3.0"
   }
 }

@@ -8,6 +8,16 @@ body {
   min-height: 100vh;
 }
 
+/* === MOBILE FEEL === */
+/* No grey tap flash on Android, no double-tap zoom delay on buttons */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a, select, input, label {
+  touch-action: manipulation;
+}
+
 /* === FILM STRIP BORDER === */
 .film-strip-border {
   position: relative;
@@ -60,7 +70,11 @@ body {
   box-shadow:
     0 4px 6px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* transform/opacity only: animating box-shadow or "all" janks on mobile */
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Skip layout/paint of offscreen cards while scrolling long grids */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 320px;
 }
 
 .ticket-card::before {
@@ -89,17 +103,13 @@ body {
   inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
   pointer-events: none;
-  mix-blend-mode: overlay;
+  /* no mix-blend-mode: blending forces expensive compositing on mobile GPUs */
+  opacity: 0.6;
   border-radius: inherit;
 }
 
 /* === SPOTLIGHT GLOW EFFECT (Desktop only) === */
 @media (min-width: 768px) {
-  .spotlight-glow {
-    position: relative;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
   .spotlight-glow::after {
     content: '';
     position: absolute;
@@ -117,18 +127,16 @@ body {
 
   .spotlight-glow:hover {
     transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
   }
 }
 
 /* === TICKET CHIP (Cinema filters) === */
 .ticket-chip {
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
 .ticket-chip:hover {
   border-color: #D32F2F;
-  box-shadow: 0 2px 4px rgba(211, 47, 47, 0.2);
   transform: translateY(-1px);
 }
 

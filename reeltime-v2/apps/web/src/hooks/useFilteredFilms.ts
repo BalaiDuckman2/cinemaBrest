@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useFiltersStore } from '../stores/filtersStore';
 import type { FilmListItem } from '../types/components';
-import type { DayFilter, TimeSlotFilter } from '../stores/filtersStore';
+import type { TimeSlotFilter } from '../stores/filtersStore';
 
 function normalizeText(text: string): string {
   return text
@@ -12,19 +12,6 @@ function normalizeText(text: string): string {
 
 function matchesSearch(title: string, query: string): boolean {
   return normalizeText(title).includes(normalizeText(query));
-}
-
-/** Check if a showtime's datetime matches the day filter */
-function matchesDay(datetime: string, dayFilter: DayFilter): boolean {
-  if (dayFilter === 'all') return true;
-  const date = new Date(datetime);
-  // getDay(): 0=Sunday, we need Monday=0 to match old site's convention
-  const jsDay = date.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-  const dayIndex = jsDay === 0 ? 6 : jsDay - 1; // 0=Mon, 1=Tue, ..., 6=Sun
-
-  if (dayFilter === 'weekday') return dayIndex >= 0 && dayIndex <= 3; // Mon-Thu
-  if (dayFilter === 'weekend') return dayIndex >= 4 && dayIndex <= 6; // Fri-Sun
-  return dayIndex === parseInt(dayFilter);
 }
 
 /** Check if a showtime's time matches the time slot filter */
@@ -50,7 +37,7 @@ export function useFilteredFilms(films: FilmListItem[]) {
   const minTime = useFiltersStore((s) => s.minTime);
   const minRating = useFiltersStore((s) => s.minRating);
   const sort = useFiltersStore((s) => s.sort);
-  const dayFilter = useFiltersStore((s) => s.dayFilter);
+  const selectedDate = useFiltersStore((s) => s.selectedDate);
   const timeSlot = useFiltersStore((s) => s.timeSlot);
   const minAge = useFiltersStore((s) => s.minAge);
 
@@ -97,12 +84,12 @@ export function useFilteredFilms(films: FilmListItem[]) {
         .filter((film) => film.showtimes.length > 0);
     }
 
-    // Filter by day
-    if (dayFilter !== 'all') {
+    // Filter by specific date (day strip)
+    if (selectedDate) {
       result = result
         .map((film) => ({
           ...film,
-          showtimes: film.showtimes.filter((st) => matchesDay(st.datetime, dayFilter)),
+          showtimes: film.showtimes.filter((st) => st.datetime.slice(0, 10) === selectedDate),
         }))
         .filter((film) => film.showtimes.length > 0);
     }
@@ -157,13 +144,12 @@ export function useFilteredFilms(films: FilmListItem[]) {
     });
 
     return result;
-  }, [films, searchQuery, selectedCinemas, version, minTime, minRating, sort, dayFilter, timeSlot, minAge]);
+  }, [films, searchQuery, selectedCinemas, version, minTime, minRating, sort, selectedDate, timeSlot, minAge]);
 
   const activeFilterCount =
     (searchQuery ? 1 : 0) +
     (selectedCinemas.length > 0 ? 1 : 0) +
     (version ? 1 : 0) +
-    (dayFilter !== 'all' ? 1 : 0) +
     (timeSlot !== 'all' ? 1 : 0) +
     (minAge > 0 ? 1 : 0) +
     (minTime ? 1 : 0) +

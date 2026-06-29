@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { FilmListItem } from '../types/components';
+import type { FilmListItem, ShowtimeEntry } from '../types/components';
 import { FilmShowtimes } from './FilmShowtimes';
+import { SequencePanel } from './SequencePanel';
 
 const NO_POSTER = '/images/no-poster.svg';
 
@@ -9,9 +10,14 @@ interface FilmDrawerProps {
   film: FilmListItem | null;
   isOpen: boolean;
   onClose: () => void;
+  /** Full week catalogue, enables the "chain showtimes" feature. */
+  films?: FilmListItem[];
+  cityOf?: (cinemaId: string) => string | undefined;
+  /** Called when the user picks another film from the chain suggestions. */
+  onFilmSelect?: (film: FilmListItem) => void;
 }
 
-export function FilmDrawer({ film, isOpen, onClose }: FilmDrawerProps) {
+export function FilmDrawer({ film, isOpen, onClose, films, cityOf, onFilmSelect }: FilmDrawerProps) {
   const [visible, setVisible] = useState(false);
   const [animating, setAnimating] = useState(false);
 
@@ -63,7 +69,14 @@ export function FilmDrawer({ film, isOpen, onClose }: FilmDrawerProps) {
       />
 
       {/* Bottom Sheet */}
-      <BottomSheet film={film} onClose={onClose} animating={animating} />
+      <BottomSheet
+        film={film}
+        onClose={onClose}
+        animating={animating}
+        films={films}
+        cityOf={cityOf}
+        onFilmSelect={onFilmSelect}
+      />
     </div>,
     document.body,
   );
@@ -83,17 +96,29 @@ interface BottomSheetProps {
   film: FilmListItem;
   onClose: () => void;
   animating: boolean;
+  films?: FilmListItem[];
+  cityOf?: (cinemaId: string) => string | undefined;
+  onFilmSelect?: (film: FilmListItem) => void;
 }
 
-function BottomSheet({ film, onClose, animating }: BottomSheetProps) {
+function BottomSheet({ film, onClose, animating, films, cityOf, onFilmSelect }: BottomSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
   const currentDelta = useRef(0);
+  const [chainAnchor, setChainAnchor] = useState<ShowtimeEntry | null>(null);
 
   useEffect(() => {
     sheetRef.current?.focus();
   }, []);
+
+  // Reset the chain view when switching films, and scroll back to top
+  useEffect(() => {
+    setChainAnchor(null);
+    contentRef.current?.scrollTo({ top: 0 });
+  }, [film.id]);
+
+  const chainEnabled = films != null && cityOf != null;
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startY.current = e.touches[0].clientY;
@@ -216,32 +241,52 @@ function BottomSheet({ film, onClose, animating }: BottomSheetProps) {
             </svg>
           </div>
 
-          {/* Showtimes */}
-          <FilmShowtimes showtimes={film.showtimes} />
+          {chainAnchor && chainEnabled ? (
+            /* Chain view: what to watch before/after the selected showtime */
+            <SequencePanel
+              anchorFilm={film}
+              anchor={chainAnchor}
+              films={films}
+              cityOf={cityOf}
+              onBack={() => setChainAnchor(null)}
+              onFilmClick={(f) => {
+                setChainAnchor(null);
+                onFilmSelect?.(f);
+              }}
+            />
+          ) : (
+            <>
+              {/* Showtimes */}
+              <FilmShowtimes
+                showtimes={film.showtimes}
+                onChain={chainEnabled ? setChainAnchor : undefined}
+              />
 
-          {/* Secondary info */}
-          <div className="border-t-2 border-sepia-chaud/30 pt-6 space-y-3 text-sm">
-            {film.director && (
-              <p className="font-crimson text-noir-velours">
-                <span className="font-bold text-rouge-cinema">Réalisateur:</span> {film.director}
-              </p>
-            )}
-            {film.genres.length > 0 && (
-              <p className="font-crimson text-noir-velours">
-                <span className="font-bold text-rouge-cinema">Genre:</span> {film.genres.join(', ')}
-              </p>
-            )}
-            {film.cast.length > 0 && (
-              <p className="font-crimson text-noir-velours">
-                <span className="font-bold text-rouge-cinema">Casting:</span> {film.cast.join(', ')}
-              </p>
-            )}
-            {film.synopsis && (
-              <p className="font-crimson text-sepia-chaud text-xs mt-4 leading-relaxed italic">
-                {film.synopsis}
-              </p>
-            )}
-          </div>
+              {/* Secondary info */}
+              <div className="border-t-2 border-sepia-chaud/30 pt-6 space-y-3 text-sm">
+                {film.director && (
+                  <p className="font-crimson text-noir-velours">
+                    <span className="font-bold text-rouge-cinema">Réalisateur:</span> {film.director}
+                  </p>
+                )}
+                {film.genres.length > 0 && (
+                  <p className="font-crimson text-noir-velours">
+                    <span className="font-bold text-rouge-cinema">Genre:</span> {film.genres.join(', ')}
+                  </p>
+                )}
+                {film.cast.length > 0 && (
+                  <p className="font-crimson text-noir-velours">
+                    <span className="font-bold text-rouge-cinema">Casting:</span> {film.cast.join(', ')}
+                  </p>
+                )}
+                {film.synopsis && (
+                  <p className="font-crimson text-sepia-chaud text-xs mt-4 leading-relaxed italic">
+                    {film.synopsis}
+                  </p>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 
 export function Header() {
   return (
@@ -19,6 +19,19 @@ export function Header() {
               </p>
             </div>
           </Link>
+
+          <NavLink
+            to="/soiree"
+            className={({ isActive }) =>
+              `font-bebas shrink-0 px-3 py-1.5 rounded-lg border-2 text-sm sm:text-base uppercase tracking-wide transition-colors ${
+                isActive
+                  ? 'bg-or-antique border-or-antique text-noir-velours'
+                  : 'border-or-antique/70 text-creme-ecran hover:bg-or-antique/20'
+              }`
+            }
+          >
+            🍿 <span className="hidden sm:inline">Planifier </span>ma soirée
+          </NavLink>
         </div>
       </div>
     </header>

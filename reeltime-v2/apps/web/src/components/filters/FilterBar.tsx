@@ -1,27 +1,11 @@
 import { useState } from 'react';
 import { useFiltersStore } from '../../stores/filtersStore';
-import type { SortOption, DayFilter, TimeSlotFilter, MinAgeFilter } from '../../stores/filtersStore';
+import type { SortOption, TimeSlotFilter, MinAgeFilter } from '../../stores/filtersStore';
+import { getCinemaShortName } from '../../utils/cinemaNames';
 
 const DEPARTMENTS = [
   { label: 'Finist\u00e8re (29)', cities: ['Brest', 'Landerneau', 'Morlaix', 'Quimper'] },
 ];
-
-const CINEMA_SHORT_NAMES: Record<string, string> = {
-  'Les Studios': 'Studios',
-  'CGR Brest Le Celtic': 'CGR',
-  'Multiplexe Libert\u00e9': 'Libert\u00e9',
-  'Path\u00e9 Capucins': 'Path\u00e9',
-  'Cin\u00e9 Galaxy': 'Galaxy',
-  'La Salamandre': 'Salamandre',
-  'Cin\u00e9ville Morlaix': 'Cin\u00e9ville M.',
-  'Cin\u00e9ville Quimper': 'Cin\u00e9ville Q.',
-  'Katorza': 'Katorza',
-  'Quai Dupleix': 'Dupleix',
-};
-
-function getShortName(name: string): string {
-  return CINEMA_SHORT_NAMES[name] ?? name;
-}
 
 interface Cinema {
   id: string;
@@ -33,18 +17,6 @@ interface FilterBarProps {
   cinemas: Cinema[];
   activeFilterCount: number;
 }
-
-const DAY_LABELS: Record<string, string> = {
-  weekday: 'Semaine',
-  weekend: 'Weekend',
-  '0': 'Lundi',
-  '1': 'Mardi',
-  '2': 'Mercredi',
-  '3': 'Jeudi',
-  '4': 'Vendredi',
-  '5': 'Samedi',
-  '6': 'Dimanche',
-};
 
 const TIME_LABELS: Record<string, string> = {
   morning: 'Matin',
@@ -66,8 +38,6 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
   const setVersion = useFiltersStore((s) => s.setVersion);
   const sort = useFiltersStore((s) => s.sort);
   const setSort = useFiltersStore((s) => s.setSort);
-  const dayFilter = useFiltersStore((s) => s.dayFilter);
-  const setDayFilter = useFiltersStore((s) => s.setDayFilter);
   const timeSlot = useFiltersStore((s) => s.timeSlot);
   const setTimeSlot = useFiltersStore((s) => s.setTimeSlot);
   const minAge = useFiltersStore((s) => s.minAge);
@@ -132,9 +102,6 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
 
   if (version !== null) {
     activeTags.push({ label: version === 'VF' ? 'VF' : 'VO/VOST', onRemove: () => setVersion(null) });
-  }
-  if (dayFilter !== 'all') {
-    activeTags.push({ label: DAY_LABELS[dayFilter] ?? dayFilter, onRemove: () => setDayFilter('all') });
   }
   if (timeSlot !== 'all') {
     activeTags.push({ label: TIME_LABELS[timeSlot] ?? timeSlot, onRemove: () => setTimeSlot('all') });
@@ -240,8 +207,8 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
       <div className={`filter-panel ${expanded ? 'filter-panel-open' : ''}`}>
         <div>
           <div className="bg-beige-papier border-2 border-sepia-chaud rounded-xl p-3 sm:p-4 space-y-3 shadow-md">
-            {/* Select dropdowns grid - 5 columns */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
+            {/* Select dropdowns grid - 4 columns */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as SortOption)}
@@ -263,23 +230,6 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
                 <option value="all">Toutes versions</option>
                 <option value="VF">VF</option>
                 <option value="VO">VO/VOST</option>
-              </select>
-
-              <select
-                value={dayFilter}
-                onChange={(e) => setDayFilter(e.target.value as DayFilter)}
-                className={selectClass}
-              >
-                <option value="all">Tous les jours</option>
-                <option value="weekday">Semaine (Lun-Jeu)</option>
-                <option value="weekend">Weekend (Ven-Dim)</option>
-                <option value="0">Lundi</option>
-                <option value="1">Mardi</option>
-                <option value="2">Mercredi</option>
-                <option value="3">Jeudi</option>
-                <option value="4">Vendredi</option>
-                <option value="5">Samedi</option>
-                <option value="6">Dimanche</option>
               </select>
 
               <select
@@ -340,7 +290,7 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
               {visibleCinemas.map((cinema) => {
                 const isSelected =
                   selectedCinemas.length === 0 || selectedCinemas.includes(cinema.id);
-                const shortName = getShortName(cinema.name);
+                const shortName = getCinemaShortName(cinema.name);
 
                 return (
                   <label

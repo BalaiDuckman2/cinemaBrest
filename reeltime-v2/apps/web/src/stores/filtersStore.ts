@@ -2,9 +2,9 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export type SortOption = 'popularity' | 'alphabetical' | 'year-desc' | 'year-asc' | 'showtimes' | 'letterboxd';
-export type DayFilter = 'all' | 'weekday' | 'weekend' | '0' | '1' | '2' | '3' | '4' | '5' | '6';
 export type TimeSlotFilter = 'all' | 'morning' | 'afternoon' | 'evening' | 'night';
 export type MinAgeFilter = 0 | 1 | 5 | 10 | 20 | 30 | 50;
+export type ViewMode = 'grid' | 'planning';
 
 interface FiltersState {
   searchQuery: string;
@@ -15,9 +15,11 @@ interface FiltersState {
   minTime: string | null;
   minRating: number | null;
   sort: SortOption;
-  dayFilter: DayFilter;
+  /** Specific date (YYYY-MM-DD) selected in the day strip; null = whole week. Transient. */
+  selectedDate: string | null;
   timeSlot: TimeSlotFilter;
   minAge: MinAgeFilter;
+  viewMode: ViewMode;
   setSearchQuery: (q: string) => void;
   toggleCinema: (cinemaId: string) => void;
   setSelectedCinemas: (ids: string[]) => void;
@@ -27,9 +29,10 @@ interface FiltersState {
   setMinTime: (t: string | null) => void;
   setMinRating: (r: number | null) => void;
   setSort: (s: SortOption) => void;
-  setDayFilter: (d: DayFilter) => void;
+  setSelectedDate: (d: string | null) => void;
   setTimeSlot: (t: TimeSlotFilter) => void;
   setMinAge: (a: MinAgeFilter) => void;
+  setViewMode: (m: ViewMode) => void;
   resetAll: () => void;
 }
 
@@ -44,9 +47,10 @@ export const useFiltersStore = create<FiltersState>()(
       minTime: null,
       minRating: null,
       sort: 'popularity',
-      dayFilter: 'all',
+      selectedDate: null,
       timeSlot: 'all',
       minAge: 0,
+      viewMode: 'grid',
       setSearchQuery: (searchQuery) => set({ searchQuery }),
       toggleCinema: (cinemaId) =>
         set((state) => ({
@@ -61,11 +65,12 @@ export const useFiltersStore = create<FiltersState>()(
       setMinTime: (minTime) => set({ minTime }),
       setMinRating: (minRating) => set({ minRating }),
       setSort: (sort) => set({ sort }),
-      setDayFilter: (dayFilter) => set({ dayFilter }),
+      setSelectedDate: (selectedDate) => set({ selectedDate }),
       setTimeSlot: (timeSlot) => set({ timeSlot }),
       setMinAge: (minAge) => set({ minAge }),
+      setViewMode: (viewMode) => set({ viewMode }),
       resetAll: () =>
-        set({ searchQuery: '', selectedCinemas: [], selectedDepartment: null, selectedCity: null, version: null, minTime: null, minRating: null, sort: 'popularity', dayFilter: 'all', timeSlot: 'all', minAge: 0 }),
+        set({ searchQuery: '', selectedCinemas: [], selectedDepartment: null, selectedCity: null, version: null, minTime: null, minRating: null, sort: 'popularity', selectedDate: null, timeSlot: 'all', minAge: 0 }),
     }),
     {
       name: 'reeltime-filters',
@@ -77,9 +82,9 @@ export const useFiltersStore = create<FiltersState>()(
         minTime: state.minTime,
         minRating: state.minRating,
         sort: state.sort,
-        dayFilter: state.dayFilter,
         timeSlot: state.timeSlot,
         minAge: state.minAge,
+        viewMode: state.viewMode,
       }),
     },
   ),

@@ -82,11 +82,13 @@ cd apps/api && npx tsc --build
 ### Web (`apps/web`) - React 19 + Vite
 
 - **Entry**: `src/main.tsx` → `src/App.tsx` → `src/router.tsx`
-- **Pages**: `src/pages/` - HomePage, NotFoundPage
-- **Components**: `src/components/` - FilmGrid, FilmCard, FilmDrawer, FilmShowtimes, FilterBar, WeekNavigator
-- **State**: Zustand store in `src/stores/filtersStore.ts`, React Query for server state
+- **Pages**: `src/pages/` - HomePage (grille Affiche / vue Planning + barre de jours), SoireePage (`/soiree`, planifie un enchaînement de 2 séances), NotFoundPage
+- **Components**: `src/components/` - FilmGrid, FilmCard, FilmDrawer, FilmShowtimes, FilterBar, WeekNavigator, DayStrip (chips de jours lun→dim), PlanningView (vue planning par sections de jour), SequencePanel (films enchaînables avant/après une séance)
+- **State**: Zustand store in `src/stores/filtersStore.ts` (`selectedDate` transitoire, `viewMode` persisté), React Query for server state
 - **API**: `src/api/` - filmsApi, cinemasApi
 - **Hooks**: `src/hooks/` - useFilms, useFilmDrawer, useWeekNavigation, useFilteredFilms, useCinemas, useMediaQuery
+- **Utils**: `src/utils/` - cinemaNames (noms courts de cinémas), dates (semaine calendaire), chaining (calcul des enchaînements de séances)
+- **PWA**: `vite-plugin-pwa` (autoUpdate) - manifest + service worker; runtime caching API NetworkFirst / images + fonts CacheFirst; icônes générées par `scripts/generate-icons.mjs` (`pnpm icons`). `sw.js` servi en `no-cache` par nginx pour que les mises à jour se propagent.
 - **Styles**: Tailwind CSS with vintage cinema theme
 
 > **Note**: The Expo/React Native mobile app lives on the dedicated `mobile` branch (removed from `main` to focus development on web). Restore with `git checkout mobile -- reeltime-v2/apps/mobile` if needed.

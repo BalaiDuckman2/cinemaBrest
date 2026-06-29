@@ -17,6 +17,7 @@ interface ApiFilm {
   filmAge: number | null;
   rating: number | null;
   letterboxdRating: number | null;
+  runtime: number | null;
   totalShowtimes: number;
   letterboxdUrl: string;
   showtimes: ApiShowtime[];
@@ -70,7 +71,7 @@ function mapFilm(film: ApiFilm): FilmListItem {
     director: film.director,
     cast: [],
     genres: film.genres,
-    runtime: null,
+    runtime: film.runtime ?? null,
     letterboxdUrl: film.letterboxdUrl,
     showtimes: film.showtimes.map((st) => mapShowtime(st, id)),
   };

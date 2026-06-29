@@ -1,19 +1,12 @@
 import type { CSSProperties } from 'react';
 import type { ShowtimeEntry } from '../types/components';
+import { getCinemaShortName } from '../utils/cinemaNames';
 
 const DAYS_FR = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
 const MONTHS_FR = [
   'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
   'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.',
 ];
-
-const CINEMA_SHORT_NAMES: Record<string, string> = {
-  'Les Studios': 'Studios',
-  'CGR Brest Le Celtic': 'CGR',
-  'Multiplexe Liberté': 'Liberté',
-  'Pathé Capucins': 'Pathé',
-  'Ciné Galaxy': 'Galaxy',
-};
 
 function extractDate(datetime: string): string {
   return datetime.slice(0, 10);
@@ -57,9 +50,11 @@ function groupShowtimes(showtimes: ShowtimeEntry[]): GroupedByDateCinema {
 
 interface FilmShowtimesProps {
   showtimes: ShowtimeEntry[];
+  /** When provided, each showtime gets a "chain with another film" button. */
+  onChain?: (st: ShowtimeEntry) => void;
 }
 
-export function FilmShowtimes({ showtimes }: FilmShowtimesProps) {
+export function FilmShowtimes({ showtimes, onChain }: FilmShowtimesProps) {
   if (showtimes.length === 0) {
     return (
       <div className="mb-8">
@@ -123,7 +118,7 @@ export function FilmShowtimes({ showtimes }: FilmShowtimesProps) {
 
               <div className="p-4 space-y-4 bg-creme-ecran">
                 {Object.entries(cinemas).map(([cinemaName, times]) => {
-                  const shortName = CINEMA_SHORT_NAMES[cinemaName] ?? cinemaName;
+                  const shortName = getCinemaShortName(cinemaName);
 
                   return (
                     <div
@@ -165,25 +160,43 @@ export function FilmShowtimes({ showtimes }: FilmShowtimesProps) {
                             </>
                           );
 
-                          return st.bookingUrl ? (
+                          const pill = st.bookingUrl ? (
                             <a
-                              key={st.id}
                               href={st.bookingUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               style={pillStyle}
-                              className="font-bebas text-creme-ecran border-or-antique px-3 py-2 rounded-md text-xs uppercase tracking-wider border-2 hover:border-jaune-marquise transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
+                              className="font-bebas text-creme-ecran border-or-antique px-3 py-2 rounded-md text-xs uppercase tracking-wider border-2 hover:border-jaune-marquise transition-colors duration-200 cursor-pointer"
                             >
                               {pillContent}
                             </a>
                           ) : (
                             <span
-                              key={st.id}
                               style={pillStyle}
                               title="Réservation en ligne non disponible"
                               className="font-bebas text-creme-ecran border-or-antique px-3 py-2 rounded-md text-xs uppercase tracking-wider border-2 opacity-60 cursor-default"
                             >
                               {pillContent}
+                            </span>
+                          );
+
+                          return (
+                            <span key={st.id} className="inline-flex items-stretch gap-1">
+                              {pill}
+                              {onChain && (
+                                <button
+                                  type="button"
+                                  onClick={() => onChain(st)}
+                                  title="Que voir avant ou après cette séance ?"
+                                  aria-label={`Enchaîner avec une autre séance autour de ${st.time}`}
+                                  className="flex items-center justify-center px-1.5 rounded-md border-2 border-sepia-chaud bg-beige-papier text-sepia-chaud hover:text-rouge-cinema hover:border-rouge-cinema transition-colors"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 015.656 5.656l-1.5 1.5" />
+                                  </svg>
+                                </button>
+                              )}
                             </span>
                           );
                         })}
