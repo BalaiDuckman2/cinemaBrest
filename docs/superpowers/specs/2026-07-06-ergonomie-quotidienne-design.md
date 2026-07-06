@@ -29,6 +29,10 @@ habituels », sans reconfigurer les filtres à chaque visite.
   réapparaissent tels quels).
 - Si `weekOffset ≠ 0`, taper « Ce soir » ramène d'abord à la semaine courante.
 - Changer de semaine désactive le mode (même logique que `selectedDate`).
+  Attention à l'ordre : l'activation depuis une autre semaine remet
+  `weekOffset = 0` *puis* active le mode — la désactivation automatique ne doit
+  se déclencher que sur un passage vers une semaine **≠ courante**, sinon elle
+  annulerait l'activation.
 
 **Implémentation** : overlay dans `useFilteredFilms` — si `ceSoirMode`, filtrer
 `datetime` sur la date du jour et `time ≥ max('18:00', heure courante)`, et
@@ -65,7 +69,8 @@ Un bouton « + Ma soirée » sur chaque séance, partout où une séance s'affic
 - **Compléter** : sections « + un film avant » / « + un film après » listant les
   4-5 meilleurs candidats de `findChainable` autour des bords du plan (première /
   dernière séance). Tap → ajout direct. Sections absentes si les données de la
-  semaine ne couvrent pas la date du plan.
+  semaine ne couvrent pas la date du plan. La barre lit `useFilms(0)` et
+  `useCinemas` elle-même (React Query déduplique avec les pages).
 - Mobile : barre pleine largeur en bas, safe-area PWA respectée. Desktop :
   panneau flottant bas-droite, largeur max ~28rem.
 - Le contenu des pages reçoit un `padding-bottom` quand la barre est visible
@@ -96,8 +101,8 @@ de la semaine changent (rollover, refresh API).
 
 **Règles** :
 - Un seul plan, une seule date. Ajout d'une séance d'une autre date → confirmation
-  « Remplacer la soirée du mar. 8 ? » (dialog de confirmation simple) ; accepter
-  vide le plan et démarre sur la nouvelle date.
+  « Remplacer la soirée du mar. 8 ? » (`window.confirm` suffit, pas de composant
+  dédié) ; accepter vide le plan et démarre sur la nouvelle date.
 - Tri chronologique automatique à chaque ajout.
 - Même `showtimeId` ajouté deux fois → ignoré (le « + » de cette séance passe en
   état « ajouté » ✓).
