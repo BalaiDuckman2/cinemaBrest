@@ -45,6 +45,8 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
   const searchQuery = useFiltersStore((s) => s.searchQuery);
   const setSearchQuery = useFiltersStore((s) => s.setSearchQuery);
   const resetAll = useFiltersStore((s) => s.resetAll);
+  const ceSoirMode = useFiltersStore((s) => s.ceSoirMode);
+  const setCeSoirMode = useFiltersStore((s) => s.setCeSoirMode);
 
   // Compute available cities based on selected department
   const availableCities = selectedDepartment
@@ -97,13 +99,16 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
     setVersion(value === 'all' ? null : (value as 'VF' | 'VO' | 'VOST'));
   };
 
-  // Build active filter tags
+  // Build active filter tags — « Ce soir » first, and it hides the timeSlot tag
   const activeTags: { label: string; onRemove: () => void }[] = [];
 
+  if (ceSoirMode) {
+    activeTags.push({ label: 'Ce soir', onRemove: () => setCeSoirMode(false) });
+  }
   if (version !== null) {
     activeTags.push({ label: version === 'VF' ? 'VF' : 'VO/VOST', onRemove: () => setVersion(null) });
   }
-  if (timeSlot !== 'all') {
+  if (!ceSoirMode && timeSlot !== 'all') {
     activeTags.push({ label: TIME_LABELS[timeSlot] ?? timeSlot, onRemove: () => setTimeSlot('all') });
   }
   if (minAge !== 0) {
