@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useFiltersStore } from '../stores/filtersStore';
+import { localISODate, nowHHMM } from '../utils/dates';
 import type { FilmListItem } from '../types/components';
 import type { TimeSlotFilter } from '../stores/filtersStore';
 
@@ -40,6 +41,7 @@ export function useFilteredFilms(films: FilmListItem[]) {
   const selectedDate = useFiltersStore((s) => s.selectedDate);
   const timeSlot = useFiltersStore((s) => s.timeSlot);
   const minAge = useFiltersStore((s) => s.minAge);
+  const ceSoirMode = useFiltersStore((s) => s.ceSoirMode);
 
   const filteredFilms = useMemo(() => {
     let result = films;
@@ -84,24 +86,39 @@ export function useFilteredFilms(films: FilmListItem[]) {
         .filter((film) => film.showtimes.length > 0);
     }
 
-    // Filter by specific date (day strip)
-    if (selectedDate) {
+    if (ceSoirMode) {
+      // "Ce soir" overlay: today only, from max(18:00, now). Replaces selectedDate/timeSlot.
+      const today = localISODate();
+      const now = nowHHMM();
+      const minStart = now > '18:00' ? now : '18:00';
       result = result
         .map((film) => ({
           ...film,
-          showtimes: film.showtimes.filter((st) => st.datetime.slice(0, 10) === selectedDate),
+          showtimes: film.showtimes.filter(
+            (st) => st.datetime.slice(0, 10) === today && st.time >= minStart,
+          ),
         }))
         .filter((film) => film.showtimes.length > 0);
-    }
+    } else {
+      // Filter by specific date (day strip)
+      if (selectedDate) {
+        result = result
+          .map((film) => ({
+            ...film,
+            showtimes: film.showtimes.filter((st) => st.datetime.slice(0, 10) === selectedDate),
+          }))
+          .filter((film) => film.showtimes.length > 0);
+      }
 
-    // Filter by time slot
-    if (timeSlot !== 'all') {
-      result = result
-        .map((film) => ({
-          ...film,
-          showtimes: film.showtimes.filter((st) => matchesTimeSlot(st.time, timeSlot)),
-        }))
-        .filter((film) => film.showtimes.length > 0);
+      // Filter by time slot
+      if (timeSlot !== 'all') {
+        result = result
+          .map((film) => ({
+            ...film,
+            showtimes: film.showtimes.filter((st) => matchesTimeSlot(st.time, timeSlot)),
+          }))
+          .filter((film) => film.showtimes.length > 0);
+      }
     }
 
     // Filter by minimum time (kept for backward compatibility)
@@ -144,13 +161,14 @@ export function useFilteredFilms(films: FilmListItem[]) {
     });
 
     return result;
-  }, [films, searchQuery, selectedCinemas, version, minTime, minRating, sort, selectedDate, timeSlot, minAge]);
+  }, [films, searchQuery, selectedCinemas, version, minTime, minRating, sort, selectedDate, timeSlot, minAge, ceSoirMode]);
 
   const activeFilterCount =
     (searchQuery ? 1 : 0) +
     (selectedCinemas.length > 0 ? 1 : 0) +
     (version ? 1 : 0) +
-    (timeSlot !== 'all' ? 1 : 0) +
+    (ceSoirMode ? 1 : 0) +
+    (!ceSoirMode && timeSlot !== 'all' ? 1 : 0) +
     (minAge > 0 ? 1 : 0) +
     (minTime ? 1 : 0) +
     (minRating !== null ? 1 : 0);

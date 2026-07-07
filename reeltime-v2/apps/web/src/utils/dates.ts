@@ -38,3 +38,9 @@ export function formatDayLong(dateStr: string): string {
   const day = DAYS_FR[d.getUTCDay()];
   return `${day.charAt(0).toUpperCase()}${day.slice(1)} ${d.getUTCDate()} ${MONTHS_FR[d.getUTCMonth()]}`;
 }
+
+/** Current time "HH:MM" (zero-padded) in the user's local timezone. */
+export function nowHHMM(): string {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+}
