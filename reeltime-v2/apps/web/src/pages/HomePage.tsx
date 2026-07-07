@@ -14,7 +14,7 @@ import { useFilmDrawer } from '../hooks/useFilmDrawer';
 import { useFilteredFilms } from '../hooks/useFilteredFilms';
 import { useCinemas } from '../hooks/useCinemas';
 import { useFiltersStore } from '../stores/filtersStore';
-import { weekDatesFrom } from '../utils/dates';
+import { weekDatesFrom, localISODate } from '../utils/dates';
 
 function formatWeekLabel(weekStart?: string, weekEnd?: string): string {
   if (!weekStart || !weekEnd) return '';
@@ -70,11 +70,17 @@ export function HomePage() {
   const setSelectedDate = useFiltersStore((s) => s.setSelectedDate);
   const viewMode = useFiltersStore((s) => s.viewMode);
   const setViewMode = useFiltersStore((s) => s.setViewMode);
+  const ceSoirMode = useFiltersStore((s) => s.ceSoirMode);
+  const setCeSoirMode = useFiltersStore((s) => s.setCeSoirMode);
+  const today = localISODate();
 
-  // A specific day only makes sense within the week it was picked in
+  // A specific day only makes sense within the week it was picked in.
+  // "Ce soir" only turns off when leaving the current week: activating it from
+  // another week sets weekOffset back to 0, which must NOT deactivate it.
   useEffect(() => {
     setSelectedDate(null);
-  }, [weekOffset, setSelectedDate]);
+    if (weekOffset !== 0) setCeSoirMode(false);
+  }, [weekOffset, setSelectedDate, setCeSoirMode]);
 
   const { filteredFilms, activeFilterCount, hasActiveFilters } = useFilteredFilms(
     data?.films ?? [],
@@ -110,31 +116,59 @@ export function HomePage() {
         onToday={goToToday}
       />
 
-      {/* Day strip + view mode toggle */}
+      {/* Day strip + Ce soir + view mode toggle */}
       {!isLoading && !isError && hasFilms && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
           <div className="flex-1 min-w-0">
-            <DayStrip dates={weekDates} value={selectedDate} onChange={setSelectedDate} />
+            <DayStrip
+              dates={weekDates}
+              value={ceSoirMode ? today : selectedDate}
+              onChange={(d) => {
+                setCeSoirMode(false);
+                setSelectedDate(d);
+              }}
+            />
           </div>
-          <div className="flex shrink-0 rounded-lg border-2 border-sepia-chaud overflow-hidden self-start">
-            {([
-              ['grid', 'Affiche'],
-              ['planning', 'Planning'],
-            ] as const).map(([mode, label]) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setViewMode(mode)}
-                aria-pressed={viewMode === mode}
-                className={`font-bebas px-3 py-1.5 text-xs sm:text-sm uppercase tracking-wide transition-colors ${
-                  viewMode === mode
-                    ? 'bg-rouge-cinema text-creme-ecran'
-                    : 'bg-creme-ecran text-noir-velours hover:bg-or-antique/20'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="flex shrink-0 items-center gap-2 self-start">
+            <button
+              type="button"
+              onClick={() => {
+                if (ceSoirMode) {
+                  setCeSoirMode(false);
+                } else {
+                  goToToday();
+                  setCeSoirMode(true);
+                }
+              }}
+              aria-pressed={ceSoirMode}
+              className={`font-bebas px-3 py-1.5 rounded-lg border-2 text-xs sm:text-sm uppercase tracking-wide transition-colors ${
+                ceSoirMode
+                  ? 'bg-rouge-cinema border-bordeaux-profond text-creme-ecran shadow-md'
+                  : 'bg-creme-ecran border-sepia-chaud text-noir-velours hover:border-rouge-cinema'
+              }`}
+            >
+              🌙 Ce soir
+            </button>
+            <div className="flex rounded-lg border-2 border-sepia-chaud overflow-hidden">
+              {([
+                ['grid', 'Affiche'],
+                ['planning', 'Planning'],
+              ] as const).map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setViewMode(mode)}
+                  aria-pressed={viewMode === mode}
+                  className={`font-bebas px-3 py-1.5 text-xs sm:text-sm uppercase tracking-wide transition-colors ${
+                    viewMode === mode
+                      ? 'bg-rouge-cinema text-creme-ecran'
+                      : 'bg-creme-ecran text-noir-velours hover:bg-or-antique/20'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
