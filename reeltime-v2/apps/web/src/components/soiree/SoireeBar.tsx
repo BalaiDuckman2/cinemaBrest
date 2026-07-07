@@ -1,14 +1,19 @@
-import { useEffect, useState } from 'react';
-import { useSoireeStore, type SoireeItem } from '../../stores/soireeStore';
+import { useEffect, useMemo, useState } from 'react';
+import { useSoireeStore, addToSoiree, makeSoireeItem, type SoireeItem } from '../../stores/soireeStore';
+import { useFilms } from '../../hooks/useFilms';
+import { useCinemas } from '../../hooks/useCinemas';
 import {
   estimatedEnd,
   toMinutes,
   formatClock,
   formatGap,
+  findChainable,
   OVERLAP_TOLERANCE_MIN,
+  type ChainCandidate,
 } from '../../utils/chaining';
-import { formatDayShort, localISODate, nowHHMM } from '../../utils/dates';
+import { formatDayShort, localISODate, nowHHMM, weekDatesFrom } from '../../utils/dates';
 import { getCinemaShortName } from '../../utils/cinemaNames';
+import type { ShowtimeEntry } from '../../types/components';
 
 const NO_POSTER = '/images/no-poster.svg';
 
@@ -21,6 +26,52 @@ function timeLabel(time: string): string {
 function endLabel(item: SoireeItem): string {
   const end = estimatedEnd(toMinutes(item.time), item.runtime);
   return `${item.runtime == null ? '~' : ''}${formatClock(end)}`;
+}
+
+/** Reconstruit une ShowtimeEntry depuis un snapshot pour ancrer findChainable. */
+function toShowtimeEntry(item: SoireeItem): ShowtimeEntry {
+  return {
+    id: item.showtimeId,
+    filmId: item.filmId,
+    cinemaId: item.cinemaId,
+    cinemaName: item.cinemaName,
+    datetime: `${item.date}T${item.time}:00`,
+    time: item.time,
+    version: (item.version ?? 'VF') as ShowtimeEntry['version'],
+    bookingUrl: item.bookingUrl,
+  };
+}
+
+function SuggestionRow({ candidate, city }: { candidate: ChainCandidate; city: string | undefined }) {
+  const { film, showtime, gapMin, sameCinema } = candidate;
+  return (
+    <button
+      type="button"
+      onClick={() => addToSoiree(makeSoireeItem(film, showtime, city))}
+      className="w-full text-left flex items-center gap-2.5 bg-creme-ecran border border-sepia-chaud/50 rounded-lg p-1.5 hover:border-rouge-cinema transition-colors"
+    >
+      <img
+        src={film.posterUrl ?? NO_POSTER}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className="w-7 h-[42px] object-cover rounded shadow flex-shrink-0 border border-sepia-chaud/50 bg-beige-papier"
+        onError={(e) => { e.currentTarget.src = NO_POSTER; }}
+      />
+      <div className="flex-1 min-w-0">
+        <p className="font-playfair font-bold text-noir-velours text-xs leading-tight truncate">
+          {film.title}
+        </p>
+        <p className="font-crimson text-[11px] italic text-sepia-chaud truncate">
+          {timeLabel(showtime.time)} · {getCinemaShortName(showtime.cinemaName)} · {formatGap(gapMin)}
+          {sameCinema ? ' · même ciné' : ''}
+        </p>
+      </div>
+      <svg className="w-4 h-4 text-sepia-chaud shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
+      </svg>
+    </button>
+  );
 }
 
 function GapRow({ prev, next }: { prev: SoireeItem; next: SoireeItem }) {
@@ -102,6 +153,55 @@ export function SoireeBar() {
     purgeExpired(localISODate());
   }, [purgeExpired]);
 
+  // La barre lit useFilms(0) + useCinemas elle-même (React Query déduplique avec les pages).
+  const { data } = useFilms(0);
+  const { data: cinemas = [] } = useCinemas();
+
+  const cityByCinemaId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const c of cinemas) map.set(c.id, c.city);
+    return map;
+  }, [cinemas]);
+
+  const weekDates = useMemo(
+    () => (data?.meta.weekStart ? weekDatesFrom(data.meta.weekStart) : []),
+    [data?.meta.weekStart],
+  );
+
+  const inPlan = useMemo(() => new Set(items.map((i) => i.showtimeId)), [items]);
+
+  const cityOf = (cinemaId: string) => cityByCinemaId.get(cinemaId);
+
+  // Sections absentes si les données de la semaine ne couvrent pas la date du plan
+  // (gardes en tête de memo pour que TypeScript rétrécisse `data` et `date`).
+  const before = useMemo(() => {
+    if (!data || !date || !weekDates.includes(date) || items.length === 0) return [];
+    const anchor = items[0];
+    return findChainable({
+      films: data.films,
+      anchorFilm: { id: anchor.filmId, runtime: anchor.runtime },
+      anchor: toShowtimeEntry(anchor),
+      direction: 'before',
+      cityOf: (id) => cityByCinemaId.get(id),
+    })
+      .filter((c) => !inPlan.has(c.showtime.id))
+      .slice(0, 5);
+  }, [data, date, weekDates, items, cityByCinemaId, inPlan]);
+
+  const after = useMemo(() => {
+    if (!data || !date || !weekDates.includes(date) || items.length === 0) return [];
+    const anchor = items[items.length - 1];
+    return findChainable({
+      films: data.films,
+      anchorFilm: { id: anchor.filmId, runtime: anchor.runtime },
+      anchor: toShowtimeEntry(anchor),
+      direction: 'after',
+      cityOf: (id) => cityByCinemaId.get(id),
+    })
+      .filter((c) => !inPlan.has(c.showtime.id))
+      .slice(0, 5);
+  }, [data, date, weekDates, items, cityByCinemaId, inPlan]);
+
   if (items.length === 0 || !date) return null;
 
   const today = localISODate();
@@ -143,7 +243,18 @@ export function SoireeBar() {
               <p className="font-crimson text-xs italic text-rouge-cinema">⚠ villes différentes</p>
             )}
 
-            {/* Task 8 : section « + un film avant » ici */}
+            {before.length > 0 && (
+              <div>
+                <h6 className="font-bebas text-noir-velours text-xs uppercase tracking-wider mb-1">
+                  + un film avant
+                </h6>
+                <div className="space-y-1.5">
+                  {before.map((c) => (
+                    <SuggestionRow key={c.showtime.id} candidate={c} city={cityOf(c.showtime.cinemaId)} />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {items.map((item, idx) => (
               <div key={item.showtimeId}>
@@ -156,7 +267,18 @@ export function SoireeBar() {
               </div>
             ))}
 
-            {/* Task 8 : section « + un film après » ici */}
+            {after.length > 0 && (
+              <div>
+                <h6 className="font-bebas text-noir-velours text-xs uppercase tracking-wider mb-1">
+                  + un film après
+                </h6>
+                <div className="space-y-1.5">
+                  {after.map((c) => (
+                    <SuggestionRow key={c.showtime.id} candidate={c} city={cityOf(c.showtime.cinemaId)} />
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="pt-1 flex justify-end">
               <button

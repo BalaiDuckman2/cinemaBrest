@@ -38,7 +38,8 @@ export interface ChainCandidate {
 
 interface FindChainableOptions {
   films: FilmListItem[];
-  anchorFilm: FilmListItem;
+  /** Seuls id et runtime sont lus — permet d'ancrer sur un snapshot « Ma soirée ». */
+  anchorFilm: Pick<FilmListItem, 'id' | 'runtime'>;
   anchor: ShowtimeEntry;
   direction: 'before' | 'after';
   cityOf: (cinemaId: string) => string | undefined;
