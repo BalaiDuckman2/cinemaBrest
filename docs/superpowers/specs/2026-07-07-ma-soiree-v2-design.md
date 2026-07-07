@@ -1,4 +1,4 @@
-# Design : Ma soirée v2 — multi-soirées, barre clarifiée, `/soiree` « autour d'un film »
+# Design : Ma soirée v2 — multi-soirées, barre clarifiée, `/soiree` « autour d'un film », page « Mes soirées »
 
 Date : 2026-07-07
 Source : QA utilisateur de la v1 (spec `2026-07-06-ergonomie-quotidienne-design.md`,
@@ -54,11 +54,13 @@ au déploiement.
      séparées des films choisis (bloc distinct avec fond `creme-ecran/50` ou
      bordure + intitulé « Suggestions »). Ancrées sur les bords de la soirée
      affichée ; absentes si les données de la semaine ne couvrent pas sa date.
-  4. **« Tout effacer »** : vide uniquement la soirée affichée (`clearDate`).
+  4. **« Tout effacer »** : vide uniquement la soirée affichée (`clearDate`) ; à
+     côté, un lien « Voir tout » ouvre la page `/mes-soirees` (§4).
 - Ajouter une séance (depuis n'importe quel point d'entrée) bascule la barre sur la
   soirée de cette date (`activeDate`), pour un retour visuel immédiat.
 - Si `activeDate` est null ou ne correspond plus à une soirée existante, la barre
   affiche la prochaine soirée à venir.
+- La barre est **masquée sur `/mes-soirees`** (doublon avec le contenu de la page).
 
 ## 3. Page `/soiree` refondue : « autour d'un film »
 
@@ -86,19 +88,40 @@ Les combos (`buildEveningCombos`, « Utiliser ce combo », `MAX_COMBOS`) dispara
 - La réutilisation exacte (extraction de CandidateRow depuis SequencePanel vs
   composant propre à la page) est un choix d'implémentation du plan.
 
-## 4. Hors périmètre
+## 4. Page « Mes soirées » (`/mes-soirees`)
+
+- **Accès** : deuxième bouton du header à côté de « Planifier ma soirée »
+  (`🎟 Mes soirées`, libellé raccourci sur mobile, même style NavLink), et lien
+  « Voir tout » dans la barre dépliée.
+- **Contenu** : toutes les soirées à venir triées par date, une **carte par
+  soirée** : en-tête `Mardi 8 juillet · 2 films · 18h10 → ~22h35`, timeline
+  complète (mêmes lignes que la barre : mini-affiche, titre, heures → fin estimée,
+  cinéma court, version si ≠ VF, lien Réserver, ✕ de retrait, battements — rouge si
+  chevauchement —, séances passées grisées, ⚠ villes différentes), bouton « Tout
+  effacer » par carte (`clearDate`).
+- **Pas de suggestions avant/après sur cette page** : elle sert à voir et gérer ;
+  la construction passe par la barre et `/soiree`.
+- **État vide** : « Aucune soirée planifiée » + liens vers l'affiche (`/`) et
+  `/soiree`.
+- Les lignes de timeline (item + battement) sont **partagées avec la barre**
+  (extraction de `ItemRow`/`GapRow` de `SoireeBar` en composants réutilisables).
+
+## 5. Hors périmètre
 
 - Comptes utilisateurs et synchronisation serveur (chantier C, spec séparée).
 - Partage de soirées, notifications, multi-soirées le même jour.
 - Aucun changement API/backend.
 
-## 5. Vérification
+## 6. Vérification
 
 `npx tsc --noEmit` + `npx vite build` + tests manuels :
 - Migration : une soirée v1 dans le localStorage survit au passage en v2.
 - Multi-soirées : ajouts sur 2 dates différentes sans confirmation, puces de dates,
   bascule automatique vers la soirée modifiée, « Tout effacer » ne touche qu'une
   soirée, purge au lendemain.
-- Barre : films choisis en premier, suggestions séparées, résumé replié avec `+N`.
+- Barre : films choisis en premier, suggestions séparées, résumé replié avec `+N`,
+  lien « Voir tout », barre masquée sur `/mes-soirees`.
 - `/soiree` : recherche + choix du film, chips de séances, avant/après, les 3 tris,
   ajout direct, retour étape 1.
+- `/mes-soirees` : cartes triées par date, retrait/vidage par carte, état vide,
+  accès header + barre.
