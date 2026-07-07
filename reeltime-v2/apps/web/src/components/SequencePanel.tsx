@@ -10,6 +10,7 @@ import {
 } from '../utils/chaining';
 import { formatDayLong } from '../utils/dates';
 import { getCinemaShortName } from '../utils/cinemaNames';
+import { AddToSoireeButton } from './soiree/AddToSoireeButton';
 
 const NO_POSTER = '/images/no-poster.svg';
 
@@ -22,40 +23,51 @@ interface SequencePanelProps {
   onBack: () => void;
 }
 
-function CandidateRow({ candidate, onClick }: { candidate: ChainCandidate; onClick: () => void }) {
+function CandidateRow({
+  candidate,
+  city,
+  onClick,
+}: {
+  candidate: ChainCandidate;
+  city: string | undefined;
+  onClick: () => void;
+}) {
   const { film, showtime, gapMin, sameCinema, approx } = candidate;
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="w-full text-left bg-creme-ecran border-2 border-sepia-chaud rounded-lg p-2 flex gap-3 items-center hover:border-rouge-cinema transition-colors"
-    >
-      <img
-        src={film.posterUrl ?? NO_POSTER}
-        alt=""
-        loading="lazy"
-        decoding="async"
-        className="w-10 h-[60px] object-cover rounded shadow flex-shrink-0 border border-sepia-chaud/50 bg-beige-papier"
-        onError={(e) => { e.currentTarget.src = NO_POSTER; }}
-      />
-      <div className="flex-1 min-w-0">
-        <p className="font-playfair font-bold text-noir-velours text-sm leading-tight truncate">
-          {film.title}
-        </p>
-        <p className="font-bebas text-xs text-noir-velours mt-0.5 tracking-wide">
-          {showtime.time}
-          <span className="text-sepia-chaud"> · {getCinemaShortName(showtime.cinemaName)}</span>
-          {showtime.version && showtime.version !== 'VF' && (
-            <span className="text-sepia-chaud"> · {showtime.version}</span>
-          )}
-        </p>
-        <p className="font-crimson text-xs italic text-sepia-chaud">
-          {formatGap(gapMin)}
-          {approx ? ' (durée estimée)' : ''}
-          {sameCinema ? ' · même cinéma' : ''}
-        </p>
-      </div>
-    </button>
+    <div className="flex items-stretch gap-1.5">
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex-1 min-w-0 text-left bg-creme-ecran border-2 border-sepia-chaud rounded-lg p-2 flex gap-3 items-center hover:border-rouge-cinema transition-colors"
+      >
+        <img
+          src={film.posterUrl ?? NO_POSTER}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="w-10 h-[60px] object-cover rounded shadow flex-shrink-0 border border-sepia-chaud/50 bg-beige-papier"
+          onError={(e) => { e.currentTarget.src = NO_POSTER; }}
+        />
+        <div className="flex-1 min-w-0">
+          <p className="font-playfair font-bold text-noir-velours text-sm leading-tight truncate">
+            {film.title}
+          </p>
+          <p className="font-bebas text-xs text-noir-velours mt-0.5 tracking-wide">
+            {showtime.time}
+            <span className="text-sepia-chaud"> · {getCinemaShortName(showtime.cinemaName)}</span>
+            {showtime.version && showtime.version !== 'VF' && (
+              <span className="text-sepia-chaud"> · {showtime.version}</span>
+            )}
+          </p>
+          <p className="font-crimson text-xs italic text-sepia-chaud">
+            {formatGap(gapMin)}
+            {approx ? ' (durée estimée)' : ''}
+            {sameCinema ? ' · même cinéma' : ''}
+          </p>
+        </div>
+      </button>
+      <AddToSoireeButton film={film} showtime={showtime} city={city} className="px-2" />
+    </div>
   );
 }
 
@@ -92,6 +104,14 @@ export function SequencePanel({ anchorFilm, anchor, films, cityOf, onFilmClick, 
         {formatDayLong(anchor.datetime.slice(0, 10))} · {anchorFilm.title} à {anchor.time} ({getCinemaShortName(anchor.cinemaName)}), fin estimée {endStr}
       </p>
 
+      <AddToSoireeButton
+        film={anchorFilm}
+        showtime={anchor}
+        city={cityOf(anchor.cinemaId)}
+        label="Ajouter cette séance"
+        className="px-3 py-1.5 mb-5 font-bebas text-xs uppercase tracking-wide"
+      />
+
       <h5 className="font-bebas text-noir-velours text-base uppercase tracking-wider mb-2 flex items-center gap-2">
         <span className="w-1 h-4 bg-rouge-cinema rounded-full" />
         Après cette séance
@@ -99,7 +119,12 @@ export function SequencePanel({ anchorFilm, anchor, films, cityOf, onFilmClick, 
       {after.length > 0 ? (
         <div className="space-y-2 mb-5">
           {after.map((c) => (
-            <CandidateRow key={c.showtime.id} candidate={c} onClick={() => onFilmClick(c.film)} />
+            <CandidateRow
+              key={c.showtime.id}
+              candidate={c}
+              city={cityOf(c.showtime.cinemaId)}
+              onClick={() => onFilmClick(c.film)}
+            />
           ))}
         </div>
       ) : (
@@ -115,7 +140,12 @@ export function SequencePanel({ anchorFilm, anchor, films, cityOf, onFilmClick, 
       {before.length > 0 ? (
         <div className="space-y-2">
           {before.map((c) => (
-            <CandidateRow key={c.showtime.id} candidate={c} onClick={() => onFilmClick(c.film)} />
+            <CandidateRow
+              key={c.showtime.id}
+              candidate={c}
+              city={cityOf(c.showtime.cinemaId)}
+              onClick={() => onFilmClick(c.film)}
+            />
           ))}
         </div>
       ) : (
