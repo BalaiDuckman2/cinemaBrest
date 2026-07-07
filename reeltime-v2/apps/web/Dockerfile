@@ -3,8 +3,8 @@ FROM node:20-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@9 --activate
 WORKDIR /app
 
-# Copy workspace config
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json turbo.json ./
+# Copy workspace config (.npmrc: shamefully-hoist, needed to resolve workbox-window)
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json turbo.json .npmrc ./
 
 # Copy shared packages
 COPY packages/types/ packages/types/
