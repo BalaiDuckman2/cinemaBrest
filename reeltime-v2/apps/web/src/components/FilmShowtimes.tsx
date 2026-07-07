@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
-import type { ShowtimeEntry } from '../types/components';
+import type { FilmListItem, ShowtimeEntry } from '../types/components';
 import { getCinemaShortName } from '../utils/cinemaNames';
+import { AddToSoireeButton } from './soiree/AddToSoireeButton';
 
 const DAYS_FR = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
 const MONTHS_FR = [
@@ -50,11 +51,15 @@ function groupShowtimes(showtimes: ShowtimeEntry[]): GroupedByDateCinema {
 
 interface FilmShowtimesProps {
   showtimes: ShowtimeEntry[];
+  /** Le film parent (snapshot pour « Ma soirée »). */
+  film: Pick<FilmListItem, 'id' | 'title' | 'posterUrl' | 'runtime'>;
   /** When provided, each showtime gets a "chain with another film" button. */
   onChain?: (st: ShowtimeEntry) => void;
+  /** When provided, each showtime gets a "+ Ma soirée" button. */
+  cityOf?: (cinemaId: string) => string | undefined;
 }
 
-export function FilmShowtimes({ showtimes, onChain }: FilmShowtimesProps) {
+export function FilmShowtimes({ showtimes, film, onChain, cityOf }: FilmShowtimesProps) {
   if (showtimes.length === 0) {
     return (
       <div className="mb-8">
@@ -196,6 +201,14 @@ export function FilmShowtimes({ showtimes, onChain }: FilmShowtimesProps) {
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 015.656 5.656l-1.5 1.5" />
                                   </svg>
                                 </button>
+                              )}
+                              {cityOf && (
+                                <AddToSoireeButton
+                                  film={film}
+                                  showtime={st}
+                                  city={cityOf(st.cinemaId)}
+                                  className="px-1.5"
+                                />
                               )}
                             </span>
                           );

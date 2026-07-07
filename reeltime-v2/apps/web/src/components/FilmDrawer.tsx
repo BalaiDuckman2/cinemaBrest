@@ -259,7 +259,9 @@ function BottomSheet({ film, onClose, animating, films, cityOf, onFilmSelect }: 
               {/* Showtimes */}
               <FilmShowtimes
                 showtimes={film.showtimes}
+                film={film}
                 onChain={chainEnabled ? setChainAnchor : undefined}
+                cityOf={cityOf}
               />
 
               {/* Secondary info */}
