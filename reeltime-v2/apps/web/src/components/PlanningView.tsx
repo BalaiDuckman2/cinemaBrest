@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { FilmListItem, ShowtimeEntry } from '../types/components';
 import { formatDayLong, localISODate } from '../utils/dates';
 import { getCinemaShortName } from '../utils/cinemaNames';
+import { AddToSoireeButton } from './soiree/AddToSoireeButton';
 
 const NO_POSTER = '/images/no-poster.svg';
 
@@ -9,6 +10,7 @@ interface PlanningViewProps {
   films: FilmListItem[];
   /** The 7 dates (YYYY-MM-DD) of the displayed week. */
   dates: string[];
+  cityOf: (cinemaId: string) => string | undefined;
   onFilmClick: (film: FilmListItem) => void;
 }
 
@@ -25,7 +27,7 @@ function formatRuntime(minutes: number | null): string {
   return h > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${m}min`;
 }
 
-export function PlanningView({ films, dates, onFilmClick }: PlanningViewProps) {
+export function PlanningView({ films, dates, cityOf, onFilmClick }: PlanningViewProps) {
   const today = localISODate();
 
   const byDate = useMemo(() => {
@@ -75,48 +77,52 @@ export function PlanningView({ films, dates, onFilmClick }: PlanningViewProps) {
 
             <div className="space-y-2">
               {entries.map(({ film, showtimes }) => (
-                <button
+                <div
                   key={`${date}-${film.id}`}
-                  type="button"
-                  onClick={() => onFilmClick(film)}
-                  className="w-full text-left bg-creme-ecran border-2 border-sepia-chaud rounded-lg p-2 sm:p-3 flex gap-3 hover:border-rouge-cinema transition-colors"
+                  className="bg-creme-ecran border-2 border-sepia-chaud rounded-lg p-2 sm:p-3 hover:border-rouge-cinema transition-colors"
                 >
-                  <img
-                    src={film.posterUrl ?? NO_POSTER}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    className="w-12 h-[72px] sm:w-14 sm:h-[84px] object-cover rounded shadow flex-shrink-0 border border-sepia-chaud/50 bg-beige-papier"
-                    onError={(e) => { e.currentTarget.src = NO_POSTER; }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2 flex-wrap">
-                      <h3 className="font-playfair font-bold text-noir-velours text-sm sm:text-base leading-tight">
-                        {film.title}
-                      </h3>
-                      <span className="font-crimson text-xs text-sepia-chaud italic">
-                        {formatRuntime(film.runtime)}
-                        {film.letterboxdRating != null && (
-                          <span className="text-or-antique not-italic"> ★ {film.letterboxdRating.toFixed(1)}</span>
-                        )}
-                      </span>
+                  <button
+                    type="button"
+                    onClick={() => onFilmClick(film)}
+                    className="w-full text-left flex gap-3"
+                  >
+                    <img
+                      src={film.posterUrl ?? NO_POSTER}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="w-12 h-[72px] sm:w-14 sm:h-[84px] object-cover rounded shadow flex-shrink-0 border border-sepia-chaud/50 bg-beige-papier"
+                      onError={(e) => { e.currentTarget.src = NO_POSTER; }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <h3 className="font-playfair font-bold text-noir-velours text-sm sm:text-base leading-tight">
+                          {film.title}
+                        </h3>
+                        <span className="font-crimson text-xs text-sepia-chaud italic">
+                          {formatRuntime(film.runtime)}
+                          {film.letterboxdRating != null && (
+                            <span className="text-or-antique not-italic"> ★ {film.letterboxdRating.toFixed(1)}</span>
+                          )}
+                        </span>
+                      </div>
                     </div>
-                    <div className="mt-1.5 flex flex-wrap gap-1">
-                      {showtimes.map((st) => (
-                        <span
-                          key={st.id}
-                          className="font-bebas inline-flex items-baseline gap-1 bg-beige-papier border border-sepia-chaud/60 rounded px-1.5 py-0.5 text-[11px] text-noir-velours tracking-wide"
-                        >
+                  </button>
+                  <div className="mt-1.5 flex flex-wrap gap-1 pl-[60px] sm:pl-[68px]">
+                    {showtimes.map((st) => (
+                      <span key={st.id} className="inline-flex items-stretch gap-1">
+                        <span className="font-bebas inline-flex items-baseline gap-1 bg-beige-papier border border-sepia-chaud/60 rounded px-1.5 py-0.5 text-[11px] text-noir-velours tracking-wide">
                           <span className="font-bold">{st.time}</span>
                           <span className="text-sepia-chaud text-[9px] uppercase">
                             {getCinemaShortName(st.cinemaName)}
                             {st.version && st.version !== 'VF' ? ` · ${st.version}` : ''}
                           </span>
                         </span>
-                      ))}
-                    </div>
+                        <AddToSoireeButton film={film} showtime={st} city={cityOf(st.cinemaId)} className="px-1" />
+                      </span>
+                    ))}
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </section>

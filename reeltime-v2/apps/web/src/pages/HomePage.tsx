@@ -233,7 +233,7 @@ export function HomePage() {
       {!isLoading && !isError && filteredFilms.length > 0 && (
         <div className={`transition-opacity duration-200 ${isPlaceholderData ? 'opacity-50 pointer-events-none' : ''}`}>
           {viewMode === 'planning' ? (
-            <PlanningView films={filteredFilms} dates={weekDates} onFilmClick={openDrawer} />
+            <PlanningView films={filteredFilms} dates={weekDates} cityOf={cityOf} onFilmClick={openDrawer} />
           ) : (
             <FilmGrid films={filteredFilms} onFilmClick={openDrawer} />
           )}
