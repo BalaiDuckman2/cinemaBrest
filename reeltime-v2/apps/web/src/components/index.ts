@@ -11,3 +11,4 @@ export { EmptyState } from './EmptyState';
 export { ErrorState } from './ErrorState';
 export { Layout, Header, Footer } from './layout';
 export { FilterBar } from './filters';
+export { AddToSoireeButton } from './soiree/AddToSoireeButton';
