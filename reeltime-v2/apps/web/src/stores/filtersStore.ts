@@ -20,6 +20,8 @@ interface FiltersState {
   timeSlot: TimeSlotFilter;
   minAge: MinAgeFilter;
   viewMode: ViewMode;
+  /** Mode « Ce soir » : overlay transitoire (aujourd'hui, séances >= max(18h, maintenant)). Jamais persisté. */
+  ceSoirMode: boolean;
   setSearchQuery: (q: string) => void;
   toggleCinema: (cinemaId: string) => void;
   setSelectedCinemas: (ids: string[]) => void;
@@ -33,6 +35,7 @@ interface FiltersState {
   setTimeSlot: (t: TimeSlotFilter) => void;
   setMinAge: (a: MinAgeFilter) => void;
   setViewMode: (m: ViewMode) => void;
+  setCeSoirMode: (v: boolean) => void;
   resetAll: () => void;
 }
 
@@ -51,6 +54,7 @@ export const useFiltersStore = create<FiltersState>()(
       timeSlot: 'all',
       minAge: 0,
       viewMode: 'grid',
+      ceSoirMode: false,
       setSearchQuery: (searchQuery) => set({ searchQuery }),
       toggleCinema: (cinemaId) =>
         set((state) => ({
@@ -69,8 +73,9 @@ export const useFiltersStore = create<FiltersState>()(
       setTimeSlot: (timeSlot) => set({ timeSlot }),
       setMinAge: (minAge) => set({ minAge }),
       setViewMode: (viewMode) => set({ viewMode }),
+      setCeSoirMode: (ceSoirMode) => set({ ceSoirMode }),
       resetAll: () =>
-        set({ searchQuery: '', selectedCinemas: [], selectedDepartment: null, selectedCity: null, version: null, minTime: null, minRating: null, sort: 'popularity', selectedDate: null, timeSlot: 'all', minAge: 0 }),
+        set({ searchQuery: '', selectedCinemas: [], selectedDepartment: null, selectedCity: null, version: null, minTime: null, minRating: null, sort: 'popularity', selectedDate: null, timeSlot: 'all', minAge: 0, ceSoirMode: false }),
     }),
     {
       name: 'reeltime-filters',
