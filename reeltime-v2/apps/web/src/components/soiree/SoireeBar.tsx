@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useSoireeStore, addToSoiree, makeSoireeItem, nextSoireeDate, type SoireeItem } from '../../stores/soireeStore';
 import { useFilms } from '../../hooks/useFilms';
 import { useCinemas } from '../../hooks/useCinemas';
@@ -62,13 +63,7 @@ export function SoireeBar() {
   const setActiveDate = useSoireeStore((s) => s.setActiveDate);
   const remove = useSoireeStore((s) => s.remove);
   const clearDate = useSoireeStore((s) => s.clearDate);
-  const purgeExpired = useSoireeStore((s) => s.purgeExpired);
   const [expanded, setExpanded] = useState(false);
-
-  // Auto-expiration : purge au montage de l'app des soirées de dates passées.
-  useEffect(() => {
-    purgeExpired(localISODate());
-  }, [purgeExpired]);
 
   // La barre lit useFilms(0) + useCinemas elle-même (React Query déduplique avec les pages).
   const { data } = useFilms(0);
@@ -227,8 +222,14 @@ export function SoireeBar() {
               </div>
             )}
 
-            <div className="pt-1 flex justify-end">
-              {/* Le lien « Voir tout » vers /mes-soirees arrive en tâche 4 (route pas encore créée) */}
+            <div className="pt-1 flex justify-between items-center">
+              <Link
+                to="/mes-soirees"
+                onClick={() => setExpanded(false)}
+                className="font-bebas text-xs text-rouge-cinema hover:text-bordeaux-profond uppercase tracking-wide transition-colors"
+              >
+                Voir tout
+              </Link>
               <button
                 type="button"
                 onClick={() => clearDate(displayDate)}

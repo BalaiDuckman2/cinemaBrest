@@ -20,18 +20,34 @@ export function Header() {
             </div>
           </Link>
 
-          <NavLink
-            to="/soiree"
-            className={({ isActive }) =>
-              `font-bebas shrink-0 px-3 py-1.5 rounded-lg border-2 text-sm sm:text-base uppercase tracking-wide transition-colors ${
-                isActive
-                  ? 'bg-or-antique border-or-antique text-noir-velours'
-                  : 'border-or-antique/70 text-creme-ecran hover:bg-or-antique/20'
-              }`
-            }
-          >
-            🍿 <span className="hidden sm:inline">Planifier </span>ma soirée
-          </NavLink>
+          <nav className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <NavLink
+              to="/soiree"
+              className={({ isActive }) =>
+                `font-bebas shrink-0 px-2.5 sm:px-3 py-1.5 rounded-lg border-2 text-sm sm:text-base uppercase tracking-wide transition-colors ${
+                  isActive
+                    ? 'bg-or-antique border-or-antique text-noir-velours'
+                    : 'border-or-antique/70 text-creme-ecran hover:bg-or-antique/20'
+                }`
+              }
+            >
+              🍿 <span className="hidden md:inline">Planifier ma soirée</span>
+              <span className="md:hidden">Planifier</span>
+            </NavLink>
+            <NavLink
+              to="/mes-soirees"
+              className={({ isActive }) =>
+                `font-bebas shrink-0 px-2.5 sm:px-3 py-1.5 rounded-lg border-2 text-sm sm:text-base uppercase tracking-wide transition-colors ${
+                  isActive
+                    ? 'bg-or-antique border-or-antique text-noir-velours'
+                    : 'border-or-antique/70 text-creme-ecran hover:bg-or-antique/20'
+                }`
+              }
+            >
+              🎟 <span className="hidden md:inline">Mes soirées</span>
+              <span className="md:hidden">Soirées</span>
+            </NavLink>
+          </nav>
         </div>
       </div>
     </header>
