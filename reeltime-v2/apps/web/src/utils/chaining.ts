@@ -95,63 +95,6 @@ export function findChainable({ films, anchorFilm, anchor, direction, cityOf }: 
   return candidates;
 }
 
-export interface EveningCombo {
-  first: { film: FilmListItem; showtime: ShowtimeEntry };
-  second: { film: FilmListItem; showtime: ShowtimeEntry };
-  gapMin: number;
-  sameCinema: boolean;
-  approx: boolean;
-}
-
-interface BuildCombosOptions {
-  films: FilmListItem[];
-  date: string;
-  city: string;
-  cityOf: (cinemaId: string) => string | undefined;
-  /** Earliest acceptable start for the first film, minutes since midnight (null = any). */
-  minStartMin: number | null;
-}
-
-/** All pairs of chainable showtimes for a given day and city. */
-export function buildEveningCombos({ films, date, city, cityOf, minStartMin }: BuildCombosOptions): EveningCombo[] {
-  interface Slot { film: FilmListItem; showtime: ShowtimeEntry; start: number; end: number }
-
-  const slots: Slot[] = [];
-  for (const film of films) {
-    for (const st of film.showtimes) {
-      if (st.datetime.slice(0, 10) !== date) continue;
-      if (cityOf(st.cinemaId) !== city) continue;
-      const start = toMinutes(st.time);
-      slots.push({ film, showtime: st, start, end: estimatedEnd(start, film.runtime) });
-    }
-  }
-
-  const combos: EveningCombo[] = [];
-  for (const first of slots) {
-    if (minStartMin != null && first.start < minStartMin) continue;
-    for (const second of slots) {
-      if (second.film.id === first.film.id) continue;
-      const gapMin = second.start - first.end;
-      if (gapMin < -OVERLAP_TOLERANCE_MIN || gapMin > MAX_GAP_MIN) continue;
-      combos.push({
-        first: { film: first.film, showtime: first.showtime },
-        second: { film: second.film, showtime: second.showtime },
-        gapMin,
-        sameCinema: first.showtime.cinemaId === second.showtime.cinemaId,
-        approx: first.film.runtime == null,
-      });
-    }
-  }
-
-  combos.sort((a, b) => {
-    const startDiff = toMinutes(a.first.showtime.time) - toMinutes(b.first.showtime.time);
-    if (startDiff !== 0) return startDiff;
-    return Math.abs(a.gapMin) - Math.abs(b.gapMin);
-  });
-
-  return combos;
-}
-
 /** "battement 20 min" / "enchaînement direct" / "chevauche de 5 min" */
 export function formatGap(gapMin: number): string {
   if (gapMin > 5) return `${gapMin} min de battement`;

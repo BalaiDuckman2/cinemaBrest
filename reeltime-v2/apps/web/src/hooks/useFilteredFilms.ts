@@ -4,7 +4,7 @@ import { localISODate, nowHHMM } from '../utils/dates';
 import type { FilmListItem } from '../types/components';
 import type { TimeSlotFilter } from '../stores/filtersStore';
 
-function normalizeText(text: string): string {
+export function normalizeText(text: string): string {
   return text
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')

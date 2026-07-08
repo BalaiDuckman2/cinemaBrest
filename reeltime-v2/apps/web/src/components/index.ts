@@ -14,3 +14,4 @@ export { FilterBar } from './filters';
 export { AddToSoireeButton } from './soiree/AddToSoireeButton';
 export { SoireeBar } from './soiree/SoireeBar';
 export { SoireeItemRow, SoireeGapRow, timeLabel, endLabel } from './soiree/SoireeTimeline';
+export { CandidateRow } from './soiree/CandidateRow';
