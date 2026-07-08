@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSoireeStore, addToSoiree, makeSoireeItem, type SoireeItem } from '../../stores/soireeStore';
+import { useSoireeStore, addToSoiree, makeSoireeItem, nextSoireeDate, type SoireeItem } from '../../stores/soireeStore';
 import { useFilms } from '../../hooks/useFilms';
 import { useCinemas } from '../../hooks/useCinemas';
 import {
@@ -141,11 +141,12 @@ function ItemRow({ item, past, onRemove }: { item: SoireeItem; past: boolean; on
 }
 
 export function SoireeBar() {
-  const date = useSoireeStore((s) => s.date);
-  const items = useSoireeStore((s) => s.items);
+  const soirees = useSoireeStore((s) => s.soirees);
   const remove = useSoireeStore((s) => s.remove);
-  const clear = useSoireeStore((s) => s.clear);
+  const clearDate = useSoireeStore((s) => s.clearDate);
   const purgeExpired = useSoireeStore((s) => s.purgeExpired);
+  const date = nextSoireeDate(soirees);
+  const items = date ? soirees[date] : [];
   const [expanded, setExpanded] = useState(false);
 
   // Auto-expiration : purge au montage de l'app si le plan date d'hier ou avant.
@@ -262,7 +263,7 @@ export function SoireeBar() {
                 <ItemRow
                   item={item}
                   past={item.date === today && item.time < now}
-                  onRemove={() => remove(item.showtimeId)}
+                  onRemove={() => remove(date, item.showtimeId)}
                 />
               </div>
             ))}
@@ -283,7 +284,7 @@ export function SoireeBar() {
             <div className="pt-1 flex justify-end">
               <button
                 type="button"
-                onClick={clear}
+                onClick={() => clearDate(date)}
                 className="font-bebas text-xs text-sepia-chaud hover:text-rouge-cinema uppercase tracking-wide transition-colors"
               >
                 Tout effacer

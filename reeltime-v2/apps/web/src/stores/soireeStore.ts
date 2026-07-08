@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { formatDayShort } from '../utils/dates';
 import type { FilmListItem, ShowtimeEntry } from '../types/components';
 
 /** Snapshot d'une séance : le plan reste affichable même si les données de la semaine changent. */
@@ -19,14 +18,21 @@ export interface SoireeItem {
   bookingUrl: string | null;
 }
 
-interface SoireeState {
-  /** Un seul plan, une seule date (null = plan vide). */
+/** Ancien format persisté (version 0) : un seul plan. */
+interface SoireeStateV0 {
   date: string | null;
   items: SoireeItem[];
+}
+
+interface SoireeState {
+  /** clé = date "YYYY-MM-DD", valeur = séances triées chrono. Soirée vide = clé supprimée. */
+  soirees: Record<string, SoireeItem[]>;
+  /** Date affichée dans la barre. Transitoire (hors partialize). */
+  activeDate: string | null;
   add: (item: SoireeItem) => void;
-  remove: (showtimeId: string) => void;
-  clear: () => void;
-  replaceAll: (items: SoireeItem[]) => void;
+  remove: (date: string, showtimeId: string) => void;
+  clearDate: (date: string) => void;
+  setActiveDate: (date: string | null) => void;
   purgeExpired: (today: string) => void;
 }
 
@@ -37,29 +43,64 @@ function sortChrono(items: SoireeItem[]): SoireeItem[] {
 export const useSoireeStore = create<SoireeState>()(
   persist(
     (set) => ({
-      date: null,
-      items: [],
+      soirees: {},
+      activeDate: null,
       add: (item) =>
         set((state) => {
-          if (state.items.some((i) => i.showtimeId === item.showtimeId)) return state;
-          return { date: item.date, items: sortChrono([...state.items, item]) };
+          const existing = state.soirees[item.date] ?? [];
+          if (existing.some((i) => i.showtimeId === item.showtimeId)) {
+            return { activeDate: item.date };
+          }
+          return {
+            soirees: { ...state.soirees, [item.date]: sortChrono([...existing, item]) },
+            activeDate: item.date,
+          };
         }),
-      remove: (showtimeId) =>
+      remove: (date, showtimeId) =>
         set((state) => {
-          const items = state.items.filter((i) => i.showtimeId !== showtimeId);
-          return { items, date: items.length > 0 ? state.date : null };
+          const items = (state.soirees[date] ?? []).filter((i) => i.showtimeId !== showtimeId);
+          const soirees = { ...state.soirees };
+          if (items.length > 0) soirees[date] = items;
+          else delete soirees[date];
+          return { soirees };
         }),
-      clear: () => set({ date: null, items: [] }),
-      replaceAll: (items) => set({ date: items[0]?.date ?? null, items: sortChrono(items) }),
+      clearDate: (date) =>
+        set((state) => {
+          const soirees = { ...state.soirees };
+          delete soirees[date];
+          return { soirees };
+        }),
+      setActiveDate: (activeDate) => set({ activeDate }),
       purgeExpired: (today) =>
-        set((state) => (state.date && state.date < today ? { date: null, items: [] } : state)),
+        set((state) => ({
+          soirees: Object.fromEntries(
+            Object.entries(state.soirees).filter(([date]) => date >= today),
+          ),
+        })),
     }),
     {
       name: 'reeltime-soiree',
-      partialize: (state) => ({ date: state.date, items: state.items }),
+      version: 1,
+      partialize: (state) => ({ soirees: state.soirees }),
+      migrate: (persisted, version) => {
+        if (version === 0) {
+          const old = persisted as Partial<SoireeStateV0> | undefined;
+          if (old?.date && old.items && old.items.length > 0) {
+            return { soirees: { [old.date]: old.items } };
+          }
+          return { soirees: {} };
+        }
+        return persisted as { soirees: Record<string, SoireeItem[]> };
+      },
     },
   ),
 );
+
+/** Prochaine soirée à venir = plus petite date présente (les passées sont purgées au montage). */
+export function nextSoireeDate(soirees: Record<string, SoireeItem[]>): string | null {
+  const dates = Object.keys(soirees).sort();
+  return dates[0] ?? null;
+}
 
 export function makeSoireeItem(
   film: Pick<FilmListItem, 'id' | 'title' | 'posterUrl' | 'runtime'>,
@@ -82,24 +123,7 @@ export function makeSoireeItem(
   };
 }
 
-/** Ajout avec règles : dédup, confirmation si le plan est sur une autre date. */
+/** Ajout direct : la séance rejoint la soirée de sa date (créée au besoin), sans confirmation. */
 export function addToSoiree(item: SoireeItem): void {
-  const { date, items, add, replaceAll } = useSoireeStore.getState();
-  if (items.some((i) => i.showtimeId === item.showtimeId)) return;
-  if (date && date !== item.date) {
-    if (!window.confirm(`Remplacer la soirée du ${formatDayShort(date)} ?`)) return;
-    replaceAll([item]);
-    return;
-  }
-  add(item);
-}
-
-/** « Utiliser ce combo » : remplace le plan courant ; confirmation seulement si autre date. */
-export function replaceSoiree(items: SoireeItem[]): void {
-  const { date, replaceAll } = useSoireeStore.getState();
-  const newDate = items[0]?.date;
-  if (date && newDate && date !== newDate) {
-    if (!window.confirm(`Remplacer la soirée du ${formatDayShort(date)} ?`)) return;
-  }
-  replaceAll(items);
+  useSoireeStore.getState().add(item);
 }

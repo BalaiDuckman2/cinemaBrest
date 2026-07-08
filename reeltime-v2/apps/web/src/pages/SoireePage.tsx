@@ -6,7 +6,7 @@ import { FilmGridSkeleton } from '../components/Skeleton';
 import { useFilms } from '../hooks/useFilms';
 import { useCinemas } from '../hooks/useCinemas';
 import { useFilmDrawer } from '../hooks/useFilmDrawer';
-import { replaceSoiree, makeSoireeItem } from '../stores/soireeStore';
+import { addToSoiree, makeSoireeItem } from '../stores/soireeStore';
 import { weekDatesFrom, localISODate, formatDayLong } from '../utils/dates';
 import { getCinemaShortName } from '../utils/cinemaNames';
 import {
@@ -185,10 +185,10 @@ export function SoireePage() {
                     <button
                       type="button"
                       onClick={() =>
-                        replaceSoiree([
+                        [
                           makeSoireeItem(combo.first.film, combo.first.showtime, cityOf(combo.first.showtime.cinemaId)),
                           makeSoireeItem(combo.second.film, combo.second.showtime, cityOf(combo.second.showtime.cinemaId)),
-                        ])
+                        ].forEach(addToSoiree)
                       }
                       className="font-bebas mt-2 w-full sm:w-auto px-3 py-1.5 rounded-md border-2 border-sepia-chaud bg-beige-papier text-noir-velours text-xs uppercase tracking-wide hover:border-rouge-cinema hover:text-rouge-cinema transition-colors"
                     >

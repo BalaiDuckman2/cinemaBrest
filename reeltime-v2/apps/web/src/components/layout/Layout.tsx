@@ -6,7 +6,7 @@ import { SoireeBar } from '../soiree/SoireeBar';
 import { useSoireeStore } from '../../stores/soireeStore';
 
 export function Layout() {
-  const hasPlan = useSoireeStore((s) => s.items.length > 0);
+  const hasPlan = useSoireeStore((s) => Object.keys(s.soirees).length > 0);
 
   return (
     <ToastProvider>

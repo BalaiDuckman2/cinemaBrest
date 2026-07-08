@@ -12,7 +12,9 @@ interface AddToSoireeButtonProps {
 }
 
 export function AddToSoireeButton({ film, showtime, city, className = '', label }: AddToSoireeButtonProps) {
-  const added = useSoireeStore((s) => s.items.some((i) => i.showtimeId === showtime.id));
+  const added = useSoireeStore((s) =>
+    (s.soirees[showtime.datetime.slice(0, 10)] ?? []).some((i) => i.showtimeId === showtime.id),
+  );
 
   return (
     <button

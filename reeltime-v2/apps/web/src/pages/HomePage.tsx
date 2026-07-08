@@ -29,7 +29,7 @@ function formatWeekLabel(weekStart?: string, weekEnd?: string): string {
 
 function ScrollToTopButton() {
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const hasPlan = useSoireeStore((s) => s.items.length > 0);
+  const hasPlan = useSoireeStore((s) => Object.keys(s.soirees).length > 0);
 
   useEffect(() => {
     let ticking = false;

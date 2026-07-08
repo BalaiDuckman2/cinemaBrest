@@ -1,3 +1,3 @@
 export { useFiltersStore } from './filtersStore';
-export { useSoireeStore, addToSoiree, replaceSoiree, makeSoireeItem } from './soireeStore';
+export { useSoireeStore, addToSoiree, makeSoireeItem, nextSoireeDate } from './soireeStore';
 export type { SoireeItem } from './soireeStore';
