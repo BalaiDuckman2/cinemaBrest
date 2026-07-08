@@ -13,3 +13,4 @@ export { Layout, Header, Footer } from './layout';
 export { FilterBar } from './filters';
 export { AddToSoireeButton } from './soiree/AddToSoireeButton';
 export { SoireeBar } from './soiree/SoireeBar';
+export { SoireeItemRow, SoireeGapRow, timeLabel, endLabel } from './soiree/SoireeTimeline';
