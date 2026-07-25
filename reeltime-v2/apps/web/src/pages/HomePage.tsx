@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { FilmGrid } from '../components/FilmGrid';
 import { FilmDrawer } from '../components/FilmDrawer';
 import { FilmGridSkeleton } from '../components/Skeleton';
@@ -73,6 +73,33 @@ export function HomePage() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  // `--sticky-top` doit valoir la hauteur de ce qui est réellement épinglé en
+  // haut : la barre de dates sur mobile, le header sur desktop où la barre est
+  // statique. Mesuré plutôt que codé en dur, car la barre grandit quand la
+  // recherche se déplie ou que des étiquettes apparaissent — c'est ce
+  // désalignement des en-têtes de jour de PlanningView qu'on élimine.
+  const stickyBarRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const bar = stickyBarRef.current;
+    const page = pageRef.current;
+    if (!bar || !page) return;
+
+    const apply = () => {
+      const barSticky = getComputedStyle(bar).position === 'sticky';
+      const anchor = barSticky ? bar : document.querySelector('header');
+      const height = anchor instanceof HTMLElement ? anchor.offsetHeight : 0;
+      page.style.setProperty('--sticky-top', `${Math.round(height)}px`);
+    };
+
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(bar);
+    const header = document.querySelector('header');
+    if (header) observer.observe(header);
+    return () => observer.disconnect();
+  });
+
   // La recherche reste dépliée tant que la requête est non vide.
   useEffect(() => {
     if (searchQuery) setSearchOpen(true);
@@ -91,15 +118,24 @@ export function HomePage() {
   const noResults = hasFilms && filteredFilms.length === 0;
 
   return (
-    <div className="page-sticky-root container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-7xl">
+    <div ref={pageRef} className="page-sticky-root container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-7xl">
       {/* Scroll to top button */}
       <ScrollToTopButton />
 
       {/* Barre collée : bande de dates + commandes. Seul élément épinglé sur mobile. */}
       {!isLoading && !isError && hasFilms && (
-        <div className="sticky top-0 z-30 -mx-2 sm:-mx-4 px-2 sm:px-4 py-2 mb-3 bg-beige-papier/95 backdrop-blur border-b-2 border-sepia-chaud md:static md:bg-transparent md:backdrop-blur-none md:border-0 md:mb-3">
+        <div
+          ref={stickyBarRef}
+          className="sticky top-0 z-30 -mx-2 sm:-mx-4 px-2 sm:px-4 py-2 mb-3 bg-beige-papier/95 backdrop-blur border-b-2 border-sepia-chaud md:static md:bg-transparent md:backdrop-blur-none md:border-0 md:mb-3"
+        >
           <div className="flex items-center gap-2">
-            <div className="flex-1 min-w-0">
+            {/* Dégradé de bord : sans lui, la puce coupée par le défilement se
+                lit comme cachée sous les boutons voisins. */}
+            <div className="relative flex-1 min-w-0">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-beige-papier to-transparent md:from-creme-ecran"
+              />
               <DateStrip
                 dates={weekDates}
                 value={ceSoirMode ? today : selectedDate}
@@ -113,7 +149,7 @@ export function HomePage() {
             </div>
 
             {/* Mobile : recherche + filtres à portée de pouce, toujours visibles */}
-            <div className="md:hidden flex shrink-0 items-center gap-1">
+            <div className="md:hidden flex shrink-0 items-center gap-1 pl-1">
               <button
                 type="button"
                 onClick={() => setSearchOpen((v) => !v)}
