@@ -1,8 +1,8 @@
 export function Footer() {
   return (
-    <footer className="stage-curtain film-strip-border py-8 mt-16">
+    <footer className="stage-curtain film-strip-border py-4 mt-8 md:py-8 md:mt-16">
       <div className="container mx-auto px-3 sm:px-4 text-center">
-        <div className="flex flex-col items-center gap-4 mb-6">
+        <div className="hidden md:flex flex-col items-center gap-4 mb-6">
           <div className="flex items-center gap-2 text-2xl">
             <span>🎬</span>
             <span className="font-bebas text-3xl text-creme-ecran uppercase tracking-wider drop-shadow-lg">
@@ -14,7 +14,7 @@ export function Footer() {
           </p>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-6 text-sm">
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-0 md:mb-6 text-sm">
           <a
             href="https://github.com/BalaiDuckman2/cinemaBrest"
             target="_blank"
@@ -36,7 +36,7 @@ export function Footer() {
           </a>
         </div>
 
-        <div className="border-t border-creme-ecran/30 pt-4">
+        <div className="hidden md:block border-t border-creme-ecran/30 pt-4">
           <p className="font-crimson text-creme-ecran/70 text-xs italic">
             Données mises à jour automatiquement &bull; Open Source &bull; Fait avec ❤️ pour les cinéphiles brestois
           </p>

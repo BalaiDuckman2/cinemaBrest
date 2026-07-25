@@ -5,7 +5,21 @@
 /* === BODY BACKGROUND === */
 body {
   background: linear-gradient(to bottom right, #EFEBE9 0%, #FFF8E1 50%, #EFEBE9 100%);
-  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* === ANCRAGE DES EN-TETES COLLES === */
+/* Hauteur de l'élément épinglé en haut de page : barre de dates seule sur
+   mobile, header + barre de filtres sur desktop. Consommée par PlanningView
+   pour aligner ses en-têtes de jour juste dessous. */
+.page-sticky-root {
+  --sticky-top: 60px;
+}
+
+@media (min-width: 768px) {
+  .page-sticky-root {
+    --sticky-top: 112px;
+  }
 }
 
 /* === MOBILE FEEL === */

@@ -23,7 +23,7 @@ export function Layout() {
 
   return (
     <ToastProvider>
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-[100dvh] flex-col">
         <Header />
         {/* Place réservée en bas : barre d'onglets sur mobile, barre Ma soirée sur desktop */}
         <main

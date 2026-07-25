@@ -61,7 +61,10 @@ export function PlanningView({ films, dates, cityOf, onFilmClick }: PlanningView
         const entries = byDate.get(date)!;
         return (
           <section key={date} aria-label={formatDayLong(date)}>
-            <h2 className="sticky top-[52px] sm:top-[60px] z-30 -mx-2 px-4 sm:mx-0 sm:px-4 py-2 mb-3 bg-rouge-cinema border-2 border-bordeaux-profond sm:rounded-lg shadow-md font-bebas text-creme-ecran text-lg sm:text-xl uppercase tracking-wider flex items-center justify-between">
+            <h2
+              style={{ top: 'var(--sticky-top, 60px)' }}
+              className="sticky z-20 -mx-2 px-4 sm:mx-0 sm:px-4 py-2 mb-3 bg-rouge-cinema border-2 border-bordeaux-profond sm:rounded-lg shadow-md font-bebas text-creme-ecran text-lg sm:text-xl uppercase tracking-wider flex items-center justify-between"
+            >
               <span>{formatDayLong(date)}</span>
               <span className="flex items-center gap-2">
                 {date === today && (
