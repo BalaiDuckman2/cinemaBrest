@@ -1,35 +1,22 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { WeekNavigator } from '../components/WeekNavigator';
 import { FilmGrid } from '../components/FilmGrid';
 import { FilmDrawer } from '../components/FilmDrawer';
 import { FilmGridSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
 import { FilterBar } from '../components/filters';
-import { DayStrip } from '../components/DayStrip';
+import { DateStrip } from '../components/DateStrip';
 import { PlanningView } from '../components/PlanningView';
-import { useFilms } from '../hooks/useFilms';
-import { useWeekNavigation } from '../hooks/useWeekNavigation';
+import { useFilmsRange } from '../hooks/useFilmsRange';
+import { useSelectedDate } from '../hooks/useSelectedDate';
 import { useFilmDrawer } from '../hooks/useFilmDrawer';
 import { useFilteredFilms } from '../hooks/useFilteredFilms';
 import { useCinemas } from '../hooks/useCinemas';
 import { useFiltersStore } from '../stores/filtersStore';
-import { useSoireeStore } from '../stores/soireeStore';
-import { weekDatesFrom, localISODate } from '../utils/dates';
-
-function formatWeekLabel(weekStart?: string, weekEnd?: string): string {
-  if (!weekStart || !weekEnd) return '';
-  const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
-  const start = new Date(weekStart + 'T00:00:00');
-  const end = new Date(weekEnd + 'T00:00:00');
-  const startStr = start.toLocaleDateString('fr-FR', opts);
-  const endStr = end.toLocaleDateString('fr-FR', opts);
-  return `${startStr} - ${endStr}`;
-}
+import { localISODate } from '../utils/dates';
 
 function ScrollToTopButton() {
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const hasPlan = useSoireeStore((s) => Object.keys(s.soirees).length > 0);
 
   useEffect(() => {
     let ticking = false;
@@ -49,7 +36,7 @@ function ScrollToTopButton() {
     <button
       type="button"
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      className={`fixed ${hasPlan ? 'bottom-20 md:bottom-24' : 'bottom-4 md:bottom-8'} right-4 md:right-8 bg-rouge-cinema hover:bg-bordeaux-profond text-creme-ecran p-3 md:p-4 rounded-full shadow-lg transition-opacity duration-300 z-50 border-2 border-or-antique ${
+      className={`fixed bottom-4 md:bottom-8 right-4 md:right-8 bg-rouge-cinema hover:bg-bordeaux-profond text-creme-ecran p-3 md:p-4 rounded-full shadow-lg transition-opacity duration-300 z-30 border-2 border-or-antique ${
         showScrollTop ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       aria-label="Retour en haut"
@@ -62,36 +49,27 @@ function ScrollToTopButton() {
 }
 
 export function HomePage() {
-  const { weekOffset, goToNextWeek, goToPrevWeek, goToToday } = useWeekNavigation();
-  const { data, isLoading, isError, refetch, isPlaceholderData } = useFilms(weekOffset);
+  const { selectedDate, setSelectedDate } = useSelectedDate();
+  const {
+    films: rangeFilms,
+    dates: weekDates,
+    isLoading,
+    isLoadingMore,
+    isError,
+    refetch,
+    loadMore,
+  } = useFilmsRange(selectedDate);
   const { isOpen, selectedFilm, openDrawer, closeDrawer } = useFilmDrawer();
   const { data: cinemas = [] } = useCinemas();
   const resetAll = useFiltersStore((s) => s.resetAll);
   const searchQuery = useFiltersStore((s) => s.searchQuery);
-  const selectedDate = useFiltersStore((s) => s.selectedDate);
-  const setSelectedDate = useFiltersStore((s) => s.setSelectedDate);
   const viewMode = useFiltersStore((s) => s.viewMode);
   const setViewMode = useFiltersStore((s) => s.setViewMode);
   const ceSoirMode = useFiltersStore((s) => s.ceSoirMode);
   const setCeSoirMode = useFiltersStore((s) => s.setCeSoirMode);
   const today = localISODate();
 
-  // A specific day only makes sense within the week it was picked in.
-  // "Ce soir" only turns off when leaving the current week: activating it from
-  // another week sets weekOffset back to 0, which must NOT deactivate it.
-  useEffect(() => {
-    setSelectedDate(null);
-    if (weekOffset !== 0) setCeSoirMode(false);
-  }, [weekOffset, setSelectedDate, setCeSoirMode]);
-
-  const { filteredFilms, activeFilterCount, hasActiveFilters } = useFilteredFilms(
-    data?.films ?? [],
-  );
-
-  const weekDates = useMemo(
-    () => (data?.meta.weekStart ? weekDatesFrom(data.meta.weekStart) : []),
-    [data?.meta.weekStart],
-  );
+  const { filteredFilms, activeFilterCount, hasActiveFilters } = useFilteredFilms(rangeFilms);
 
   const cityByCinemaId = useMemo(() => {
     const map = new Map<string, string>();
@@ -100,8 +78,7 @@ export function HomePage() {
   }, [cinemas]);
   const cityOf = useCallback((cinemaId: string) => cityByCinemaId.get(cinemaId), [cityByCinemaId]);
 
-  const weekLabel = formatWeekLabel(data?.meta.weekStart, data?.meta.weekEnd);
-  const hasFilms = data && data.films.length > 0;
+  const hasFilms = rangeFilms.length > 0;
   const noResults = hasFilms && filteredFilms.length === 0;
 
   return (
@@ -109,26 +86,19 @@ export function HomePage() {
       {/* Scroll to top button */}
       <ScrollToTopButton />
 
-      {/* Week navigation */}
-      <WeekNavigator
-        weekOffset={weekOffset}
-        weekLabel={weekLabel}
-        onPrevWeek={goToPrevWeek}
-        onNextWeek={goToNextWeek}
-        onToday={goToToday}
-      />
-
-      {/* Day strip + Ce soir + view mode toggle */}
+      {/* Date strip + Ce soir + view mode toggle */}
       {!isLoading && !isError && hasFilms && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
           <div className="flex-1 min-w-0">
-            <DayStrip
+            <DateStrip
               dates={weekDates}
               value={ceSoirMode ? today : selectedDate}
               onChange={(d) => {
                 setCeSoirMode(false);
                 setSelectedDate(d);
               }}
+              onLoadMore={loadMore}
+              isLoadingMore={isLoadingMore}
             />
           </div>
           <div className="flex shrink-0 items-center gap-2 self-start">
@@ -138,7 +108,7 @@ export function HomePage() {
                 if (ceSoirMode) {
                   setCeSoirMode(false);
                 } else {
-                  goToToday();
+                  setSelectedDate(null);
                   setCeSoirMode(true);
                 }
               }}
@@ -192,11 +162,11 @@ export function HomePage() {
         />
       )}
 
-      {!isLoading && !isError && data && data.films.length === 0 && (
+      {!isLoading && !isError && !hasFilms && (
         <EmptyState
-          message="Aucun film trouve pour cette semaine"
-          actionLabel="Voir la semaine suivante"
-          onAction={goToNextWeek}
+          message="Aucun film trouve sur les prochains jours"
+          actionLabel="Charger une semaine de plus"
+          onAction={loadMore}
         />
       )}
 
@@ -225,13 +195,13 @@ export function HomePage() {
       {!isLoading && !isError && noResults && !hasActiveFilters && selectedDate && (
         <EmptyState
           message="Aucune séance ce jour-là"
-          actionLabel="Voir toute la semaine"
+          actionLabel="Voir tous les jours"
           onAction={() => setSelectedDate(null)}
         />
       )}
 
       {!isLoading && !isError && filteredFilms.length > 0 && (
-        <div className={`transition-opacity duration-200 ${isPlaceholderData ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div>
           {viewMode === 'planning' ? (
             <PlanningView films={filteredFilms} dates={weekDates} cityOf={cityOf} onFilmClick={openDrawer} />
           ) : (
@@ -245,7 +215,7 @@ export function HomePage() {
         film={selectedFilm}
         isOpen={isOpen}
         onClose={closeDrawer}
-        films={data?.films}
+        films={rangeFilms}
         cityOf={cityOf}
         onFilmSelect={openDrawer}
       />
