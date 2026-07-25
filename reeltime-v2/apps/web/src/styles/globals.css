@@ -174,15 +174,3 @@ select option {
   overflow: hidden;
 }
 
-/* === DRAWER ANIMATION === */
-#filmDrawer {
-  will-change: transform;
-}
-
-.drawer-open {
-  transform: translateY(0) !important;
-}
-
-body.drawer-active {
-  overflow: hidden;
-}
