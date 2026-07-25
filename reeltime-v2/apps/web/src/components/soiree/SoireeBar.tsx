@@ -129,8 +129,8 @@ export function SoireeBar() {
   const othersCount = soireeDates.length - 1;
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-40 sm:inset-x-auto sm:right-4 sm:bottom-4 sm:w-[28rem] sm:max-w-[calc(100vw-2rem)]">
-      <div className="bg-beige-papier border-t-2 sm:border-2 border-sepia-chaud sm:rounded-xl shadow-2xl pb-[env(safe-area-inset-bottom)]">
+    <div className="hidden md:block fixed z-40 md:inset-x-auto md:right-4 md:bottom-4 md:w-[28rem] md:max-w-[calc(100vw-2rem)]">
+      <div className="bg-beige-papier border-2 border-sepia-chaud rounded-xl shadow-2xl">
         <button
           type="button"
           onClick={() => setExpanded((e) => !e)}

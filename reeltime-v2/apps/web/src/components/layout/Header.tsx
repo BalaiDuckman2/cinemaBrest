@@ -20,7 +20,7 @@ export function Header() {
             </div>
           </Link>
 
-          <nav className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <nav className="hidden md:flex shrink-0 items-center gap-1.5 sm:gap-2">
             <NavLink
               to="/soiree"
               className={({ isActive }) =>

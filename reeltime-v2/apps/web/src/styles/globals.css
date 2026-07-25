@@ -152,6 +152,21 @@ select {
   -moz-appearance: none;
 }
 
+/* === BADGE « MA SOIREE » === */
+@keyframes badge-pulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.5); }
+  100% { transform: scale(1); }
+}
+
+.badge-pulse {
+  animation: badge-pulse 400ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-pulse { animation: none; }
+}
+
 /* === FILTER PANEL ANIMATION === */
 .filter-panel {
   display: grid;
