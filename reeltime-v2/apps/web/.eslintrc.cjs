@@ -6,7 +6,9 @@ module.exports = {
     project: true,
     tsconfigRootDir: __dirname,
   },
-  ignorePatterns: ['vite.config.ts', 'tailwind.config.ts', 'dist/**'],
+  // `*.config.d.ts` : tsc -b émet une déclaration à côté de chaque config,
+  // artefact de build hors du tsconfig, que le linter typé ne sait pas parser.
+  ignorePatterns: ['vite.config.ts', 'vitest.config.ts', 'tailwind.config.ts', '*.config.d.ts', 'dist/**'],
   rules: {
     'react/no-unescaped-entities': 'off',
   },
