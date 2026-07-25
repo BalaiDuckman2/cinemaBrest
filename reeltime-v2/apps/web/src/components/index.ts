@@ -3,6 +3,7 @@ export { FilmDrawer } from './FilmDrawer';
 export { FilmShowtimes } from './FilmShowtimes';
 export { WeekNavigator } from './WeekNavigator';
 export { DayStrip } from './DayStrip';
+export { DateStrip } from './DateStrip';
 export { PlanningView } from './PlanningView';
 export { SequencePanel } from './SequencePanel';
 export { FilmCardSkeleton, FilmGridSkeleton } from './Skeleton';
