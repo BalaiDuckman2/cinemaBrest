@@ -1,8 +1,9 @@
 export { FilmCard } from './FilmCard';
 export { FilmDrawer } from './FilmDrawer';
 export { FilmShowtimes } from './FilmShowtimes';
-export { WeekNavigator } from './WeekNavigator';
-export { DayStrip } from './DayStrip';
+export { ShowtimeRow } from './ShowtimeRow';
+export { DateStrip } from './DateStrip';
+export { BottomSheet } from './ui/BottomSheet';
 export { PlanningView } from './PlanningView';
 export { SequencePanel } from './SequencePanel';
 export { FilmCardSkeleton, FilmGridSkeleton } from './Skeleton';

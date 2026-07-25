@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useDeferredValue, useMemo } from 'react';
 import { useFiltersStore } from '../stores/filtersStore';
 import { localISODate, nowHHMM } from '../utils/dates';
 import type { FilmListItem } from '../types/components';
@@ -43,12 +43,16 @@ export function useFilteredFilms(films: FilmListItem[]) {
   const minAge = useFiltersStore((s) => s.minAge);
   const ceSoirMode = useFiltersStore((s) => s.ceSoirMode);
 
+  // Le filtrage remappe et retrie tout le catalogue. Le différer garde la
+  // saisie fluide : React recalcule en tâche de fond sans bloquer la frappe.
+  const deferredQuery = useDeferredValue(searchQuery);
+
   const filteredFilms = useMemo(() => {
     let result = films;
 
     // Search by title
-    if (searchQuery) {
-      result = result.filter((film) => matchesSearch(film.title, searchQuery));
+    if (deferredQuery) {
+      result = result.filter((film) => matchesSearch(film.title, deferredQuery));
     }
 
     // Filter by cinema (empty = all cinemas)
@@ -161,7 +165,7 @@ export function useFilteredFilms(films: FilmListItem[]) {
     });
 
     return result;
-  }, [films, searchQuery, selectedCinemas, version, minTime, minRating, sort, selectedDate, timeSlot, minAge, ceSoirMode]);
+  }, [films, deferredQuery, selectedCinemas, version, minTime, minRating, sort, selectedDate, timeSlot, minAge, ceSoirMode]);
 
   const activeFilterCount =
     (searchQuery ? 1 : 0) +

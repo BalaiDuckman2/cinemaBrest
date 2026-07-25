@@ -2,7 +2,7 @@ import { Link, NavLink } from 'react-router-dom';
 
 export function Header() {
   return (
-    <header className="stage-curtain sticky top-0 z-50 shadow-xl border-b-2 border-or-antique">
+    <header className="stage-curtain md:sticky md:top-0 z-50 shadow-xl border-b-2 border-or-antique">
       <div className="container mx-auto px-3 sm:px-4">
         <div className="flex items-center justify-between gap-3">
           <Link
@@ -20,7 +20,7 @@ export function Header() {
             </div>
           </Link>
 
-          <nav className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <nav className="hidden md:flex shrink-0 items-center gap-1.5 sm:gap-2">
             <NavLink
               to="/soiree"
               className={({ isActive }) =>

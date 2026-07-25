@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Header } from './Header';
 import { Footer } from './Footer';
+import { MobileTabBar } from './MobileTabBar';
 import { ToastProvider } from '../ui/Toast';
 import { SoireeBar } from '../soiree/SoireeBar';
 import { useSoireeStore } from '../../stores/soireeStore';
@@ -22,14 +23,19 @@ export function Layout() {
 
   return (
     <ToastProvider>
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-[100dvh] flex-col">
         <Header />
-        {/* padding-bottom quand la barre Ma soirée est visible : aucun contenu masqué */}
-        <main className={`flex-1${showBar ? ' pb-24' : ''}`}>
+        {/* Place réservée en bas : barre d'onglets sur mobile, barre Ma soirée sur desktop */}
+        <main
+          className={`flex-1 pb-[calc(56px+env(safe-area-inset-bottom))] md:pb-0${
+            showBar ? ' md:pb-24' : ''
+          }`}
+        >
           <Outlet />
         </main>
         <Footer />
         {showBar && <SoireeBar />}
+        <MobileTabBar />
       </div>
     </ToastProvider>
   );

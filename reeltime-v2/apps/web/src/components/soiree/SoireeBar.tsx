@@ -129,8 +129,8 @@ export function SoireeBar() {
   const othersCount = soireeDates.length - 1;
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-40 sm:inset-x-auto sm:right-4 sm:bottom-4 sm:w-[28rem] sm:max-w-[calc(100vw-2rem)]">
-      <div className="bg-beige-papier border-t-2 sm:border-2 border-sepia-chaud sm:rounded-xl shadow-2xl pb-[env(safe-area-inset-bottom)]">
+    <div className="hidden md:block fixed z-40 md:inset-x-auto md:right-4 md:bottom-4 md:w-[28rem] md:max-w-[calc(100vw-2rem)]">
+      <div className="bg-beige-papier border-2 border-sepia-chaud rounded-xl shadow-2xl">
         <button
           type="button"
           onClick={() => setExpanded((e) => !e)}
@@ -156,16 +156,16 @@ export function SoireeBar() {
         </button>
 
         {expanded && (
-          <div className="px-3 pb-3 max-h-[55vh] overflow-y-auto border-t border-sepia-chaud/30 pt-2 space-y-1.5">
+          <div className="px-3 pb-3 max-h-[55vh] overflow-y-auto overscroll-contain border-t border-sepia-chaud/30 pt-2 space-y-1.5">
             {soireeDates.length > 1 && (
-              <div className="flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label="Choisir une soirée">
+              <div className="flex gap-1.5 overflow-x-auto snap-x snap-proximity overscroll-x-contain pb-1" role="group" aria-label="Choisir une soirée">
                 {soireeDates.map((d) => (
                   <button
                     key={d}
                     type="button"
                     onClick={() => setActiveDate(d)}
                     aria-pressed={d === displayDate}
-                    className={`font-bebas shrink-0 px-3 py-1 rounded-full border-2 text-xs uppercase tracking-wide transition-colors ${
+                    className={`font-bebas shrink-0 snap-center min-h-[44px] px-3 rounded-full border-2 text-xs uppercase tracking-wide transition-colors ${
                       d === displayDate
                         ? 'bg-rouge-cinema border-bordeaux-profond text-creme-ecran shadow-md'
                         : 'bg-creme-ecran border-sepia-chaud text-noir-velours hover:border-rouge-cinema'

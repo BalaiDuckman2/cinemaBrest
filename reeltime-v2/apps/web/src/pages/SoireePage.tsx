@@ -1,15 +1,15 @@
 import { useMemo, useState, useCallback } from 'react';
-import { DayStrip } from '../components/DayStrip';
+import { DateStrip } from '../components/DateStrip';
 import { FilmDrawer } from '../components/FilmDrawer';
 import { ErrorState } from '../components/ErrorState';
 import { FilmGridSkeleton } from '../components/Skeleton';
 import { AddToSoireeButton } from '../components/soiree/AddToSoireeButton';
 import { CandidateRow } from '../components/soiree/CandidateRow';
-import { useFilms } from '../hooks/useFilms';
+import { useFilmsRange } from '../hooks/useFilmsRange';
 import { useCinemas } from '../hooks/useCinemas';
 import { useFilmDrawer } from '../hooks/useFilmDrawer';
 import { normalizeText } from '../hooks/useFilteredFilms';
-import { weekDatesFrom, localISODate } from '../utils/dates';
+import { localISODate } from '../utils/dates';
 import { getCinemaShortName } from '../utils/cinemaNames';
 import {
   findChainable,
@@ -53,7 +53,7 @@ function sortCandidates(candidates: ChainCandidate[], sort: CandidateSort): Chai
 }
 
 export function SoireePage() {
-  const { data, isLoading, isError, refetch } = useFilms(0);
+  const { films: rangeFilms, dates: weekDates, isLoading, isError, refetch } = useFilmsRange();
   const { data: cinemas = [] } = useCinemas();
   const { isOpen, selectedFilm, openDrawer, closeDrawer } = useFilmDrawer();
 
@@ -65,11 +65,6 @@ export function SoireePage() {
   const [filmId, setFilmId] = useState<string | null>(null);
   const [anchorId, setAnchorId] = useState<string | null>(null);
   const [sort, setSort] = useState<CandidateSort>('gap');
-
-  const weekDates = useMemo(
-    () => (data?.meta.weekStart ? weekDatesFrom(data.meta.weekStart) : []),
-    [data?.meta.weekStart],
-  );
 
   const cities = useMemo(() => [...new Set(cinemas.map((c) => c.city))].sort(), [cinemas]);
 
@@ -96,8 +91,7 @@ export function SoireePage() {
 
   /** Étape 1 : films ayant au moins une séance éligible, tri popularité, filtre recherche. */
   const pickableFilms = useMemo(() => {
-    if (!data) return [];
-    return data.films
+    return rangeFilms
       .map((film) => ({ film, count: eligibleShowtimes(film).length }))
       .filter(({ film, count }) => {
         if (count === 0) return false;
@@ -105,11 +99,11 @@ export function SoireePage() {
         return true;
       })
       .sort((a, b) => (b.film.rating ?? 0) - (a.film.rating ?? 0));
-  }, [data, eligibleShowtimes, search]);
+  }, [rangeFilms, eligibleShowtimes, search]);
 
   const selectedFilmItem = useMemo(
-    () => (filmId && data ? data.films.find((f) => f.id === filmId) ?? null : null),
-    [filmId, data],
+    () => (filmId ? rangeFilms.find((f) => f.id === filmId) ?? null : null),
+    [filmId, rangeFilms],
   );
 
   const anchorShowtimes = selectedFilmItem ? eligibleShowtimes(selectedFilmItem) : [];
@@ -117,20 +111,20 @@ export function SoireePage() {
     anchorShowtimes.find((st) => st.id === anchorId) ?? anchorShowtimes[0] ?? null;
 
   const before = useMemo(() => {
-    if (!data || !selectedFilmItem || !anchor) return [];
+    if (!selectedFilmItem || !anchor) return [];
     return sortCandidates(
-      findChainable({ films: data.films, anchorFilm: selectedFilmItem, anchor, direction: 'before', cityOf }),
+      findChainable({ films: rangeFilms, anchorFilm: selectedFilmItem, anchor, direction: 'before', cityOf }),
       sort,
     );
-  }, [data, selectedFilmItem, anchor, cityOf, sort]);
+  }, [rangeFilms, selectedFilmItem, anchor, cityOf, sort]);
 
   const after = useMemo(() => {
-    if (!data || !selectedFilmItem || !anchor) return [];
+    if (!selectedFilmItem || !anchor) return [];
     return sortCandidates(
-      findChainable({ films: data.films, anchorFilm: selectedFilmItem, anchor, direction: 'after', cityOf }),
+      findChainable({ films: rangeFilms, anchorFilm: selectedFilmItem, anchor, direction: 'after', cityOf }),
       sort,
     );
-  }, [data, selectedFilmItem, anchor, cityOf, sort]);
+  }, [rangeFilms, selectedFilmItem, anchor, cityOf, sort]);
 
   const selectClass =
     'font-crimson px-2 py-2 bg-creme-ecran border-2 border-sepia-chaud rounded-lg text-noir-velours text-xs focus:outline-none focus:border-rouge-cinema focus:ring-2 focus:ring-rouge-cinema/20';
@@ -150,7 +144,7 @@ export function SoireePage() {
         </p>
 
         <div className="space-y-3">
-          <DayStrip
+          <DateStrip
             dates={weekDates}
             value={selectedDate}
             onChange={(d) => {
@@ -202,7 +196,7 @@ export function SoireePage() {
         />
       )}
 
-      {!isLoading && !isError && data && !selectedFilmItem && (
+      {!isLoading && !isError && !selectedFilmItem && (
         <>
           {/* Étape 1 : choisir le film */}
           <input
@@ -259,7 +253,7 @@ export function SoireePage() {
         </>
       )}
 
-      {!isLoading && !isError && data && selectedFilmItem && (
+      {!isLoading && !isError && selectedFilmItem && (
         <>
           {/* Étape 2 : construire autour du film */}
           <button
@@ -394,7 +388,7 @@ export function SoireePage() {
         film={selectedFilm}
         isOpen={isOpen}
         onClose={closeDrawer}
-        films={data?.films}
+        films={rangeFilms}
         cityOf={cityOf}
         onFilmSelect={openDrawer}
       />

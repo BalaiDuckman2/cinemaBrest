@@ -30,7 +30,7 @@ export function FilmCard({ film, onClick }: FilmCardProps) {
           <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-noir-velours/80 px-2 py-0.5 font-bebas text-xs text-or-antique">
             <span aria-hidden>★</span>
             <span>{film.letterboxdRating.toFixed(1)}</span>
-            <span className="text-[9px] opacity-80">LB</span>
+            <span className="text-[11px] opacity-80">LB</span>
           </div>
         )}
         <div className="absolute bottom-0 left-0 right-0 p-3">
