@@ -1,6 +1,7 @@
 export { FilmCard } from './FilmCard';
 export { FilmDrawer } from './FilmDrawer';
 export { FilmShowtimes } from './FilmShowtimes';
+export { ShowtimeRow } from './ShowtimeRow';
 export { DateStrip } from './DateStrip';
 export { BottomSheet } from './ui/BottomSheet';
 export { PlanningView } from './PlanningView';

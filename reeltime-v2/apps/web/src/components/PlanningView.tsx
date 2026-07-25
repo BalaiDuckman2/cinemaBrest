@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
 import type { FilmListItem, ShowtimeEntry } from '../types/components';
 import { formatDayLong, localISODate } from '../utils/dates';
-import { getCinemaShortName } from '../utils/cinemaNames';
-import { AddToSoireeButton } from './soiree/AddToSoireeButton';
+import { ShowtimeRow } from './ShowtimeRow';
 
 const NO_POSTER = '/images/no-poster.svg';
 
@@ -68,7 +67,7 @@ export function PlanningView({ films, dates, cityOf, onFilmClick }: PlanningView
               <span>{formatDayLong(date)}</span>
               <span className="flex items-center gap-2">
                 {date === today && (
-                  <span className="bg-or-antique text-noir-velours text-[10px] px-2 py-0.5 rounded-full">
+                  <span className="bg-or-antique text-noir-velours text-[11px] px-2 py-0.5 rounded-full">
                     Aujourd&apos;hui
                   </span>
                 )}
@@ -111,18 +110,14 @@ export function PlanningView({ films, dates, cityOf, onFilmClick }: PlanningView
                       </div>
                     </div>
                   </button>
-                  <div className="mt-1.5 flex flex-wrap gap-1 pl-[60px] sm:pl-[68px]">
+                  <div className="mt-1.5 pl-[60px] sm:pl-[68px]">
                     {showtimes.map((st) => (
-                      <span key={st.id} className="inline-flex items-stretch gap-1">
-                        <span className="font-bebas inline-flex items-baseline gap-1 bg-beige-papier border border-sepia-chaud/60 rounded px-1.5 py-0.5 text-[11px] text-noir-velours tracking-wide">
-                          <span className="font-bold">{st.time}</span>
-                          <span className="text-sepia-chaud text-[9px] uppercase">
-                            {getCinemaShortName(st.cinemaName)}
-                            {st.version && st.version !== 'VF' ? ` · ${st.version}` : ''}
-                          </span>
-                        </span>
-                        <AddToSoireeButton film={film} showtime={st} city={cityOf(st.cinemaId)} className="px-1" />
-                      </span>
+                      <ShowtimeRow
+                        key={st.id}
+                        showtime={st}
+                        film={film}
+                        city={cityOf(st.cinemaId)}
+                      />
                     ))}
                   </div>
                 </div>
