@@ -152,11 +152,6 @@ select {
   -moz-appearance: none;
 }
 
-select option {
-  background-color: #1f2937;
-  color: white;
-}
-
 /* === FILTER PANEL ANIMATION === */
 .filter-panel {
   display: grid;

@@ -102,25 +102,6 @@ export function HomePage() {
             />
           </div>
           <div className="flex shrink-0 items-center gap-2 self-start">
-            <button
-              type="button"
-              onClick={() => {
-                if (ceSoirMode) {
-                  setCeSoirMode(false);
-                } else {
-                  setSelectedDate(null);
-                  setCeSoirMode(true);
-                }
-              }}
-              aria-pressed={ceSoirMode}
-              className={`font-bebas px-3 py-1.5 rounded-lg border-2 text-xs sm:text-sm uppercase tracking-wide transition-colors ${
-                ceSoirMode
-                  ? 'bg-rouge-cinema border-bordeaux-profond text-creme-ecran shadow-md'
-                  : 'bg-creme-ecran border-sepia-chaud text-noir-velours hover:border-rouge-cinema'
-              }`}
-            >
-              🌙 Ce soir
-            </button>
             <div className="flex rounded-lg border-2 border-sepia-chaud overflow-hidden">
               {([
                 ['grid', 'Affiche'],
