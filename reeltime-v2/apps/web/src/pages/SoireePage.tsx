@@ -1,15 +1,17 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
+import { WeekNavigator } from '../components/WeekNavigator';
 import { DayStrip } from '../components/DayStrip';
 import { FilmDrawer } from '../components/FilmDrawer';
 import { ErrorState } from '../components/ErrorState';
 import { FilmGridSkeleton } from '../components/Skeleton';
 import { AddToSoireeButton } from '../components/soiree/AddToSoireeButton';
 import { CandidateRow } from '../components/soiree/CandidateRow';
-import { useFilmsRange } from '../hooks/useFilmsRange';
+import { useFilms } from '../hooks/useFilms';
+import { useWeekNavigation } from '../hooks/useWeekNavigation';
 import { useCinemas } from '../hooks/useCinemas';
 import { useFilmDrawer } from '../hooks/useFilmDrawer';
 import { normalizeText } from '../hooks/useFilteredFilms';
-import { localISODate } from '../utils/dates';
+import { firstSelectableDate, formatWeekLabel, localISODate, weekDatesFrom } from '../utils/dates';
 import { getCinemaShortName } from '../utils/cinemaNames';
 import {
   findChainable,
@@ -21,6 +23,9 @@ import {
 import type { FilmListItem, ShowtimeEntry } from '../types/components';
 
 const NO_POSTER = '/images/no-poster.svg';
+
+/** Référence stable : `?? []` en ligne recréerait un tableau à chaque rendu. */
+const NO_FILMS: FilmListItem[] = [];
 
 const START_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'Toute la journée' },
@@ -53,7 +58,14 @@ function sortCandidates(candidates: ChainCandidate[], sort: CandidateSort): Chai
 }
 
 export function SoireePage() {
-  const { films: rangeFilms, dates: weekDates, isLoading, isError, refetch } = useFilmsRange();
+  const { weekOffset, goToNextWeek, goToPrevWeek, goToToday } = useWeekNavigation();
+  const { data, isLoading, isError, refetch } = useFilms(weekOffset);
+  const weekFilms = data?.films ?? NO_FILMS;
+  const weekDates = useMemo(
+    () => (data?.meta.weekStart ? weekDatesFrom(data.meta.weekStart) : []),
+    [data?.meta.weekStart],
+  );
+  const weekLabel = formatWeekLabel(data?.meta.weekStart, data?.meta.weekEnd);
   const { data: cinemas = [] } = useCinemas();
   const { isOpen, selectedFilm, openDrawer, closeDrawer } = useFilmDrawer();
 
@@ -65,6 +77,17 @@ export function SoireePage() {
   const [filmId, setFilmId] = useState<string | null>(null);
   const [anchorId, setAnchorId] = useState<string | null>(null);
   const [sort, setSort] = useState<CandidateSort>('gap');
+
+  // Un jour est obligatoire ici : dès que la date choisie sort de la semaine
+  // affichée, on se recale sur son premier jour sélectionnable et on repart
+  // d'une feuille blanche, comme le fait le clic sur une puce de jour.
+  useEffect(() => {
+    if (weekDates.length === 0) return;
+    if (weekDates.includes(selectedDate)) return;
+    setSelectedDate(firstSelectableDate(weekDates, today));
+    setFilmId(null);
+    setAnchorId(null);
+  }, [weekDates, today, selectedDate]);
 
   const cities = useMemo(() => [...new Set(cinemas.map((c) => c.city))].sort(), [cinemas]);
 
@@ -91,7 +114,7 @@ export function SoireePage() {
 
   /** Étape 1 : films ayant au moins une séance éligible, tri popularité, filtre recherche. */
   const pickableFilms = useMemo(() => {
-    return rangeFilms
+    return weekFilms
       .map((film) => ({ film, count: eligibleShowtimes(film).length }))
       .filter(({ film, count }) => {
         if (count === 0) return false;
@@ -99,11 +122,11 @@ export function SoireePage() {
         return true;
       })
       .sort((a, b) => (b.film.rating ?? 0) - (a.film.rating ?? 0));
-  }, [rangeFilms, eligibleShowtimes, search]);
+  }, [weekFilms, eligibleShowtimes, search]);
 
   const selectedFilmItem = useMemo(
-    () => (filmId ? rangeFilms.find((f) => f.id === filmId) ?? null : null),
-    [filmId, rangeFilms],
+    () => (filmId ? weekFilms.find((f) => f.id === filmId) ?? null : null),
+    [filmId, weekFilms],
   );
 
   const anchorShowtimes = selectedFilmItem ? eligibleShowtimes(selectedFilmItem) : [];
@@ -113,18 +136,18 @@ export function SoireePage() {
   const before = useMemo(() => {
     if (!selectedFilmItem || !anchor) return [];
     return sortCandidates(
-      findChainable({ films: rangeFilms, anchorFilm: selectedFilmItem, anchor, direction: 'before', cityOf }),
+      findChainable({ films: weekFilms, anchorFilm: selectedFilmItem, anchor, direction: 'before', cityOf }),
       sort,
     );
-  }, [rangeFilms, selectedFilmItem, anchor, cityOf, sort]);
+  }, [weekFilms, selectedFilmItem, anchor, cityOf, sort]);
 
   const after = useMemo(() => {
     if (!selectedFilmItem || !anchor) return [];
     return sortCandidates(
-      findChainable({ films: rangeFilms, anchorFilm: selectedFilmItem, anchor, direction: 'after', cityOf }),
+      findChainable({ films: weekFilms, anchorFilm: selectedFilmItem, anchor, direction: 'after', cityOf }),
       sort,
     );
-  }, [rangeFilms, selectedFilmItem, anchor, cityOf, sort]);
+  }, [weekFilms, selectedFilmItem, anchor, cityOf, sort]);
 
   const selectClass =
     'font-crimson px-2 py-2 bg-creme-ecran border-2 border-sepia-chaud rounded-lg text-noir-velours text-xs focus:outline-none focus:border-rouge-cinema focus:ring-2 focus:ring-rouge-cinema/20';
@@ -144,6 +167,14 @@ export function SoireePage() {
         </p>
 
         <div className="space-y-3">
+          <WeekNavigator
+            weekOffset={weekOffset}
+            weekLabel={weekLabel}
+            onPrevWeek={goToPrevWeek}
+            onNextWeek={goToNextWeek}
+            onToday={goToToday}
+          />
+
           <DayStrip
             dates={weekDates}
             value={selectedDate}
@@ -388,7 +419,7 @@ export function SoireePage() {
         film={selectedFilm}
         isOpen={isOpen}
         onClose={closeDrawer}
-        films={rangeFilms}
+        films={weekFilms}
         cityOf={cityOf}
         onFilmSelect={openDrawer}
       />
