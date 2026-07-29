@@ -49,43 +49,6 @@ export function nowHHMM(): string {
   return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 }
 
-/** Date ISO décalée de n jours (n peut être négatif). */
-export function addDays(dateStr: string, n: number): string {
-  const d = new Date(dateStr + 'T12:00:00Z');
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-}
-
-/** Lundi de la semaine calendaire contenant dateStr. */
-export function mondayOf(dateStr: string): string {
-  const dow = new Date(dateStr + 'T12:00:00Z').getUTCDay(); // 0 = dimanche
-  return addDays(dateStr, -(dow === 0 ? 6 : dow - 1));
-}
-
-/** Toutes les dates de from à to inclus. Liste vide si to précède from. */
-export function rangeDates(from: string, to: string): string[] {
-  const out: string[] = [];
-  let cur = from;
-  while (cur <= to) {
-    out.push(cur);
-    cur = addDays(cur, 1);
-  }
-  return out;
-}
-
-/** Dernier jour couvert par `weeks` semaines à partir de la semaine de today. */
-export function rangeEnd(today: string, weeks: number): string {
-  return addDays(mondayOf(today), weeks * 7 - 1);
-}
-
-/** Nombre de semaines à charger pour que `target` tombe dans la fenêtre. */
-export function weeksNeededFor(target: string, today: string): number {
-  if (target <= today) return 1;
-  const from = Date.parse(mondayOf(today) + 'T12:00:00Z');
-  const to = Date.parse(mondayOf(target) + 'T12:00:00Z');
-  return Math.round((to - from) / (7 * 86_400_000)) + 1;
-}
-
 /**
  * Jour à présélectionner dans une semaine quand une date est obligatoire :
  * aujourd'hui si la semaine est en cours, son lundi si elle est à venir, son
