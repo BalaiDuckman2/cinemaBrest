@@ -124,6 +124,7 @@ async function getFromL2(
         genres: JSON.parse(st.film.genres),
         filmAge: st.film.filmAge,
         letterboxdRating: st.film.letterboxdRating,
+        tmdbId: st.film.tmdbId,
       });
     }
 
@@ -287,20 +288,25 @@ export async function getShowtimes(
   return { data: { films: [], showtimes: [] }, source: 'empty', stale: true };
 }
 
-// AlloCiné scrapes never carry Letterboxd ratings (they live only in the DB,
-// written by the background enrichment). Re-inject them so L1 entries built
-// from a fresh scrape don't serve null ratings until the next restart.
-async function mergeLetterboxdRatings(data: CachedShowtimeData): Promise<void> {
+// AlloCiné scrapes ne portent ni note Letterboxd ni tmdbId (les deux vivent
+// uniquement en base, écrits par l'enrichissement de fond). On les réinjecte
+// pour que les entrées L1 issues d'un scrape frais ne servent pas des valeurs
+// nulles jusqu'au prochain redémarrage. Le filtre porte sur `tmdbId` et non sur
+// la note : un film peut être résolu sur TMDB sans être noté sur Letterboxd, et
+// il mérite quand même son lien direct.
+async function mergeLetterboxdData(data: CachedShowtimeData): Promise<void> {
   const ids = data.films.map((f) => f.allocineId);
   if (ids.length === 0) return;
-  const rated = await prisma.film.findMany({
-    where: { allocineId: { in: ids }, letterboxdRating: { not: null } },
-    select: { allocineId: true, letterboxdRating: true },
+  const enriched = await prisma.film.findMany({
+    where: { allocineId: { in: ids }, tmdbId: { not: null } },
+    select: { allocineId: true, letterboxdRating: true, tmdbId: true },
   });
-  const byId = new Map(rated.map((f) => [f.allocineId, f.letterboxdRating]));
+  const byId = new Map(enriched.map((f) => [f.allocineId, f]));
   for (const film of data.films) {
-    const rating = byId.get(film.allocineId);
-    if (rating != null) film.letterboxdRating = rating;
+    const match = byId.get(film.allocineId);
+    if (!match) continue;
+    if (match.letterboxdRating != null) film.letterboxdRating = match.letterboxdRating;
+    if (match.tmdbId != null) film.tmdbId = match.tmdbId;
   }
 }
 
@@ -322,7 +328,7 @@ export async function fetchAndCacheShowtimes(
       console.warn(`[cache] Failed to store in L2 for ${cinemaAllocineId}/${date}:`, err);
     }
     try {
-      await mergeLetterboxdRatings(freshData);
+      await mergeLetterboxdData(freshData);
     } catch (err) {
       console.warn(`[cache] Failed to merge Letterboxd ratings for ${cinemaAllocineId}/${date}:`, err);
     }
