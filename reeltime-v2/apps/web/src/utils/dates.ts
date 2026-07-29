@@ -4,6 +4,10 @@ const MONTHS_FR = [
   'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
   'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
 ];
+const MONTHS_FR_SHORT = [
+  'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
+  'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.',
+];
 
 /** Today's date in the user's local timezone, as YYYY-MM-DD. */
 export function localISODate(): string {
@@ -80,4 +84,27 @@ export function weeksNeededFor(target: string, today: string): number {
   const from = Date.parse(mondayOf(today) + 'T12:00:00Z');
   const to = Date.parse(mondayOf(target) + 'T12:00:00Z');
   return Math.round((to - from) / (7 * 86_400_000)) + 1;
+}
+
+/**
+ * Jour à présélectionner dans une semaine quand une date est obligatoire :
+ * aujourd'hui si la semaine est en cours, son lundi si elle est à venir, son
+ * dernier jour si elle est révolue. Retombe sur `today` tant que la semaine
+ * n'est pas chargée.
+ */
+export function firstSelectableDate(weekDates: string[], today: string): string {
+  if (weekDates.length === 0) return today;
+  return weekDates.find((d) => d >= today) ?? weekDates[weekDates.length - 1];
+}
+
+/** "2 août" */
+function formatDayMonth(dateStr: string): string {
+  const d = new Date(dateStr + 'T12:00:00Z');
+  return `${d.getUTCDate()} ${MONTHS_FR_SHORT[d.getUTCMonth()]}`;
+}
+
+/** "27 juil. - 2 août", vide tant que la meta de la semaine n'est pas là. */
+export function formatWeekLabel(weekStart?: string, weekEnd?: string): string {
+  if (!weekStart || !weekEnd) return '';
+  return `${formatDayMonth(weekStart)} - ${formatDayMonth(weekEnd)}`;
 }
