@@ -5,7 +5,7 @@ import { FilmGridSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
 import { FilterBar, FilterSheet, ActiveFilterTags } from '../components/filters';
-import { DateStrip } from '../components/DateStrip';
+import { DayStrip } from '../components/DayStrip';
 import { PlanningView } from '../components/PlanningView';
 import { useFilmsRange } from '../hooks/useFilmsRange';
 import { useSelectedDate } from '../hooks/useSelectedDate';
@@ -54,7 +54,6 @@ export function HomePage() {
     films: rangeFilms,
     dates: weekDates,
     isLoading,
-    isLoadingMore,
     isError,
     refetch,
     loadMore,
@@ -136,15 +135,13 @@ export function HomePage() {
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-beige-papier to-transparent md:from-creme-ecran"
               />
-              <DateStrip
+              <DayStrip
                 dates={weekDates}
                 value={ceSoirMode ? today : selectedDate}
                 onChange={(d) => {
                   setCeSoirMode(false);
                   setSelectedDate(d);
                 }}
-                onLoadMore={loadMore}
-                isLoadingMore={isLoadingMore}
               />
             </div>
 

@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback } from 'react';
-import { DateStrip } from '../components/DateStrip';
+import { DayStrip } from '../components/DayStrip';
 import { FilmDrawer } from '../components/FilmDrawer';
 import { ErrorState } from '../components/ErrorState';
 import { FilmGridSkeleton } from '../components/Skeleton';
@@ -144,7 +144,7 @@ export function SoireePage() {
         </p>
 
         <div className="space-y-3">
-          <DateStrip
+          <DayStrip
             dates={weekDates}
             value={selectedDate}
             onChange={(d) => {
