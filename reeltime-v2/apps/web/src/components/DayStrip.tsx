@@ -1,15 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { formatDayShort, localISODate } from '../utils/dates';
 
-interface DateStripProps {
-  /** Toutes les dates de la fenêtre (YYYY-MM-DD), aujourd'hui en tête. */
+interface DayStripProps {
+  /** Les 7 dates (YYYY-MM-DD) de la semaine affichée, lundi -> dimanche. */
   dates: string[];
-  /** Date sélectionnée, ou null pour toute la fenêtre. */
+  /** Date sélectionnée, ou null pour toute la semaine. */
   value: string | null;
   onChange: (date: string | null) => void;
-  /** Charge une semaine de plus. Masque la puce si absent. */
-  onLoadMore?: () => void;
-  isLoadingMore?: boolean;
   /** Masque la puce « Tous » (planificateur de soirée : un jour est obligatoire). */
   hideAllChip?: boolean;
 }
@@ -20,14 +17,7 @@ function splitDayLabel(date: string): { day: string; num: string } {
   return { day, num };
 }
 
-export function DateStrip({
-  dates,
-  value,
-  onChange,
-  onLoadMore,
-  isLoadingMore = false,
-  hideAllChip = false,
-}: DateStripProps) {
+export function DayStrip({ dates, value, onChange, hideAllChip = false }: DayStripProps) {
   const today = localISODate();
   const activeRef = useRef<HTMLButtonElement>(null);
 
@@ -37,11 +27,13 @@ export function DateStrip({
     activeRef.current?.scrollIntoView({ block: 'nearest', inline: 'center' });
   }, []);
 
-  const chipClass = (selected: boolean) =>
+  const chipClass = (selected: boolean, disabled: boolean) =>
     `font-bebas shrink-0 snap-center flex flex-col items-center justify-center min-w-[52px] min-h-[48px] px-2 rounded-xl border-2 text-xs uppercase tracking-wide transition-colors ${
       selected
         ? 'bg-rouge-cinema border-bordeaux-profond text-creme-ecran shadow-md'
-        : 'bg-creme-ecran border-sepia-chaud text-noir-velours hover:border-rouge-cinema'
+        : disabled
+          ? 'bg-beige-papier border-sepia-chaud/30 text-sepia-chaud/40 cursor-not-allowed'
+          : 'bg-creme-ecran border-sepia-chaud text-noir-velours hover:border-rouge-cinema'
     }`;
 
   return (
@@ -56,50 +48,34 @@ export function DateStrip({
           ref={value === null ? activeRef : undefined}
           onClick={() => onChange(null)}
           aria-pressed={value === null}
-          className={chipClass(value === null)}
+          className={chipClass(value === null, false)}
         >
           <span>Tous</span>
-          <span className="text-[11px] opacity-80 normal-case">{dates.length} j</span>
+          <span className="text-[11px] opacity-80 normal-case">semaine</span>
         </button>
       )}
 
       {dates.map((date) => {
         const { day, num } = splitDayLabel(date);
         const isToday = date === today;
+        const isPast = date < today;
         const selected = value === date;
         return (
           <button
             key={date}
             type="button"
             ref={selected ? activeRef : undefined}
+            disabled={isPast}
             onClick={() => onChange(date)}
             aria-pressed={selected}
             aria-label={isToday ? "Aujourd'hui" : formatDayShort(date)}
-            className={chipClass(selected)}
+            className={chipClass(selected, isPast)}
           >
             <span>{isToday ? 'Auj.' : day}</span>
             <span className="font-playfair text-base font-bold leading-none">{num}</span>
           </button>
         );
       })}
-
-      {onLoadMore && (
-        <button
-          type="button"
-          onClick={onLoadMore}
-          disabled={isLoadingMore}
-          className="font-bebas shrink-0 flex flex-col items-center justify-center min-w-[52px] min-h-[48px] px-2 rounded-xl border-2 border-dashed border-sepia-chaud bg-beige-papier text-sepia-chaud text-xs uppercase tracking-wide hover:border-rouge-cinema hover:text-rouge-cinema transition-colors disabled:opacity-50"
-        >
-          {isLoadingMore ? (
-            <span>…</span>
-          ) : (
-            <>
-              <span>+7</span>
-              <span className="text-[11px] normal-case">jours</span>
-            </>
-          )}
-        </button>
-      )}
     </div>
   );
 }
