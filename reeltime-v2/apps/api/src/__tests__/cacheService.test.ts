@@ -128,6 +128,7 @@ describe('cacheService', () => {
             genres: [],
             filmAge: 0,
             letterboxdRating: null,
+            tmdbId: null,
           },
         ],
         showtimes: [
@@ -151,7 +152,7 @@ describe('cacheService', () => {
       prismaMock.cacheMetadata.upsert.mockResolvedValue({} as never);
       // The film was already enriched in a previous run
       prismaMock.film.findMany.mockResolvedValue([
-        { allocineId: 123, letterboxdRating: 4.2 },
+        { allocineId: 123, letterboxdRating: 4.2, tmdbId: 426063 },
       ] as never);
 
       await fetchAndCacheShowtimes('P0153', '2026-06-12');
@@ -159,6 +160,61 @@ describe('cacheService', () => {
       const cached = mockStore.get('showtimes:P0153:2026-06-12') as CachedShowtimeData;
       expect(cached).toBeDefined();
       expect(cached.films[0].letterboxdRating).toBe(4.2);
+      // The TMDB id rides along so the film list can build a direct Letterboxd link.
+      expect(cached.films[0].tmdbId).toBe(426063);
+    });
+
+    it('merges the TMDB id even when the film has no letterboxd rating', async () => {
+      // Found on TMDB but not rated on Letterboxd: the direct link is still better
+      // than a search.
+      vi.mocked(getShowtimesForCinema).mockResolvedValue({
+        films: [
+          {
+            allocineId: 456,
+            title: 'Film B',
+            year: 2024,
+            posterUrl: null,
+            synopsis: null,
+            cast: [],
+            director: null,
+            rating: null,
+            productionYear: 2024,
+            releaseDate: null,
+            runtime: null,
+            genres: [],
+            filmAge: 0,
+            letterboxdRating: null,
+            tmdbId: null,
+          },
+        ],
+        showtimes: [
+          {
+            filmAllocineId: 456,
+            cinemaAllocineId: 'P0153',
+            date: '2026-06-13',
+            startsAt: '2026-06-13T20:00:00',
+            version: 'VF',
+            bookingUrl: null,
+          },
+        ],
+      } as CachedShowtimeData);
+
+      const prismaMock = vi.mocked(prisma, true);
+      prismaMock.cinema.findUnique.mockResolvedValue({ id: 1, allocineId: 'P0153' } as never);
+      prismaMock.film.upsert.mockResolvedValue({} as never);
+      prismaMock.film.findUnique.mockResolvedValue({ id: 11, allocineId: 456 } as never);
+      prismaMock.showtime.deleteMany.mockResolvedValue({ count: 0 } as never);
+      prismaMock.showtime.create.mockResolvedValue({} as never);
+      prismaMock.cacheMetadata.upsert.mockResolvedValue({} as never);
+      prismaMock.film.findMany.mockResolvedValue([
+        { allocineId: 456, letterboxdRating: null, tmdbId: 999 },
+      ] as never);
+
+      await fetchAndCacheShowtimes('P0153', '2026-06-13');
+
+      const cached = mockStore.get('showtimes:P0153:2026-06-13') as CachedShowtimeData;
+      expect(cached.films[0].tmdbId).toBe(999);
+      expect(cached.films[0].letterboxdRating).toBeNull();
     });
   });
 });

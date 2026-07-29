@@ -142,7 +142,7 @@ export async function getFilmsForWeek(weekOffset: number): Promise<FilmListRespo
       letterboxdRating: film.letterboxdRating,
       runtime: film.runtime,
       totalShowtimes: showtimes.length,
-      letterboxdUrl: generateLetterboxdUrl(film.title),
+      letterboxdUrl: generateLetterboxdUrl(film.title, film.tmdbId),
       showtimes,
     });
   }
@@ -210,7 +210,7 @@ export async function getFilmById(id: number): Promise<FilmDetailResponse | null
     rating: film.rating,
     letterboxdRating: film.letterboxdRating,
     filmAge: film.filmAge,
-    letterboxdUrl: generateLetterboxdUrl(film.title),
+    letterboxdUrl: generateLetterboxdUrl(film.title, film.tmdbId),
     showtimesByDate,
   };
 }
@@ -340,7 +340,7 @@ export async function searchAllFilms(
       letterboxdRating: film.letterboxdRating,
       runtime: film.runtime,
       totalShowtimes: showtimes.length,
-      letterboxdUrl: generateLetterboxdUrl(film.title),
+      letterboxdUrl: generateLetterboxdUrl(film.title, film.tmdbId),
       showtimes,
     });
   }

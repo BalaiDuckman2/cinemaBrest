@@ -58,6 +58,8 @@ export interface ParsedFilm {
   genres: string[];
   filmAge: number | null;
   letterboxdRating: number | null;
+  /** Posé par l'enrichissement TMDB, jamais par le scrape. Sert le lien Letterboxd direct. */
+  tmdbId: number | null;
 }
 
 export interface ParsedShowtime {
@@ -258,6 +260,7 @@ export function parseAllocineResponse(
         genres: (movie.genres ?? []).map((g) => g.translate).filter(Boolean),
         filmAge,
         letterboxdRating: null,
+        tmdbId: null,
       });
     }
 

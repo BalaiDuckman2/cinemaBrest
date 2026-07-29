@@ -9,7 +9,15 @@ const ACCENT_MAP: Record<string, string> = {
 
 const STRIP_CHARS = /[':.,!?]/g;
 
-export function generateLetterboxdUrl(title: string): string {
+/**
+ * Lien Letterboxd d'un film. Avec un `tmdbId` (posé par l'enrichissement), on
+ * pointe la page du film : `letterboxd.com/tmdb/{id}/` redirige vers l'URL
+ * canonique. Sans lui, on retombe sur une recherche par titre — c'est le cas
+ * des films pas encore enrichis ou introuvables sur TMDB.
+ */
+export function generateLetterboxdUrl(title: string, tmdbId?: number | null): string {
+  if (tmdbId != null) return `https://letterboxd.com/tmdb/${tmdbId}/`;
+
   let clean = title.toLowerCase();
 
   // Replace accented characters
