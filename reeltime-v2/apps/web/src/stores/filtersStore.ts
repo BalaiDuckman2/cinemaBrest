@@ -1,23 +1,22 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { TimeRange } from '../utils/timeRange';
 
 export type SortOption = 'popularity' | 'alphabetical' | 'year-desc' | 'year-asc' | 'showtimes' | 'letterboxd';
-export type TimeSlotFilter = 'all' | 'morning' | 'afternoon' | 'evening' | 'night';
 export type MinAgeFilter = 0 | 1 | 5 | 10 | 20 | 30 | 50;
 export type ViewMode = 'grid' | 'planning';
 
 interface FiltersState {
   searchQuery: string;
   selectedCinemas: string[];
-  selectedDepartment: string | null;
   selectedCity: string | null;
   version: 'VO' | 'VF' | 'VOST' | null;
-  minTime: string | null;
   minRating: number | null;
   sort: SortOption;
   /** Specific date (YYYY-MM-DD) selected in the day strip; null = whole week. Transient. */
   selectedDate: string | null;
-  timeSlot: TimeSlotFilter;
+  /** Plage horaire choisie au slider ; null = plage complète, aucun filtre. Transitoire. */
+  timeRange: TimeRange | null;
   minAge: MinAgeFilter;
   viewMode: ViewMode;
   /** Mode « Ce soir » : overlay transitoire (aujourd'hui, séances >= max(18h, maintenant)). Jamais persisté. */
@@ -25,14 +24,12 @@ interface FiltersState {
   setSearchQuery: (q: string) => void;
   toggleCinema: (cinemaId: string) => void;
   setSelectedCinemas: (ids: string[]) => void;
-  setDepartment: (dept: string | null) => void;
   setCity: (city: string | null) => void;
   setVersion: (v: 'VO' | 'VF' | 'VOST' | null) => void;
-  setMinTime: (t: string | null) => void;
   setMinRating: (r: number | null) => void;
   setSort: (s: SortOption) => void;
   setSelectedDate: (d: string | null) => void;
-  setTimeSlot: (t: TimeSlotFilter) => void;
+  setTimeRange: (r: TimeRange | null) => void;
   setMinAge: (a: MinAgeFilter) => void;
   setViewMode: (m: ViewMode) => void;
   setCeSoirMode: (v: boolean) => void;
@@ -44,14 +41,12 @@ export const useFiltersStore = create<FiltersState>()(
     (set) => ({
       searchQuery: '',
       selectedCinemas: [],
-      selectedDepartment: null,
       selectedCity: null,
       version: null,
-      minTime: null,
       minRating: null,
       sort: 'popularity',
       selectedDate: null,
-      timeSlot: 'all',
+      timeRange: null,
       minAge: 0,
       viewMode: 'grid',
       ceSoirMode: false,
@@ -63,31 +58,28 @@ export const useFiltersStore = create<FiltersState>()(
             : [...state.selectedCinemas, cinemaId],
         })),
       setSelectedCinemas: (selectedCinemas) => set({ selectedCinemas }),
-      setDepartment: (selectedDepartment) => set({ selectedDepartment }),
       setCity: (selectedCity) => set({ selectedCity }),
       setVersion: (version) => set({ version }),
-      setMinTime: (minTime) => set({ minTime }),
       setMinRating: (minRating) => set({ minRating }),
       setSort: (sort) => set({ sort }),
       setSelectedDate: (selectedDate) => set({ selectedDate }),
-      setTimeSlot: (timeSlot) => set({ timeSlot }),
+      setTimeRange: (timeRange) => set({ timeRange }),
       setMinAge: (minAge) => set({ minAge }),
       setViewMode: (viewMode) => set({ viewMode }),
       setCeSoirMode: (ceSoirMode) => set({ ceSoirMode }),
       resetAll: () =>
-        set({ searchQuery: '', selectedCinemas: [], selectedDepartment: null, selectedCity: null, version: null, minTime: null, minRating: null, sort: 'popularity', selectedDate: null, timeSlot: 'all', minAge: 0, ceSoirMode: false }),
+        set({ searchQuery: '', selectedCinemas: [], selectedCity: null, version: null, minRating: null, sort: 'popularity', selectedDate: null, timeRange: null, minAge: 0, ceSoirMode: false }),
     }),
     {
       name: 'reeltime-filters',
+      // `timeRange` en est volontairement absent : les bornes se recalculent à
+      // chaque jour, restaurer la plage d'hier produirait un filtre invisible.
       partialize: (state) => ({
         selectedCinemas: state.selectedCinemas,
-        selectedDepartment: state.selectedDepartment,
         selectedCity: state.selectedCity,
         version: state.version,
-        minTime: state.minTime,
         minRating: state.minRating,
         sort: state.sort,
-        timeSlot: state.timeSlot,
         minAge: state.minAge,
         viewMode: state.viewMode,
       }),
