@@ -5,7 +5,7 @@ import type { TimeRange } from '../../utils/timeRange';
 import { AgeSlider } from './AgeSlider';
 import { FilterSelect } from './FilterSelect';
 import { TimeRangeSlider } from './TimeRangeSlider';
-import { DEPARTMENTS, SORT_OPTIONS, VERSION_OPTIONS } from './filterOptions';
+import { SORT_OPTIONS, VERSION_OPTIONS } from './filterOptions';
 
 interface Cinema {
   id: string;
@@ -22,8 +22,6 @@ export function FilterControls({ cinemas, timeBounds }: FilterControlsProps) {
   const selectedCinemas = useFiltersStore((s) => s.selectedCinemas);
   const toggleCinema = useFiltersStore((s) => s.toggleCinema);
   const setSelectedCinemas = useFiltersStore((s) => s.setSelectedCinemas);
-  const selectedDepartment = useFiltersStore((s) => s.selectedDepartment);
-  const setDepartment = useFiltersStore((s) => s.setDepartment);
   const selectedCity = useFiltersStore((s) => s.selectedCity);
   const setCity = useFiltersStore((s) => s.setCity);
   const version = useFiltersStore((s) => s.version);
@@ -34,50 +32,22 @@ export function FilterControls({ cinemas, timeBounds }: FilterControlsProps) {
   const setCeSoirMode = useFiltersStore((s) => s.setCeSoirMode);
   const setSelectedDate = useFiltersStore((s) => s.setSelectedDate);
 
-  const availableCities = selectedDepartment
-    ? DEPARTMENTS.find((d) => d.label === selectedDepartment)?.cities ?? []
-    : DEPARTMENTS.flatMap((d) => d.cities);
-
-  const visibleCinemas = cinemas.filter((cinema) => {
-    if (selectedCity) return cinema.city === selectedCity;
-    if (selectedDepartment) return availableCities.includes(cinema.city);
-    return true;
-  });
-
+  // Les villes viennent des cinémas eux-mêmes : plus de liste à maintenir à la main.
+  const cities = Array.from(new Set(cinemas.map((c) => c.city))).sort();
   const cityOptions = [
-    { value: 'all', label: 'Toutes villes' },
-    ...availableCities.map((c) => ({ value: c, label: c })),
-  ];
-  const departmentOptions = [
-    { value: 'all', label: 'Tous départements' },
-    ...DEPARTMENTS.map((d) => ({ value: d.label, label: d.label })),
+    { value: 'all', label: 'Toutes les villes' },
+    ...cities.map((c) => ({ value: c, label: c })),
   ];
 
-  const handleDepartmentChange = (value: string) => {
-    const dept = value === 'all' ? null : value;
-    setDepartment(dept);
-    setCity(null);
-    if (!dept) {
-      setSelectedCinemas([]);
-      return;
-    }
-    const deptCities = DEPARTMENTS.find((d) => d.label === dept)?.cities ?? [];
-    setSelectedCinemas(cinemas.filter((c) => deptCities.includes(c.city)).map((c) => c.id));
-  };
+  const visibleCinemas = selectedCity
+    ? cinemas.filter((cinema) => cinema.city === selectedCity)
+    : cinemas;
 
+  // Changer de ville vide les puces : sinon des cinémas d'une autre ville
+  // resteraient cochés, invisibles à l'écran, et filtreraient en douce.
   const handleCityChange = (value: string) => {
-    const city = value === 'all' ? null : value;
-    setCity(city);
-    if (!city) {
-      if (selectedDepartment) {
-        const deptCities = DEPARTMENTS.find((d) => d.label === selectedDepartment)?.cities ?? [];
-        setSelectedCinemas(cinemas.filter((c) => deptCities.includes(c.city)).map((c) => c.id));
-      } else {
-        setSelectedCinemas([]);
-      }
-      return;
-    }
-    setSelectedCinemas(cinemas.filter((c) => c.city === city).map((c) => c.id));
+    setCity(value === 'all' ? null : value);
+    setSelectedCinemas([]);
   };
 
   return (
@@ -113,10 +83,7 @@ export function FilterControls({ cinemas, timeBounds }: FilterControlsProps) {
 
       <AgeSlider />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
-        <FilterSelect label="Département" value={selectedDepartment ?? 'all'} options={departmentOptions} onChange={handleDepartmentChange} />
-        <FilterSelect label="Ville" value={selectedCity ?? 'all'} options={cityOptions} onChange={handleCityChange} />
-      </div>
+      <FilterSelect label="Ville" value={selectedCity ?? 'all'} options={cityOptions} onChange={handleCityChange} />
 
       <div className="flex flex-wrap gap-2">
         {visibleCinemas.map((cinema) => {

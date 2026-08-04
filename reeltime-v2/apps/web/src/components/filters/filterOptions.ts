@@ -18,6 +18,3 @@ export const VERSION_OPTIONS: FilterOption[] = [
   { value: 'VO', label: 'VO/VOST' },
 ];
 
-export const DEPARTMENTS = [
-  { label: 'Finistère (29)', cities: ['Brest', 'Landerneau', 'Morlaix', 'Quimper'] },
-];
