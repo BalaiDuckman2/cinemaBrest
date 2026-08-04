@@ -1,14 +1,16 @@
 import { BottomSheet } from '../ui/BottomSheet';
 import { FilterControls } from './FilterControls';
 import { useFiltersStore } from '../../stores/filtersStore';
+import type { TimeRange } from '../../utils/timeRange';
 
 interface FilterSheetProps {
   open: boolean;
   onClose: () => void;
   cinemas: { id: string; name: string; city: string }[];
+  timeBounds: TimeRange | null;
 }
 
-export function FilterSheet({ open, onClose, cinemas }: FilterSheetProps) {
+export function FilterSheet({ open, onClose, cinemas, timeBounds }: FilterSheetProps) {
   const resetAll = useFiltersStore((s) => s.resetAll);
 
   return (
@@ -24,7 +26,7 @@ export function FilterSheet({ open, onClose, cinemas }: FilterSheetProps) {
             Tout effacer
           </button>
         </div>
-        <FilterControls cinemas={cinemas} />
+        <FilterControls cinemas={cinemas} timeBounds={timeBounds} />
       </div>
     </BottomSheet>
   );

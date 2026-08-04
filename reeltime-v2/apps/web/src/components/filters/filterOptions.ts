@@ -18,32 +18,3 @@ export const VERSION_OPTIONS: FilterOption[] = [
   { value: 'VO', label: 'VO/VOST' },
 ];
 
-export const TIME_SLOT_OPTIONS: FilterOption[] = [
-  { value: 'all', label: 'Tous horaires' },
-  { value: 'morning', label: 'Matin' },
-  { value: 'afternoon', label: 'Après-midi' },
-  { value: 'evening', label: 'Soirée' },
-  { value: 'night', label: 'Nuit' },
-];
-
-export const MIN_AGE_OPTIONS: FilterOption[] = [
-  { value: '0', label: 'Tous films' },
-  { value: '1', label: '+1 an' },
-  { value: '5', label: '+5 ans' },
-  { value: '10', label: '+10 ans' },
-  { value: '20', label: '+20 ans' },
-  { value: '30', label: '+30 ans' },
-  { value: '50', label: '+50 ans' },
-];
-
-export const DEPARTMENTS = [
-  { label: 'Finistère (29)', cities: ['Brest', 'Landerneau', 'Morlaix', 'Quimper'] },
-];
-
-/** Libellés courts des créneaux, pour les étiquettes de filtres actifs. */
-export const TIME_LABELS: Record<string, string> = {
-  morning: 'Matin',
-  afternoon: 'Après-midi',
-  evening: 'Soirée',
-  night: 'Nuit',
-};

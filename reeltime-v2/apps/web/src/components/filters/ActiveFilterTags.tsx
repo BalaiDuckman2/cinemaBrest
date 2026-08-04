@@ -1,5 +1,5 @@
 import { useFiltersStore } from '../../stores/filtersStore';
-import { DEPARTMENTS, TIME_LABELS } from './filterOptions';
+import { formatTimeLabel } from '../../utils/timeRange';
 
 interface Cinema {
   id: string;
@@ -18,38 +18,24 @@ const SORT_LABELS: Record<string, string> = {
 export function ActiveFilterTags({ cinemas }: { cinemas: Cinema[] }) {
   const selectedCinemas = useFiltersStore((s) => s.selectedCinemas);
   const setSelectedCinemas = useFiltersStore((s) => s.setSelectedCinemas);
-  const selectedDepartment = useFiltersStore((s) => s.selectedDepartment);
-  const setDepartment = useFiltersStore((s) => s.setDepartment);
   const selectedCity = useFiltersStore((s) => s.selectedCity);
   const setCity = useFiltersStore((s) => s.setCity);
   const version = useFiltersStore((s) => s.version);
   const setVersion = useFiltersStore((s) => s.setVersion);
   const sort = useFiltersStore((s) => s.sort);
   const setSort = useFiltersStore((s) => s.setSort);
-  const timeSlot = useFiltersStore((s) => s.timeSlot);
-  const setTimeSlot = useFiltersStore((s) => s.setTimeSlot);
+  const timeRange = useFiltersStore((s) => s.timeRange);
+  const setTimeRange = useFiltersStore((s) => s.setTimeRange);
   const minAge = useFiltersStore((s) => s.minAge);
   const setMinAge = useFiltersStore((s) => s.setMinAge);
   const ceSoirMode = useFiltersStore((s) => s.ceSoirMode);
   const setCeSoirMode = useFiltersStore((s) => s.setCeSoirMode);
   const resetAll = useFiltersStore((s) => s.resetAll);
 
-  // Retirer l'étiquette « département » remet la sélection de cinémas à zéro,
-  // exactement comme le fait le sélecteur correspondant.
-  const clearDepartment = () => {
-    setDepartment(null);
-    setCity(null);
-    setSelectedCinemas([]);
-  };
-
+  // Retirer la ville vide aussi les puces, comme le fait le sélecteur.
   const clearCity = () => {
     setCity(null);
-    if (selectedDepartment) {
-      const deptCities = DEPARTMENTS.find((d) => d.label === selectedDepartment)?.cities ?? [];
-      setSelectedCinemas(cinemas.filter((c) => deptCities.includes(c.city)).map((c) => c.id));
-    } else {
-      setSelectedCinemas([]);
-    }
+    setSelectedCinemas([]);
   };
 
   const tags: { label: string; onRemove: () => void }[] = [];
@@ -60,15 +46,15 @@ export function ActiveFilterTags({ cinemas }: { cinemas: Cinema[] }) {
   if (version !== null) {
     tags.push({ label: version === 'VF' ? 'VF' : 'VO/VOST', onRemove: () => setVersion(null) });
   }
-  if (!ceSoirMode && timeSlot !== 'all') {
-    tags.push({ label: TIME_LABELS[timeSlot] ?? timeSlot, onRemove: () => setTimeSlot('all') });
+  if (!ceSoirMode && timeRange !== null) {
+    tags.push({
+      label: `${formatTimeLabel(timeRange.start)} – ${formatTimeLabel(timeRange.end)}`,
+      onRemove: () => setTimeRange(null),
+    });
   }
   if (minAge !== 0) tags.push({ label: `+${minAge} ans`, onRemove: () => setMinAge(0) });
-  if (selectedDepartment !== null) {
-    tags.push({ label: selectedDepartment, onRemove: clearDepartment });
-  }
   if (selectedCity !== null) tags.push({ label: selectedCity, onRemove: clearCity });
-  if (selectedCinemas.length > 0 && selectedDepartment === null) {
+  if (selectedCinemas.length > 0) {
     tags.push({
       label: `${selectedCinemas.length} cinéma${selectedCinemas.length > 1 ? 's' : ''}`,
       onRemove: () => setSelectedCinemas([]),

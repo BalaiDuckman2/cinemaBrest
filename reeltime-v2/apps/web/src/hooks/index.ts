@@ -5,3 +5,4 @@ export { useWeekNavigation } from './useWeekNavigation';
 export { useScrollLock } from './useScrollLock';
 export { useCinemas } from './useCinemas';
 export { useFilteredFilms } from './useFilteredFilms';
+export { useTimeRangeReset } from './useTimeRangeReset';
