@@ -1,14 +1,11 @@
 import { useFiltersStore } from '../../stores/filtersStore';
-import type { SortOption, TimeSlotFilter } from '../../stores/filtersStore';
+import type { SortOption } from '../../stores/filtersStore';
 import { getCinemaShortName } from '../../utils/cinemaNames';
+import type { TimeRange } from '../../utils/timeRange';
 import { AgeSlider } from './AgeSlider';
 import { FilterSelect } from './FilterSelect';
-import {
-  DEPARTMENTS,
-  SORT_OPTIONS,
-  TIME_SLOT_OPTIONS,
-  VERSION_OPTIONS,
-} from './filterOptions';
+import { TimeRangeSlider } from './TimeRangeSlider';
+import { DEPARTMENTS, SORT_OPTIONS, VERSION_OPTIONS } from './filterOptions';
 
 interface Cinema {
   id: string;
@@ -16,7 +13,12 @@ interface Cinema {
   city: string;
 }
 
-export function FilterControls({ cinemas }: { cinemas: Cinema[] }) {
+interface FilterControlsProps {
+  cinemas: Cinema[];
+  timeBounds: TimeRange | null;
+}
+
+export function FilterControls({ cinemas, timeBounds }: FilterControlsProps) {
   const selectedCinemas = useFiltersStore((s) => s.selectedCinemas);
   const toggleCinema = useFiltersStore((s) => s.toggleCinema);
   const setSelectedCinemas = useFiltersStore((s) => s.setSelectedCinemas);
@@ -28,8 +30,6 @@ export function FilterControls({ cinemas }: { cinemas: Cinema[] }) {
   const setVersion = useFiltersStore((s) => s.setVersion);
   const sort = useFiltersStore((s) => s.sort);
   const setSort = useFiltersStore((s) => s.setSort);
-  const timeSlot = useFiltersStore((s) => s.timeSlot);
-  const setTimeSlot = useFiltersStore((s) => s.setTimeSlot);
   const ceSoirMode = useFiltersStore((s) => s.ceSoirMode);
   const setCeSoirMode = useFiltersStore((s) => s.setCeSoirMode);
   const setSelectedDate = useFiltersStore((s) => s.setSelectedDate);
@@ -104,11 +104,12 @@ export function FilterControls({ cinemas }: { cinemas: Cinema[] }) {
         <span className="text-xs">{ceSoirMode ? 'Activé' : 'Désactivé'}</span>
       </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
         <FilterSelect label="Tri" value={sort} options={SORT_OPTIONS} onChange={(v) => setSort(v as SortOption)} />
         <FilterSelect label="Version" value={version ?? 'all'} options={VERSION_OPTIONS} onChange={(v) => setVersion(v === 'all' ? null : (v as 'VF' | 'VO' | 'VOST'))} />
-        <FilterSelect label="Horaires" value={timeSlot} options={TIME_SLOT_OPTIONS} onChange={(v) => setTimeSlot(v as TimeSlotFilter)} />
       </div>
+
+      <TimeRangeSlider bounds={timeBounds} />
 
       <AgeSlider />
 

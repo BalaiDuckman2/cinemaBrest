@@ -1,8 +1,15 @@
 import { useDeferredValue, useMemo } from 'react';
 import { useFiltersStore } from '../stores/filtersStore';
 import { localISODate, nowHHMM } from '../utils/dates';
+import { computeTimeBounds, isInTimeRange, type TimeRange } from '../utils/timeRange';
+import { cinemaIdsForCity } from '../utils/cinemaFilter';
 import type { FilmListItem } from '../types/components';
-import type { TimeSlotFilter } from '../stores/filtersStore';
+
+interface Cinema {
+  id: string;
+  name: string;
+  city: string;
+}
 
 export function normalizeText(text: string): string {
   return text
@@ -15,31 +22,15 @@ function matchesSearch(title: string, query: string): boolean {
   return normalizeText(title).includes(normalizeText(query));
 }
 
-/** Check if a showtime's time matches the time slot filter */
-function matchesTimeSlot(time: string, timeSlot: TimeSlotFilter): boolean {
-  if (timeSlot === 'all') return true;
-  const hourMatch = time.match(/^(\d{1,2})/);
-  if (!hourMatch) return false;
-  const hour = parseInt(hourMatch[1]);
-
-  switch (timeSlot) {
-    case 'morning': return hour < 12;
-    case 'afternoon': return hour >= 12 && hour < 18;
-    case 'evening': return hour >= 18 && hour < 22;
-    case 'night': return hour >= 22;
-    default: return true;
-  }
-}
-
-export function useFilteredFilms(films: FilmListItem[]) {
+export function useFilteredFilms(films: FilmListItem[], cinemas: Cinema[]) {
   const searchQuery = useFiltersStore((s) => s.searchQuery);
   const selectedCinemas = useFiltersStore((s) => s.selectedCinemas);
+  const selectedCity = useFiltersStore((s) => s.selectedCity);
   const version = useFiltersStore((s) => s.version);
-  const minTime = useFiltersStore((s) => s.minTime);
   const minRating = useFiltersStore((s) => s.minRating);
   const sort = useFiltersStore((s) => s.sort);
   const selectedDate = useFiltersStore((s) => s.selectedDate);
-  const timeSlot = useFiltersStore((s) => s.timeSlot);
+  const timeRange = useFiltersStore((s) => s.timeRange);
   const minAge = useFiltersStore((s) => s.minAge);
   const ceSoirMode = useFiltersStore((s) => s.ceSoirMode);
 
@@ -47,7 +38,7 @@ export function useFilteredFilms(films: FilmListItem[]) {
   // saisie fluide : React recalcule en tâche de fond sans bloquer la frappe.
   const deferredQuery = useDeferredValue(searchQuery);
 
-  const filteredFilms = useMemo(() => {
+  const memo = useMemo(() => {
     let result = films;
 
     // Search by title
@@ -55,12 +46,16 @@ export function useFilteredFilms(films: FilmListItem[]) {
       result = result.filter((film) => matchesSearch(film.title, deferredQuery));
     }
 
-    // Filter by cinema (empty = all cinemas)
-    if (selectedCinemas.length > 0) {
+    // Ville et puces sont deux niveaux du même filtre : les puces cochées
+    // priment, sinon la ville sélectionnée fournit la liste des cinémas.
+    const effectiveCinemaIds =
+      selectedCinemas.length > 0 ? selectedCinemas : cinemaIdsForCity(cinemas, selectedCity);
+
+    if (effectiveCinemaIds) {
       result = result
         .map((film) => ({
           ...film,
-          showtimes: film.showtimes.filter((st) => selectedCinemas.includes(st.cinemaId)),
+          showtimes: film.showtimes.filter((st) => effectiveCinemaIds.includes(st.cinemaId)),
         }))
         .filter((film) => film.showtimes.length > 0);
     }
@@ -90,8 +85,22 @@ export function useFilteredFilms(films: FilmListItem[]) {
         .filter((film) => film.showtimes.length > 0);
     }
 
+    // Âge et note portent sur le film entier, pas sur ses séances : les appliquer
+    // avant le découpage horaire ne change pas le résultat, mais garantit que les
+    // bornes du slider sont calculées sur les films réellement affichés.
+    if (minAge > 0) {
+      result = result.filter((film) => (film.filmAge ?? 0) >= minAge);
+    }
+
+    if (minRating !== null) {
+      result = result.filter((film) => (film.rating ?? 0) >= minRating);
+    }
+
+    let bounds: TimeRange | null = null;
+
     if (ceSoirMode) {
-      // "Ce soir" overlay: today only, from max(18:00, now). Replaces selectedDate/timeSlot.
+      // "Ce soir" overlay: today only, from max(18:00, now). Remplace selectedDate
+      // et le filtre horaire, qui est alors ignoré.
       const today = localISODate();
       const now = nowHHMM();
       const minStart = now > '18:00' ? now : '18:00';
@@ -114,35 +123,18 @@ export function useFilteredFilms(films: FilmListItem[]) {
           .filter((film) => film.showtimes.length > 0);
       }
 
-      // Filter by time slot
-      if (timeSlot !== 'all') {
+      // Bornes calculées avant d'appliquer la plage : sinon le filtre
+      // rétrécirait ses propres bornes à chaque rendu.
+      bounds = computeTimeBounds(result);
+
+      if (timeRange) {
         result = result
           .map((film) => ({
             ...film,
-            showtimes: film.showtimes.filter((st) => matchesTimeSlot(st.time, timeSlot)),
+            showtimes: film.showtimes.filter((st) => isInTimeRange(st.time, timeRange)),
           }))
           .filter((film) => film.showtimes.length > 0);
       }
-    }
-
-    // Filter by minimum time (kept for backward compatibility)
-    if (minTime) {
-      result = result
-        .map((film) => ({
-          ...film,
-          showtimes: film.showtimes.filter((st) => st.time >= minTime),
-        }))
-        .filter((film) => film.showtimes.length > 0);
-    }
-
-    // Filter by minimum film age
-    if (minAge > 0) {
-      result = result.filter((film) => (film.filmAge ?? 0) >= minAge);
-    }
-
-    // Filter by minimum rating
-    if (minRating !== null) {
-      result = result.filter((film) => (film.rating ?? 0) >= minRating);
     }
 
     // Sort
@@ -164,18 +156,20 @@ export function useFilteredFilms(films: FilmListItem[]) {
       }
     });
 
-    return result;
-  }, [films, deferredQuery, selectedCinemas, version, minTime, minRating, sort, selectedDate, timeSlot, minAge, ceSoirMode]);
+    return { films: result, timeBounds: bounds };
+  }, [films, cinemas, deferredQuery, selectedCinemas, selectedCity, version, minRating, sort, selectedDate, timeRange, minAge, ceSoirMode]);
+
+  const { films: filteredFilms, timeBounds } = memo;
 
   const activeFilterCount =
     (searchQuery ? 1 : 0) +
     (selectedCinemas.length > 0 ? 1 : 0) +
+    (selectedCity !== null ? 1 : 0) +
     (version ? 1 : 0) +
     (ceSoirMode ? 1 : 0) +
-    (!ceSoirMode && timeSlot !== 'all' ? 1 : 0) +
+    (!ceSoirMode && timeRange !== null ? 1 : 0) +
     (minAge > 0 ? 1 : 0) +
-    (minTime ? 1 : 0) +
     (minRating !== null ? 1 : 0);
 
-  return { filteredFilms, activeFilterCount, hasActiveFilters: activeFilterCount > 0 };
+  return { filteredFilms, activeFilterCount, hasActiveFilters: activeFilterCount > 0, timeBounds };
 }

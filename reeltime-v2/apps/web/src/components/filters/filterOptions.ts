@@ -18,22 +18,6 @@ export const VERSION_OPTIONS: FilterOption[] = [
   { value: 'VO', label: 'VO/VOST' },
 ];
 
-export const TIME_SLOT_OPTIONS: FilterOption[] = [
-  { value: 'all', label: 'Tous horaires' },
-  { value: 'morning', label: 'Matin' },
-  { value: 'afternoon', label: 'Après-midi' },
-  { value: 'evening', label: 'Soirée' },
-  { value: 'night', label: 'Nuit' },
-];
-
 export const DEPARTMENTS = [
   { label: 'Finistère (29)', cities: ['Brest', 'Landerneau', 'Morlaix', 'Quimper'] },
 ];
-
-/** Libellés courts des créneaux, pour les étiquettes de filtres actifs. */
-export const TIME_LABELS: Record<string, string> = {
-  morning: 'Matin',
-  afternoon: 'Après-midi',
-  evening: 'Soirée',
-  night: 'Nuit',
-};

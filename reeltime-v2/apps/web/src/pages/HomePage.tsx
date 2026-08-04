@@ -12,6 +12,7 @@ import { useFilms } from '../hooks/useFilms';
 import { useWeekNavigation } from '../hooks/useWeekNavigation';
 import { useFilmDrawer } from '../hooks/useFilmDrawer';
 import { useFilteredFilms } from '../hooks/useFilteredFilms';
+import { useTimeRangeReset } from '../hooks/useTimeRangeReset';
 import { useCinemas } from '../hooks/useCinemas';
 import { useFiltersStore } from '../stores/filtersStore';
 import { formatWeekLabel, localISODate, weekDatesFrom } from '../utils/dates';
@@ -113,7 +114,8 @@ export function HomePage() {
   }, [weekOffset, setSelectedDate, setCeSoirMode]);
 
   const films = data?.films ?? NO_FILMS;
-  const { filteredFilms, activeFilterCount, hasActiveFilters } = useFilteredFilms(films);
+  const { filteredFilms, activeFilterCount, hasActiveFilters, timeBounds } = useFilteredFilms(films, cinemas);
+  useTimeRangeReset(timeBounds);
 
   const weekDates = useMemo(
     () => (data?.meta.weekStart ? weekDatesFrom(data.meta.weekStart) : []),
@@ -246,11 +248,11 @@ export function HomePage() {
       {/* Desktop : barre de filtres complète */}
       {!isLoading && !isError && hasFilms && (
         <div className="hidden md:block -mx-4 px-4 pb-3">
-          <FilterBar cinemas={cinemas} activeFilterCount={activeFilterCount} />
+          <FilterBar cinemas={cinemas} activeFilterCount={activeFilterCount} timeBounds={timeBounds} />
         </div>
       )}
 
-      <FilterSheet open={filtersOpen} onClose={() => setFiltersOpen(false)} cinemas={cinemas} />
+      <FilterSheet open={filtersOpen} onClose={() => setFiltersOpen(false)} cinemas={cinemas} timeBounds={timeBounds} />
 
       {/* Content area */}
       {isLoading && <FilmGridSkeleton />}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useFiltersStore } from '../../stores/filtersStore';
+import type { TimeRange } from '../../utils/timeRange';
 import { FilterControls } from './FilterControls';
 import { ActiveFilterTags } from './ActiveFilterTags';
 
@@ -12,6 +13,7 @@ interface Cinema {
 interface FilterBarProps {
   cinemas: Cinema[];
   activeFilterCount: number;
+  timeBounds: TimeRange | null;
 }
 
 /**
@@ -19,7 +21,7 @@ interface FilterBarProps {
  * accordéon. Sur mobile, ces trois morceaux vivent séparément — recherche et
  * étiquettes dans la barre collée, réglages dans FilterSheet.
  */
-export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
+export function FilterBar({ cinemas, activeFilterCount, timeBounds }: FilterBarProps) {
   const [expanded, setExpanded] = useState(false);
   const searchQuery = useFiltersStore((s) => s.searchQuery);
   const setSearchQuery = useFiltersStore((s) => s.setSearchQuery);
@@ -72,7 +74,7 @@ export function FilterBar({ cinemas, activeFilterCount }: FilterBarProps) {
       <div className={`filter-panel ${expanded ? 'filter-panel-open' : ''}`}>
         <div>
           <div className="bg-beige-papier border-2 border-sepia-chaud rounded-xl p-4 shadow-md">
-            <FilterControls cinemas={cinemas} />
+            <FilterControls cinemas={cinemas} timeBounds={timeBounds} />
           </div>
         </div>
       </div>
