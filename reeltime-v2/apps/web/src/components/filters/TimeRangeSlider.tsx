@@ -1,5 +1,11 @@
 import { useFiltersStore } from '../../stores/filtersStore';
-import { formatTimeLabel, toHHMM, toMinutes, type TimeRange } from '../../utils/timeRange';
+import {
+  boundsIncluding,
+  formatTimeLabel,
+  toHHMM,
+  toMinutes,
+  type TimeRange,
+} from '../../utils/timeRange';
 import { Slider } from './Slider';
 
 const STEP_MINUTES = 15;
@@ -12,8 +18,11 @@ export function TimeRangeSlider({ bounds }: { bounds: TimeRange | null }) {
   // Aucune séance ce jour-là : il n'y a pas de bornes, donc rien à régler.
   if (!bounds) return null;
 
-  const minMinutes = toMinutes(bounds.start);
-  const maxMinutes = toMinutes(bounds.end);
+  // La plage choisie survit d'un jour à l'autre ; la piste s'étend pour la
+  // contenir même quand le jour affiché n'a aucune séance dedans.
+  const track = boundsIncluding(bounds, timeRange);
+  const minMinutes = toMinutes(track.start);
+  const maxMinutes = toMinutes(track.end);
   const current = timeRange ?? bounds;
 
   const handleChange = ([start, end]: number[]) => {
@@ -37,12 +46,13 @@ export function TimeRangeSlider({ bounds }: { bounds: TimeRange | null }) {
         step={STEP_MINUTES}
         disabled={ceSoirMode}
         ariaLabels={['Heure de début', 'Heure de fin']}
+        formatValue={(minutes) => formatTimeLabel(toHHMM(minutes))}
       />
-      <p className="font-bebas text-sm text-noir-velours">
-        {ceSoirMode
-          ? 'Désactivé par le mode « Ce soir »'
-          : `De ${formatTimeLabel(current.start)} à ${formatTimeLabel(current.end)}`}
-      </p>
+      {ceSoirMode && (
+        <p className="font-bebas text-sm text-sepia-chaud">
+          Désactivé par le mode « Ce soir »
+        </p>
+      )}
     </div>
   );
 }

@@ -49,6 +49,19 @@ export function computeTimeBounds(films: FilmListItem[]): TimeRange | null {
   return { start: toHHMM(start), end: toHHMM(end) };
 }
 
+/**
+ * Élargit les bornes du jour pour qu'elles englobent la plage choisie. La plage
+ * survit d'un jour à l'autre : sans cet élargissement, un « après 20h » gardé
+ * sur un jour qui s'arrête à 19h placerait les pouces hors de la piste.
+ */
+export function boundsIncluding(bounds: TimeRange, range: TimeRange | null): TimeRange {
+  if (!range) return bounds;
+  return {
+    start: range.start < bounds.start ? range.start : bounds.start,
+    end: range.end > bounds.end ? range.end : bounds.end,
+  };
+}
+
 export function isInTimeRange(time: string, range: TimeRange): boolean {
   return time >= range.start && time <= range.end;
 }

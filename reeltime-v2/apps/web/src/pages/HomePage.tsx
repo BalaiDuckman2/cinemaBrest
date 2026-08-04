@@ -12,7 +12,6 @@ import { useFilms } from '../hooks/useFilms';
 import { useWeekNavigation } from '../hooks/useWeekNavigation';
 import { useFilmDrawer } from '../hooks/useFilmDrawer';
 import { useFilteredFilms } from '../hooks/useFilteredFilms';
-import { useTimeRangeReset } from '../hooks/useTimeRangeReset';
 import { useCinemas } from '../hooks/useCinemas';
 import { useFiltersStore } from '../stores/filtersStore';
 import { formatWeekLabel, localISODate, weekDatesFrom } from '../utils/dates';
@@ -115,7 +114,6 @@ export function HomePage() {
 
   const films = data?.films ?? NO_FILMS;
   const { filteredFilms, activeFilterCount, hasActiveFilters, timeBounds } = useFilteredFilms(films, cinemas);
-  useTimeRangeReset(timeBounds);
 
   const weekDates = useMemo(
     () => (data?.meta.weekStart ? weekDatesFrom(data.meta.weekStart) : []),
