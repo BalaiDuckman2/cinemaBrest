@@ -1,10 +1,10 @@
 import { useFiltersStore } from '../../stores/filtersStore';
-import type { SortOption, TimeSlotFilter, MinAgeFilter } from '../../stores/filtersStore';
+import type { SortOption, TimeSlotFilter } from '../../stores/filtersStore';
 import { getCinemaShortName } from '../../utils/cinemaNames';
+import { AgeSlider } from './AgeSlider';
 import { FilterSelect } from './FilterSelect';
 import {
   DEPARTMENTS,
-  MIN_AGE_OPTIONS,
   SORT_OPTIONS,
   TIME_SLOT_OPTIONS,
   VERSION_OPTIONS,
@@ -30,8 +30,6 @@ export function FilterControls({ cinemas }: { cinemas: Cinema[] }) {
   const setSort = useFiltersStore((s) => s.setSort);
   const timeSlot = useFiltersStore((s) => s.timeSlot);
   const setTimeSlot = useFiltersStore((s) => s.setTimeSlot);
-  const minAge = useFiltersStore((s) => s.minAge);
-  const setMinAge = useFiltersStore((s) => s.setMinAge);
   const ceSoirMode = useFiltersStore((s) => s.ceSoirMode);
   const setCeSoirMode = useFiltersStore((s) => s.setCeSoirMode);
   const setSelectedDate = useFiltersStore((s) => s.setSelectedDate);
@@ -106,12 +104,13 @@ export function FilterControls({ cinemas }: { cinemas: Cinema[] }) {
         <span className="text-xs">{ceSoirMode ? 'Activé' : 'Désactivé'}</span>
       </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
         <FilterSelect label="Tri" value={sort} options={SORT_OPTIONS} onChange={(v) => setSort(v as SortOption)} />
         <FilterSelect label="Version" value={version ?? 'all'} options={VERSION_OPTIONS} onChange={(v) => setVersion(v === 'all' ? null : (v as 'VF' | 'VO' | 'VOST'))} />
         <FilterSelect label="Horaires" value={timeSlot} options={TIME_SLOT_OPTIONS} onChange={(v) => setTimeSlot(v as TimeSlotFilter)} />
-        <FilterSelect label="Âge du film" value={String(minAge)} options={MIN_AGE_OPTIONS} onChange={(v) => setMinAge(Number(v) as MinAgeFilter)} />
       </div>
+
+      <AgeSlider />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
         <FilterSelect label="Département" value={selectedDepartment ?? 'all'} options={departmentOptions} onChange={handleDepartmentChange} />

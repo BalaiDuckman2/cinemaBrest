@@ -26,16 +26,6 @@ export const TIME_SLOT_OPTIONS: FilterOption[] = [
   { value: 'night', label: 'Nuit' },
 ];
 
-export const MIN_AGE_OPTIONS: FilterOption[] = [
-  { value: '0', label: 'Tous films' },
-  { value: '1', label: '+1 an' },
-  { value: '5', label: '+5 ans' },
-  { value: '10', label: '+10 ans' },
-  { value: '20', label: '+20 ans' },
-  { value: '30', label: '+30 ans' },
-  { value: '50', label: '+50 ans' },
-];
-
 export const DEPARTMENTS = [
   { label: 'Finistère (29)', cities: ['Brest', 'Landerneau', 'Morlaix', 'Quimper'] },
 ];
