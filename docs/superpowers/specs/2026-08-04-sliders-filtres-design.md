@@ -15,11 +15,15 @@ défauts motivent ce chantier :
    (`useFilteredFilms.ts:26-29`). Impossible de demander « entre 20h et 21h30 ».
 2. **Le filtre âge est un select à sept entrées** là où un curseur exprime mieux
    une progression.
-3. **Les selects Département et Ville ne filtrent pas les films.** Ils réduisent
-   seulement la liste des puces affichées (`FilterControls.tsx:43`) ; le
-   filtrage réel se fait uniquement sur les puces cochées, et « aucune puce
-   cochée » vaut « tous les cinémas ». Choisir « Quimper » sans cocher ensuite
-   ne change donc rien à la liste des films. `DEPARTMENTS` ne contient de plus
+3. **La ville n'est pas un filtre, elle est dépliée en liste de cinémas.**
+   `handleCityChange` (`FilterControls.tsx:70-83`) écrase `selectedCinemas` avec
+   les identifiants des cinémas de la ville, et `visibleCinemas`
+   (`FilterControls.tsx:43`) réduit les puces affichées. Le filtrage marche,
+   mais les deux contrôles se marchent dessus : décocher ensuite un cinéma
+   laisse le select afficher « Quimper » alors que le filtre réel n'est plus la
+   ville. `ActiveFilterTags.tsx:71` porte la trace de ce couplage — l'étiquette
+   du nombre de cinémas est masquée quand un département est actif, pour ne pas
+   afficher deux fois la même information. `DEPARTMENTS` ne contient de plus
    qu'une seule entrée, Finistère (29) : ce select n'offre jamais qu'un choix.
 
 ## 1. Décisions de cadrage
@@ -111,12 +115,15 @@ reste persistée : seul l'habillage remplace le select. Libellé sous le curseur
 
 - `selectedDepartment`, `setDepartment` et `DEPARTMENTS` **supprimés** (un seul
   département existant).
-- `selectedCity` devient un **vrai filtre** : ville choisie sans cinéma coché →
-  on filtre sur les cinémas de cette ville. Concrètement
+- `selectedCity` devient une **dimension de filtre à part entière** au lieu
+  d'être dépliée dans `selectedCinemas` : ville choisie sans cinéma coché → on
+  filtre sur les cinémas de cette ville. Concrètement
   `effectiveCinemaIds = selectedCinemas.length ? selectedCinemas : cinémasDeLaVille`,
   ce qui réutilise la logique de filtrage par `cinemaId` existante au lieu d'en
   introduire une seconde. `selectedCity === null` conserve le sens actuel :
-  tous les cinémas.
+  tous les cinémas. `handleCityChange` cesse donc d'écrire dans
+  `selectedCinemas` — c'est ce qui supprime le couplage entre les deux
+  contrôles.
 - Les puces n'affichent que les cinémas de la ville sélectionnée.
 - **Changer de ville vide `selectedCinemas`.** Sans cela, des cinémas d'une
   autre ville resteraient cochés, invisibles à l'écran, et filtreraient en
