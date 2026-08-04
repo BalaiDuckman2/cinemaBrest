@@ -3,6 +3,7 @@ import {
   toMinutes,
   toHHMM,
   computeTimeBounds,
+  boundsIncluding,
   isInTimeRange,
   formatTimeLabel,
 } from '../utils/timeRange';
@@ -78,6 +79,41 @@ describe('computeTimeBounds', () => {
     expect(computeTimeBounds([filmAt('23:50')])).toEqual({
       start: '23:45',
       end: '24:00',
+    });
+  });
+});
+
+describe('boundsIncluding', () => {
+  const day = { start: '10:00', end: '19:00' };
+
+  it('ne touche a rien quand la plage tient dans les bornes du jour', () => {
+    expect(boundsIncluding(day, { start: '14:00', end: '18:00' })).toEqual(day);
+  });
+
+  it('rend les bornes du jour quand aucune plage n est choisie', () => {
+    expect(boundsIncluding(day, null)).toEqual(day);
+  });
+
+  it('etend la fin pour une plage qui depasse la derniere seance', () => {
+    // « Après 20h » conservé sur un jour qui s'arrête à 19h : sans cet
+    // élargissement, le pouce sortirait de la piste.
+    expect(boundsIncluding(day, { start: '20:00', end: '23:00' })).toEqual({
+      start: '10:00',
+      end: '23:00',
+    });
+  });
+
+  it('etend le debut pour une plage qui precede la premiere seance', () => {
+    expect(boundsIncluding(day, { start: '08:00', end: '12:00' })).toEqual({
+      start: '08:00',
+      end: '19:00',
+    });
+  });
+
+  it('etend les deux cotes si besoin', () => {
+    expect(boundsIncluding(day, { start: '08:00', end: '23:00' })).toEqual({
+      start: '08:00',
+      end: '23:00',
     });
   });
 });
