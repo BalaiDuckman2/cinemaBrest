@@ -1,6 +1,7 @@
 import NodeCache from 'node-cache';
 import { prisma } from '../lib/prisma.js';
 import { getShowtimesForCinema } from './allocineService.js';
+import { parisWallClockToUtc } from '../utils/parisTime.js';
 import type { ParsedFilm, ParsedShowtime } from './allocineParser.js';
 import {
   buildCacheKey,
@@ -223,7 +224,7 @@ async function setInL2(
           filmId: film.id,
           cinemaId: cinema.id,
           date: st.date,
-          startsAt: new Date(st.startsAt),
+          startsAt: parisWallClockToUtc(st.startsAt),
           version: mapVersionToPrisma(st.version),
           bookingUrl: st.bookingUrl,
         },
