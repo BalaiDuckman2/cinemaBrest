@@ -1,6 +1,7 @@
 import { useFiltersStore } from '../../stores/filtersStore';
 import type { SortOption } from '../../stores/filtersStore';
 import { getCinemaShortName } from '../../utils/cinemaNames';
+import { cinemasForCity, defaultCityLabel } from '../../utils/cinemaFilter';
 import type { TimeRange } from '../../utils/timeRange';
 import { AgeSlider } from './AgeSlider';
 import { FilterSelect } from './FilterSelect';
@@ -35,13 +36,13 @@ export function FilterControls({ cinemas, timeBounds }: FilterControlsProps) {
   // Les villes viennent des cinémas eux-mêmes : plus de liste à maintenir à la main.
   const cities = Array.from(new Set(cinemas.map((c) => c.city))).sort();
   const cityOptions = [
-    { value: 'all', label: 'Toutes les villes' },
+    { value: 'all', label: defaultCityLabel(cities) },
     ...cities.map((c) => ({ value: c, label: c })),
   ];
 
-  const visibleCinemas = selectedCity
-    ? cinemas.filter((cinema) => cinema.city === selectedCity)
-    : cinemas;
+  // Mêmes cinémas que ceux qui alimentent l'affiche : une puce pour une salle
+  // hors zone laisserait croire qu'on peut la décocher pour changer quelque chose.
+  const visibleCinemas = cinemasForCity(cinemas, selectedCity);
 
   // Changer de ville vide les puces : sinon des cinémas d'une autre ville
   // resteraient cochés, invisibles à l'écran, et filtreraient en douce.

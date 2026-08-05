@@ -25,3 +25,6 @@ nul
 
 # Build
 *.tsbuildinfo
+
+# Superpowers brainstorm (visual companion)
+.superpowers/

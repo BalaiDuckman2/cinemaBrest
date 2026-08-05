@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { CINEMAS, getCinemaByAllocineId } from '../config/cinemas.js';
 
 describe('CINEMAS config', () => {
-  it('defines exactly 10 cinemas', () => {
-    expect(CINEMAS).toHaveLength(10);
+  it('defines exactly 12 cinemas', () => {
+    expect(CINEMAS).toHaveLength(12);
   });
 
   it('each cinema has required fields', () => {
@@ -23,6 +23,12 @@ describe('CINEMAS config', () => {
     expect(cities.has('Landerneau')).toBe(true);
     expect(cities.has('Morlaix')).toBe(true);
     expect(cities.has('Quimper')).toBe(true);
+    expect(cities.has('Troyes')).toBe(true);
+  });
+
+  it('groups the Troyes theaters under a single city', () => {
+    const troyes = CINEMAS.filter((c) => c.city === 'Troyes').map((c) => c.allocineId);
+    expect(troyes).toEqual(['P0983', 'W1015']);
   });
 
   it('no longer includes Côtes-d\'Armor cities', () => {

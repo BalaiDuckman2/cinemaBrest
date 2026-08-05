@@ -9,6 +9,10 @@ const CINEMA_SHORT_NAMES: Record<string, string> = {
   'Cinéville Quimper': 'Cinéville Q.',
   'Katorza': 'Katorza',
   'Quai Dupleix': 'Dupleix',
+  // Pas de raccourci en « CGR » ici : ce nom est déjà celui du Celtic à Brest,
+  // et les deux se croisent dans la fiche d'un film joué dans les deux villes.
+  'CGR Troyes': 'CGR Troyes',
+  'Utopia Pont-Sainte-Marie': 'Utopia',
 };
 
 export function getCinemaShortName(name: string): string {
