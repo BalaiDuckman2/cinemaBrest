@@ -83,6 +83,22 @@ const cinemas = [
     latitude: 47.9946,
     longitude: -4.1021,
   },
+  {
+    allocineId: 'P0983',
+    name: 'CGR Troyes',
+    address: '13 rue des Bas-Trévois, 10000 Troyes',
+    city: 'Troyes',
+    latitude: 48.2924,
+    longitude: 4.0799,
+  },
+  {
+    allocineId: 'W1015',
+    name: 'Utopia Pont-Sainte-Marie',
+    address: '11 rue du Moulinet, 10150 Pont-Sainte-Marie',
+    city: 'Troyes',
+    latitude: 48.3182,
+    longitude: 4.1083,
+  },
 ];
 
 async function main() {

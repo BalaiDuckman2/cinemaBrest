@@ -47,7 +47,8 @@ export function useFilteredFilms(films: FilmListItem[], cinemas: Cinema[]) {
     }
 
     // Ville et puces sont deux niveaux du même filtre : les puces cochées
-    // priment, sinon la ville sélectionnée fournit la liste des cinémas.
+    // priment, sinon la ville fournit la liste des cinémas — et sans ville
+    // choisie, la zone par défaut, qui écarte les villes hors zone (Troyes).
     const effectiveCinemaIds =
       selectedCinemas.length > 0 ? selectedCinemas : cinemaIdsForCity(cinemas, selectedCity);
 

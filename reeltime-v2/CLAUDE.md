@@ -95,7 +95,7 @@ cd apps/api && npx tsc --build
 
 ## Cinemas
 
-10 cinemas configured in `apps/api/src/config/cinemas.ts`:
+12 cinemas configured in `apps/api/src/config/cinemas.ts`:
 - Les Studios (Brest) - P0153
 - CGR Brest Le Celtic (Brest) - P0151
 - Multiplexe Liberté (Brest) - P0417
@@ -106,6 +106,13 @@ cd apps/api && npx tsc --build
 - Cinéville Quimper (Quimper) - P0299
 - Katorza (Quimper) - P0633
 - Quai Dupleix (Quimper) - W2900
+- CGR Troyes (Troyes) - P0983
+- Utopia Pont-Sainte-Marie (Troyes) - W1015
+
+**Villes hors zone par défaut** (`OPT_IN_CITIES` dans `apps/web/src/utils/cinemaFilter.ts`) : Troyes.
+L'API les scrape comme les autres, mais le web masque leurs salles — affiche et puces de cinémas —
+tant que la ville n'est pas explicitement choisie dans le filtre Ville. L'option « toutes les villes »
+se libelle alors « Toutes sauf Troyes ».
 
 ## Design System (Vintage Cinema)
 
