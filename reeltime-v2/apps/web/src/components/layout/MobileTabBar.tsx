@@ -9,7 +9,6 @@ const PULSE_MS = 400;
 export function MobileTabBar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const viewMode = useFiltersStore((s) => s.viewMode);
   const setViewMode = useFiltersStore((s) => s.setViewMode);
   const count = useSoireeStore((s) =>
     Object.values(s.soirees).reduce((n, items) => n + items.length, 0),
@@ -33,9 +32,11 @@ export function MobileTabBar() {
   const tabs = [
     {
       key: 'grid',
+      // La vue Planning est réservée au desktop : sur mobile l'accueil est
+      // toujours l'affiche, l'onglet reste donc actif quel que soit `viewMode`.
       icon: '🎥',
       label: 'Affiche',
-      active: onHome && viewMode === 'grid',
+      active: onHome,
       badge: undefined as number | undefined,
       onClick: () => {
         setViewMode('grid');
@@ -43,15 +44,12 @@ export function MobileTabBar() {
       },
     },
     {
-      key: 'planning',
-      icon: '≣',
-      label: 'Planning',
-      active: onHome && viewMode === 'planning',
+      key: 'planifier',
+      icon: '🍿',
+      label: 'Planifier',
+      active: pathname === '/soiree',
       badge: undefined as number | undefined,
-      onClick: () => {
-        setViewMode('planning');
-        if (!onHome) navigate('/');
-      },
+      onClick: () => navigate('/soiree'),
     },
     {
       key: 'soirees',
