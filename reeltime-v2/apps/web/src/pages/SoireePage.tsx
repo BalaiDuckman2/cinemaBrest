@@ -11,13 +11,17 @@ import { useWeekNavigation } from '../hooks/useWeekNavigation';
 import { useCinemas } from '../hooks/useCinemas';
 import { useFilmDrawer } from '../hooks/useFilmDrawer';
 import { normalizeText } from '../hooks/useFilteredFilms';
-import { firstSelectableDate, formatWeekLabel, localISODate, weekDatesFrom } from '../utils/dates';
+import { useFiltersStore } from '../stores/filtersStore';
+import { firstSelectableDate, formatWeekLabel, localISODate, nowHHMM, weekDatesFrom } from '../utils/dates';
 import { getCinemaShortName } from '../utils/cinemaNames';
+import { isOptInCity } from '../utils/cinemaFilter';
 import {
   findChainable,
   toMinutes,
   estimatedEnd,
   formatClock,
+  formatDuration,
+  MAX_GAP_MIN,
   type ChainCandidate,
 } from '../utils/chaining';
 import type { FilmListItem, ShowtimeEntry } from '../types/components';
@@ -36,10 +40,15 @@ const START_OPTIONS: { value: string; label: string }[] = [
   { value: '20:00', label: 'À partir de 20h' },
 ];
 
+/** Battements proposés : de « juste le temps de sortir » à « on dîne entre les deux ». */
+const GAP_OPTIONS = [30, MAX_GAP_MIN, 90, 120];
+
 type CandidateSort = 'gap' | 'time' | 'rating';
 
 const SORT_OPTIONS: { value: CandidateSort; label: string }[] = [
-  { value: 'gap', label: 'Battement' },
+  // « Pertinence » et non « Battement » : findChainable remonte d'abord les
+  // séances du même cinéma, le battement n'arbitre qu'à cinéma égal.
+  { value: 'gap', label: 'Pertinence' },
   { value: 'time', label: 'Heure de début' },
   { value: 'rating', label: 'Note Letterboxd' },
 ];
@@ -70,13 +79,23 @@ export function SoireePage() {
   const { isOpen, selectedFilm, openDrawer, closeDrawer } = useFilmDrawer();
 
   const today = localISODate();
+  const now = nowHHMM();
+  // La ville choisie sur l'affiche vaut aussi ici : arriver systématiquement sur
+  // Brest alors qu'on parcourt Quimper depuis dix minutes est une friction gratuite.
+  const filterCity = useFiltersStore((s) => s.selectedCity);
   const [selectedDate, setSelectedDate] = useState<string>(today);
-  const [city, setCity] = useState('Brest');
+  const [city, setCity] = useState(filterCity ?? 'Brest');
   const [minStart, setMinStart] = useState('17:00');
+  const [maxGap, setMaxGap] = useState(MAX_GAP_MIN);
   const [search, setSearch] = useState('');
   const [filmId, setFilmId] = useState<string | null>(null);
   const [anchorId, setAnchorId] = useState<string | null>(null);
   const [sort, setSort] = useState<CandidateSort>('gap');
+
+  const isToday = selectedDate === today;
+  // Aujourd'hui, une séance déjà commencée n'est plus planifiable : le plancher
+  // d'heure suit l'horloge, sinon la page propose encore la séance de 17h à 21h.
+  const effectiveMinStart = isToday && now > minStart ? now : minStart;
 
   // Un jour est obligatoire ici : dès que la date choisie sort de la semaine
   // affichée, on se recale sur son premier jour sélectionnable et on repart
@@ -89,7 +108,21 @@ export function SoireePage() {
     setAnchorId(null);
   }, [weekDates, today, selectedDate]);
 
-  const cities = useMemo(() => [...new Set(cinemas.map((c) => c.city))].sort(), [cinemas]);
+  // Les villes hors zone (Troyes) restent masquées ici comme sur l'affiche, sauf
+  // si c'est justement celle qu'on a choisie dans les filtres.
+  const cities = useMemo(
+    () =>
+      [...new Set(cinemas.map((c) => c.city))]
+        .filter((c) => !isOptInCity(c) || c === city)
+        .sort(),
+    [cinemas, city],
+  );
+
+  // Ville persistée devenue introuvable (cinéma retiré, filtre exotique) : on se
+  // recale plutôt que de laisser un select sur une valeur absente de ses options.
+  useEffect(() => {
+    if (cities.length > 0 && !cities.includes(city)) setCity(cities[0]);
+  }, [cities, city]);
 
   const cityByCinemaId = useMemo(() => {
     const map = new Map<string, string>();
@@ -106,13 +139,13 @@ export function SoireePage() {
           (st) =>
             st.datetime.slice(0, 10) === selectedDate &&
             cityOf(st.cinemaId) === city &&
-            (!minStart || st.time >= minStart),
+            (!effectiveMinStart || st.time >= effectiveMinStart),
         )
         .sort((a, b) => a.time.localeCompare(b.time)),
-    [selectedDate, city, minStart, cityOf],
+    [selectedDate, city, effectiveMinStart, cityOf],
   );
 
-  /** Étape 1 : films ayant au moins une séance éligible, tri popularité, filtre recherche. */
+  /** Étape 1 : films ayant au moins une séance éligible, tri Letterboxd, filtre recherche. */
   const pickableFilms = useMemo(() => {
     return weekFilms
       .map((film) => ({ film, count: eligibleShowtimes(film).length }))
@@ -121,7 +154,12 @@ export function SoireePage() {
         if (search && !normalizeText(film.title).includes(normalizeText(search))) return false;
         return true;
       })
-      .sort((a, b) => (b.film.rating ?? 0) - (a.film.rating ?? 0));
+      // La note Letterboxd est celle affichée sur chaque ligne : trier dessus,
+      // avec la popularité pour départager les films sans note.
+      .sort((a, b) => {
+        const byRating = (b.film.letterboxdRating ?? -1) - (a.film.letterboxdRating ?? -1);
+        return byRating !== 0 ? byRating : (b.film.rating ?? 0) - (a.film.rating ?? 0);
+      });
   }, [weekFilms, eligibleShowtimes, search]);
 
   const selectedFilmItem = useMemo(
@@ -129,25 +167,45 @@ export function SoireePage() {
     [filmId, weekFilms],
   );
 
-  const anchorShowtimes = selectedFilmItem ? eligibleShowtimes(selectedFilmItem) : [];
+  const anchorShowtimes = useMemo(() => {
+    if (!selectedFilmItem) return [];
+    const eligible = eligibleShowtimes(selectedFilmItem);
+    // Une séance atteinte par ré-ancrage peut commencer avant le plancher
+    // d'heure ; la garder dans les puces évite que le clic perde sa cible.
+    if (anchorId && !eligible.some((st) => st.id === anchorId)) {
+      const chosen = selectedFilmItem.showtimes.find((st) => st.id === anchorId);
+      if (chosen) return [...eligible, chosen].sort((a, b) => a.time.localeCompare(b.time));
+    }
+    return eligible;
+  }, [selectedFilmItem, eligibleShowtimes, anchorId]);
+
   const anchor =
     anchorShowtimes.find((st) => st.id === anchorId) ?? anchorShowtimes[0] ?? null;
+
+  const notBefore = isToday ? now : undefined;
 
   const before = useMemo(() => {
     if (!selectedFilmItem || !anchor) return [];
     return sortCandidates(
-      findChainable({ films: weekFilms, anchorFilm: selectedFilmItem, anchor, direction: 'before', cityOf }),
+      findChainable({ films: weekFilms, anchorFilm: selectedFilmItem, anchor, direction: 'before', cityOf, maxGapMin: maxGap, notBefore }),
       sort,
     );
-  }, [weekFilms, selectedFilmItem, anchor, cityOf, sort]);
+  }, [weekFilms, selectedFilmItem, anchor, cityOf, sort, maxGap, notBefore]);
 
   const after = useMemo(() => {
     if (!selectedFilmItem || !anchor) return [];
     return sortCandidates(
-      findChainable({ films: weekFilms, anchorFilm: selectedFilmItem, anchor, direction: 'after', cityOf }),
+      findChainable({ films: weekFilms, anchorFilm: selectedFilmItem, anchor, direction: 'after', cityOf, maxGapMin: maxGap, notBefore }),
       sort,
     );
-  }, [weekFilms, selectedFilmItem, anchor, cityOf, sort]);
+  }, [weekFilms, selectedFilmItem, anchor, cityOf, sort, maxGap, notBefore]);
+
+  /** Repart de la séance candidate : c'est ce qui rend les soirées à 3 films possibles. */
+  const chainFrom = useCallback((candidate: ChainCandidate) => {
+    setFilmId(candidate.film.id);
+    setAnchorId(candidate.showtime.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const selectClass =
     'font-crimson px-2 py-2 bg-creme-ecran border-2 border-sepia-chaud rounded-lg text-noir-velours text-xs focus:outline-none focus:border-rouge-cinema focus:ring-2 focus:ring-rouge-cinema/20';
@@ -215,6 +273,13 @@ export function SoireePage() {
               ))}
             </select>
           </div>
+
+          {/* Le plancher effectif diffère alors de l'option affichée : le dire. */}
+          {isToday && now > minStart && (
+            <p className="font-crimson text-xs text-sepia-chaud italic">
+              Séances déjà commencées masquées : aujourd'hui, on part de {now}.
+            </p>
+          )}
         </div>
       </div>
 
@@ -243,7 +308,9 @@ export function SoireePage() {
             <div className="text-center py-12">
               <p className="text-2xl mb-2">🎬</p>
               <p className="font-crimson text-noir-velours">
-                Aucun film ce jour-là avec ces critères. Essaie un autre jour, une autre ville ou une heure plus tôt.
+                {isToday && now > minStart
+                  ? `Plus aucune séance après ${now} aujourd'hui. Essaie un autre jour ou une autre ville.`
+                  : 'Aucun film ce jour-là avec ces critères. Essaie un autre jour, une autre ville ou une heure plus tôt.'}
               </p>
             </div>
           ) : (
@@ -350,21 +417,38 @@ export function SoireePage() {
             />
           )}
 
-          {/* Tri des candidats */}
-          <div className="flex items-center gap-2 mb-3">
-            <label className="font-bebas text-xs text-sepia-chaud uppercase tracking-wide" htmlFor="candidate-sort">
-              Tri
-            </label>
-            <select
-              id="candidate-sort"
-              value={sort}
-              onChange={(e) => setSort(e.target.value as CandidateSort)}
-              className={selectClass}
-            >
-              {SORT_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+          {/* Tri et tolérance de battement */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-3">
+            <div className="flex items-center gap-2">
+              <label className="font-bebas text-xs text-sepia-chaud uppercase tracking-wide" htmlFor="candidate-sort">
+                Tri
+              </label>
+              <select
+                id="candidate-sort"
+                value={sort}
+                onChange={(e) => setSort(e.target.value as CandidateSort)}
+                className={selectClass}
+              >
+                {SORT_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="font-bebas text-xs text-sepia-chaud uppercase tracking-wide" htmlFor="candidate-gap">
+                Battement max
+              </label>
+              <select
+                id="candidate-gap"
+                value={maxGap}
+                onChange={(e) => setMaxGap(Number(e.target.value))}
+                className={selectClass}
+              >
+                {GAP_OPTIONS.map((g) => (
+                  <option key={g} value={g}>{formatDuration(g)}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <h3 className="font-bebas text-noir-velours text-base uppercase tracking-wider mb-2 flex items-center gap-2">
@@ -379,12 +463,13 @@ export function SoireePage() {
                   candidate={c}
                   city={cityOf(c.showtime.cinemaId)}
                   onClick={() => openDrawer(c.film)}
+                  onChain={() => chainFrom(c)}
                 />
               ))}
             </div>
           ) : (
             <p className="font-crimson text-sm text-sepia-chaud italic mb-5">
-              Aucune séance enchaînable après (battement max 1h, même ville).
+              Aucune séance enchaînable après (battement max {formatDuration(maxGap)}, même ville).
             </p>
           )}
 
@@ -400,17 +485,20 @@ export function SoireePage() {
                   candidate={c}
                   city={cityOf(c.showtime.cinemaId)}
                   onClick={() => openDrawer(c.film)}
+                  onChain={() => chainFrom(c)}
                 />
               ))}
             </div>
           ) : (
             <p className="font-crimson text-sm text-sepia-chaud italic">
-              Aucune séance se terminant juste avant (même ville).
+              Aucune séance se terminant juste avant (même ville)
+              {isToday ? ", séances déjà commencées exclues" : ''}.
             </p>
           )}
 
           <p className="font-crimson text-[11px] text-sepia-chaud/70 italic mt-4">
-            Fins de séances estimées : durée du film + 15 min de publicités. Battement max 1h, chevauchement toléré 10 min.
+            Fins de séances estimées : durée du film + 15 min de publicités. Battement max {formatDuration(maxGap)},
+            chevauchement toléré 10 min. Le bouton » enchaîne la recherche à partir d'une séance candidate.
           </p>
         </>
       )}

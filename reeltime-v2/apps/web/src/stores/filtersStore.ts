@@ -6,6 +6,9 @@ export type SortOption = 'popularity' | 'alphabetical' | 'year-desc' | 'year-asc
 export type MinAgeFilter = 0 | 1 | 5 | 10 | 20 | 30 | 50;
 export type ViewMode = 'grid' | 'planning';
 
+/** Tri appliqué par défaut partout : la note Letterboxd fait remonter les bons films. */
+export const DEFAULT_SORT: SortOption = 'letterboxd';
+
 interface FiltersState {
   searchQuery: string;
   selectedCinemas: string[];
@@ -36,6 +39,12 @@ interface FiltersState {
   resetAll: () => void;
 }
 
+/** Sous-ensemble réellement écrit dans le localStorage (cf. `partialize`). */
+type PersistedFilters = Pick<
+  FiltersState,
+  'selectedCinemas' | 'selectedCity' | 'version' | 'minRating' | 'sort' | 'minAge' | 'viewMode'
+>;
+
 export const useFiltersStore = create<FiltersState>()(
   persist(
     (set) => ({
@@ -44,7 +53,7 @@ export const useFiltersStore = create<FiltersState>()(
       selectedCity: null,
       version: null,
       minRating: null,
-      sort: 'popularity',
+      sort: DEFAULT_SORT,
       selectedDate: null,
       timeRange: null,
       minAge: 0,
@@ -68,10 +77,21 @@ export const useFiltersStore = create<FiltersState>()(
       setViewMode: (viewMode) => set({ viewMode }),
       setCeSoirMode: (ceSoirMode) => set({ ceSoirMode }),
       resetAll: () =>
-        set({ searchQuery: '', selectedCinemas: [], selectedCity: null, version: null, minRating: null, sort: 'popularity', selectedDate: null, timeRange: null, minAge: 0, ceSoirMode: false }),
+        set({ searchQuery: '', selectedCinemas: [], selectedCity: null, version: null, minRating: null, sort: DEFAULT_SORT, selectedDate: null, timeRange: null, minAge: 0, ceSoirMode: false }),
     }),
     {
       name: 'reeltime-filters',
+      // v1 : le tri par défaut passe de « Popularité » à « Letterboxd ». Sans
+      // cette migration, l'ancien défaut persisté resterait figé pour tous ceux
+      // qui n'ont jamais touché au sélecteur de tri.
+      version: 1,
+      migrate: (persisted, fromVersion) => {
+        const state = persisted as PersistedFilters;
+        if (fromVersion < 1 && state?.sort === 'popularity') {
+          return { ...state, sort: DEFAULT_SORT };
+        }
+        return state;
+      },
       // `timeRange` en est volontairement absent : les bornes se recalculent à
       // chaque jour, restaurer la plage d'hier produirait un filtre invisible.
       partialize: (state) => ({

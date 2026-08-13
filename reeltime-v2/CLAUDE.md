@@ -85,6 +85,8 @@ cd apps/api && npx tsc --build
 - **Pages**: `src/pages/` - HomePage (grille Affiche / vue Planning + barre de jours), SoireePage (`/soiree`, planifie un enchaînement de 2 séances), NotFoundPage
 - **Components**: `src/components/` - FilmGrid, FilmCard, FilmDrawer, FilmShowtimes, FilterBar, WeekNavigator, DayStrip (chips de jours lun→dim), PlanningView (vue planning par sections de jour), SequencePanel (films enchaînables avant/après une séance)
 - **State**: Zustand store in `src/stores/filtersStore.ts` (`selectedDate` transitoire, `viewMode` persisté), React Query for server state
+  - Tri par défaut : `DEFAULT_SORT = 'letterboxd'` (persist v1 migre l'ancien défaut `popularity`)
+- **Navigation mobile** : `MobileTabBar` = Affiche (`/`) · Planifier (`/soiree`) · Soirées (`/mes-soirees`). La vue Planning est desktop-only (bascule dans la barre collée de HomePage)
 - **API**: `src/api/` - filmsApi, cinemasApi
 - **Hooks**: `src/hooks/` - useFilms, useFilmDrawer, useWeekNavigation, useFilteredFilms, useCinemas, useMediaQuery
 - **Utils**: `src/utils/` - cinemaNames (noms courts de cinémas), dates (semaine calendaire), chaining (calcul des enchaînements de séances)

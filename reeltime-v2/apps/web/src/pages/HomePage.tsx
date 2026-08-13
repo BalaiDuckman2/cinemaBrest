@@ -13,6 +13,7 @@ import { useWeekNavigation } from '../hooks/useWeekNavigation';
 import { useFilmDrawer } from '../hooks/useFilmDrawer';
 import { useFilteredFilms } from '../hooks/useFilteredFilms';
 import { useCinemas } from '../hooks/useCinemas';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useFiltersStore } from '../stores/filtersStore';
 import { formatWeekLabel, localISODate, weekDatesFrom } from '../utils/dates';
 import type { FilmListItem } from '../types/components';
@@ -68,6 +69,11 @@ export function HomePage() {
   const setCeSoirMode = useFiltersStore((s) => s.setCeSoirMode);
   const setSearchQuery = useFiltersStore((s) => s.setSearchQuery);
   const today = localISODate();
+  // La bascule Affiche / Planning n'existe que sur desktop (l'onglet mobile
+  // correspondant mène désormais à « Planifier ma soirée ») : sans ce garde-fou,
+  // un `viewMode` persisté depuis un grand écran figerait le mobile sur le planning.
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const showPlanning = isDesktop && viewMode === 'planning';
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -304,7 +310,7 @@ export function HomePage() {
           garde l'ancienne à l'écran plutôt que de repasser par le squelette. */}
       {!isLoading && !isError && filteredFilms.length > 0 && (
         <div className={`transition-opacity duration-200 ${isPlaceholderData ? 'opacity-50 pointer-events-none' : ''}`}>
-          {viewMode === 'planning' ? (
+          {showPlanning ? (
             <PlanningView films={filteredFilms} dates={weekDates} cityOf={cityOf} onFilmClick={openDrawer} />
           ) : (
             <FilmGrid films={filteredFilms} onFilmClick={openDrawer} />

@@ -4,7 +4,7 @@ import type { FilmListItem, ShowtimeEntry } from '../types/components';
 export const DEFAULT_RUNTIME_MIN = 120;
 /** Ads + trailers before the feature actually starts. */
 export const TRAILER_BUFFER_MIN = 15;
-/** Maximum wait between two films. */
+/** Default maximum wait between two films. */
 export const MAX_GAP_MIN = 60;
 /** Acceptable overlap (skipping end credits / start ads). */
 export const OVERLAP_TOLERANCE_MIN = 10;
@@ -43,10 +43,22 @@ interface FindChainableOptions {
   anchor: ShowtimeEntry;
   direction: 'before' | 'after';
   cityOf: (cinemaId: string) => string | undefined;
+  /** Attente maximale acceptée entre les deux séances. Défaut : `MAX_GAP_MIN`. */
+  maxGapMin?: number;
+  /** Heure "HH:MM" avant laquelle une séance est déjà commencée (jour courant uniquement). */
+  notBefore?: string;
 }
 
 /** Showtimes of other films, same day and same city, watchable before/after the anchor showtime. */
-export function findChainable({ films, anchorFilm, anchor, direction, cityOf }: FindChainableOptions): ChainCandidate[] {
+export function findChainable({
+  films,
+  anchorFilm,
+  anchor,
+  direction,
+  cityOf,
+  maxGapMin = MAX_GAP_MIN,
+  notBefore,
+}: FindChainableOptions): ChainCandidate[] {
   const anchorDate = anchor.datetime.slice(0, 10);
   const anchorCity = cityOf(anchor.cinemaId);
   if (!anchorCity) return [];
@@ -62,6 +74,10 @@ export function findChainable({ films, anchorFilm, anchor, direction, cityOf }: 
     for (const st of film.showtimes) {
       if (st.datetime.slice(0, 10) !== anchorDate) continue;
       if (cityOf(st.cinemaId) !== anchorCity) continue;
+      // Une séance déjà commencée n'est pas enchaînable, même si l'arithmétique
+      // des battements l'accepte : c'est le cas typique du « avant » proposé
+      // alors qu'on planifie sa soirée en fin d'après-midi.
+      if (notBefore && st.time < notBefore) continue;
 
       const start = toMinutes(st.time);
       let gapMin: number;
@@ -75,7 +91,7 @@ export function findChainable({ films, anchorFilm, anchor, direction, cityOf }: 
         approx = film.runtime == null;
       }
 
-      if (gapMin < -OVERLAP_TOLERANCE_MIN || gapMin > MAX_GAP_MIN) continue;
+      if (gapMin < -OVERLAP_TOLERANCE_MIN || gapMin > maxGapMin) continue;
 
       candidates.push({
         film,
@@ -93,6 +109,14 @@ export function findChainable({ films, anchorFilm, anchor, direction, cityOf }: 
   });
 
   return candidates;
+}
+
+/** "45 min" / "1h" / "1h30" — pour les textes qui annoncent la limite de battement. */
+export function formatDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, '0')}`;
 }
 
 /** "battement 20 min" / "enchaînement direct" / "chevauche de 5 min" */

@@ -1,4 +1,4 @@
-import { useFiltersStore } from '../../stores/filtersStore';
+import { DEFAULT_SORT, useFiltersStore } from '../../stores/filtersStore';
 import { formatTimeLabel } from '../../utils/timeRange';
 
 interface Cinema {
@@ -8,6 +8,7 @@ interface Cinema {
 }
 
 const SORT_LABELS: Record<string, string> = {
+  popularity: 'Popularité',
   alphabetical: 'A→Z',
   'year-desc': '+ Récent',
   'year-asc': '+ Ancien',
@@ -60,10 +61,10 @@ export function ActiveFilterTags({ cinemas }: { cinemas: Cinema[] }) {
       onRemove: () => setSelectedCinemas([]),
     });
   }
-  if (sort !== 'popularity') {
+  if (sort !== DEFAULT_SORT) {
     tags.push({
       label: `Tri: ${SORT_LABELS[sort] ?? sort}`,
-      onRemove: () => setSort('popularity'),
+      onRemove: () => setSort(DEFAULT_SORT),
     });
   }
 

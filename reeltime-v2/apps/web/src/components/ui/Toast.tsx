@@ -45,7 +45,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={{ showToast }}>
       {children}
       {/* Toast container */}
-      <div className="fixed bottom-4 left-1/2 z-[100] flex -translate-x-1/2 flex-col items-center gap-2">
+      {/* Au-dessus de la barre d'onglets sur mobile, sinon le toast s'affiche dessous. */}
+      <div className="fixed bottom-[calc(68px+env(safe-area-inset-bottom))] md:bottom-4 left-1/2 z-[100] flex -translate-x-1/2 flex-col items-center gap-2 px-3 max-w-full">
         {toasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onDismiss={dismiss} />
         ))}
