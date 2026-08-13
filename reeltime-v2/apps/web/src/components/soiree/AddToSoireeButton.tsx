@@ -1,4 +1,7 @@
+import { useNavigate } from 'react-router-dom';
 import { useSoireeStore, addToSoiree, makeSoireeItem } from '../../stores/soireeStore';
+import { useToast } from '../ui/Toast';
+import { formatDayLong } from '../../utils/dates';
 import type { FilmListItem, ShowtimeEntry } from '../../types/components';
 
 interface AddToSoireeButtonProps {
@@ -12,15 +15,28 @@ interface AddToSoireeButtonProps {
 }
 
 export function AddToSoireeButton({ film, showtime, city, className = '', label }: AddToSoireeButtonProps) {
+  const date = showtime.datetime.slice(0, 10);
   const added = useSoireeStore((s) =>
-    (s.soirees[showtime.datetime.slice(0, 10)] ?? []).some((i) => i.showtimeId === showtime.id),
+    (s.soirees[date] ?? []).some((i) => i.showtimeId === showtime.id),
   );
+  const { showToast } = useToast();
+  const navigate = useNavigate();
+
+  // Sur mobile la barre « Ma soirée » est masquée : sans ce toast, l'ajout n'a
+  // pour seul écho que la pastille de l'onglet, facile à manquer.
+  const handleClick = () => {
+    addToSoiree(makeSoireeItem(film, showtime, city));
+    showToast({
+      message: `Ajouté à ta soirée du ${formatDayLong(date).toLowerCase()}`,
+      action: { label: 'Voir', onClick: () => navigate('/mes-soirees') },
+    });
+  };
 
   return (
     <button
       type="button"
       disabled={added}
-      onClick={() => addToSoiree(makeSoireeItem(film, showtime, city))}
+      onClick={handleClick}
       title={added ? 'Déjà dans ma soirée' : 'Ajouter à ma soirée'}
       aria-label={
         added
