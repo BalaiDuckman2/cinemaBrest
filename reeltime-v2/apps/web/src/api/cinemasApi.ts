@@ -5,6 +5,8 @@ export interface CinemaItem {
   name: string;
   allocineId: string;
   city: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 interface CinemaApiItem {
@@ -28,5 +30,7 @@ export async function fetchCinemas(): Promise<CinemaItem[]> {
     name: c.name,
     allocineId: c.allocineId,
     city: c.city,
+    latitude: c.latitude,
+    longitude: c.longitude,
   }));
 }

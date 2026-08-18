@@ -229,7 +229,7 @@ export async function fetchCinemas(): Promise<CinemaItem[]> {
 - [ ] **Step 6: Vérifier la compilation et l'ensemble des tests**
 
 ```bash
-pnpm --filter @reeltime/web exec tsc -b --noEmit
+cd apps/web && npx tsc --noEmit
 ```
 
 Attendu : aucune erreur.
@@ -602,7 +602,7 @@ Dans `apps/web/src/pages/MesSoireesPage.tsx`, ajouter l'import `import { useTrav
 - [ ] **Step 5: Vérifier la compilation et les tests**
 
 ```bash
-pnpm --filter @reeltime/web exec tsc -b --noEmit
+cd apps/web && npx tsc --noEmit
 ```
 
 Attendu : aucune erreur.
@@ -1041,7 +1041,7 @@ export function SoireeFilters({
 - [ ] **Step 2: Vérifier la compilation**
 
 ```bash
-pnpm --filter @reeltime/web exec tsc -b --noEmit
+cd apps/web && npx tsc --noEmit
 ```
 
 Attendu : aucune erreur. Le composant n'est encore monté nulle part, c'est normal : la tâche 9 s'en charge.
@@ -1153,7 +1153,7 @@ export function SoireePlan({
 - [ ] **Step 2: Vérifier la compilation**
 
 ```bash
-pnpm --filter @reeltime/web exec tsc -b --noEmit
+cd apps/web && npx tsc --noEmit
 ```
 
 Attendu : aucune erreur.
@@ -1326,7 +1326,7 @@ export function CandidateList({
 - [ ] **Step 3: Vérifier la compilation**
 
 ```bash
-pnpm --filter @reeltime/web exec tsc -b --noEmit
+cd apps/web && npx tsc --noEmit
 ```
 
 Attendu : **une erreur attendue** dans `apps/web/src/pages/SoireePage.tsx`, qui passe encore `onChain` à `CandidateRow`. Elle sera résolue en tâche 9. Noter l'erreur et continuer.
@@ -1523,7 +1523,7 @@ export function FilmPicker({
 - [ ] **Step 2: Vérifier la compilation**
 
 ```bash
-pnpm --filter @reeltime/web exec tsc -b --noEmit
+cd apps/web && npx tsc --noEmit
 ```
 
 Attendu : seule l'erreur `onChain` de la tâche 7 subsiste.
@@ -1984,7 +1984,7 @@ export function SoireePage() {
 - [ ] **Step 2: Vérifier la compilation**
 
 ```bash
-pnpm --filter @reeltime/web exec tsc -b --noEmit
+cd apps/web && npx tsc --noEmit
 ```
 
 Attendu : aucune erreur. L'erreur `onChain` de la tâche 7 disparaît avec cette réécriture.
