@@ -4,67 +4,37 @@ import { DayStrip } from '../components/DayStrip';
 import { FilmDrawer } from '../components/FilmDrawer';
 import { ErrorState } from '../components/ErrorState';
 import { FilmGridSkeleton } from '../components/Skeleton';
-import { AddToSoireeButton } from '../components/soiree/AddToSoireeButton';
-import { CandidateRow } from '../components/soiree/CandidateRow';
+import { SoireeFilters, SOIREE_SELECT_CLASS } from '../components/soiree/SoireeFilters';
+import { SoireePlan } from '../components/soiree/SoireePlan';
+import { CandidateList } from '../components/soiree/CandidateList';
+import { FilmPicker, type PickableFilm } from '../components/soiree/FilmPicker';
 import { useFilms } from '../hooks/useFilms';
 import { useWeekNavigation } from '../hooks/useWeekNavigation';
 import { useCinemas } from '../hooks/useCinemas';
 import { useFilmDrawer } from '../hooks/useFilmDrawer';
+import { useTravelMinutes } from '../hooks/useTravelMinutes';
 import { normalizeText } from '../hooks/useFilteredFilms';
 import { useFiltersStore } from '../stores/filtersStore';
+import { useSoireeStore, addToSoiree, makeSoireeItem } from '../stores/soireeStore';
 import { firstSelectableDate, formatWeekLabel, localISODate, nowHHMM, weekDatesFrom } from '../utils/dates';
-import { getCinemaShortName } from '../utils/cinemaNames';
 import { isOptInCity } from '../utils/cinemaFilter';
 import {
-  findChainable,
-  toMinutes,
-  estimatedEnd,
-  formatClock,
-  formatDuration,
-  MAX_GAP_MIN,
-  type ChainCandidate,
-} from '../utils/chaining';
+  CANDIDATE_SORT_OPTIONS,
+  filterCandidates,
+  matchesCinemas,
+  matchesVersion,
+  sortCandidates,
+  type CandidateSort,
+  type VersionFilter,
+} from '../utils/soireeFilters';
+import { findChainable, formatDuration, MAX_GAP_MIN } from '../utils/chaining';
 import type { FilmListItem, ShowtimeEntry } from '../types/components';
-
-const NO_POSTER = '/images/no-poster.svg';
 
 /** Référence stable : `?? []` en ligne recréerait un tableau à chaque rendu. */
 const NO_FILMS: FilmListItem[] = [];
 
-const START_OPTIONS: { value: string; label: string }[] = [
-  { value: '', label: 'Toute la journée' },
-  { value: '14:00', label: 'À partir de 14h' },
-  { value: '17:00', label: 'À partir de 17h' },
-  { value: '18:00', label: 'À partir de 18h' },
-  { value: '19:00', label: 'À partir de 19h' },
-  { value: '20:00', label: 'À partir de 20h' },
-];
-
 /** Battements proposés : de « juste le temps de sortir » à « on dîne entre les deux ». */
 const GAP_OPTIONS = [30, MAX_GAP_MIN, 90, 120];
-
-type CandidateSort = 'gap' | 'time' | 'rating';
-
-const SORT_OPTIONS: { value: CandidateSort; label: string }[] = [
-  // « Pertinence » et non « Battement » : findChainable remonte d'abord les
-  // séances du même cinéma, le battement n'arbitre qu'à cinéma égal.
-  { value: 'gap', label: 'Pertinence' },
-  { value: 'time', label: 'Heure de début' },
-  { value: 'rating', label: 'Note Letterboxd' },
-];
-
-function sortCandidates(candidates: ChainCandidate[], sort: CandidateSort): ChainCandidate[] {
-  if (sort === 'gap') return candidates; // ordre findChainable : même cinéma d'abord, puis battement
-  const sorted = [...candidates];
-  if (sort === 'time') {
-    sorted.sort((a, b) => toMinutes(a.showtime.time) - toMinutes(b.showtime.time));
-  } else {
-    sorted.sort(
-      (a, b) => (b.film.letterboxdRating ?? -1) - (a.film.letterboxdRating ?? -1),
-    );
-  }
-  return sorted;
-}
 
 export function SoireePage() {
   const { weekOffset, goToNextWeek, goToPrevWeek, goToToday } = useWeekNavigation();
@@ -77,35 +47,46 @@ export function SoireePage() {
   const weekLabel = formatWeekLabel(data?.meta.weekStart, data?.meta.weekEnd);
   const { data: cinemas = [] } = useCinemas();
   const { isOpen, selectedFilm, openDrawer, closeDrawer } = useFilmDrawer();
+  const travelOf = useTravelMinutes();
 
   const today = localISODate();
   const now = nowHHMM();
-  // La ville choisie sur l'affiche vaut aussi ici : arriver systématiquement sur
-  // Brest alors qu'on parcourt Quimper depuis dix minutes est une friction gratuite.
-  const filterCity = useFiltersStore((s) => s.selectedCity);
+
+  const soirees = useSoireeStore((s) => s.soirees);
+  const removeFromSoiree = useSoireeStore((s) => s.remove);
+  const clearDate = useSoireeStore((s) => s.clearDate);
+
+  // Les filtres de l'affiche servent de point de départ, jamais de destination :
+  // on les recopie au montage et on n'y réécrit rien.
   const [selectedDate, setSelectedDate] = useState<string>(today);
-  const [city, setCity] = useState(filterCity ?? 'Brest');
+  const [city, setCity] = useState(() => useFiltersStore.getState().selectedCity ?? 'Brest');
   const [minStart, setMinStart] = useState('17:00');
+  const [version, setVersion] = useState<VersionFilter>(() => {
+    const persisted = useFiltersStore.getState().version;
+    if (persisted == null) return 'all';
+    // `VOST` et `VO` se rangent sous le même filtre, comme sur l'affiche.
+    return persisted === 'VF' ? 'VF' : 'VO';
+  });
+  const [selectedCinemas, setSelectedCinemas] = useState<string[]>(
+    () => useFiltersStore.getState().selectedCinemas,
+  );
+  const [sameCinemaOnly, setSameCinemaOnly] = useState(false);
   const [maxGap, setMaxGap] = useState(MAX_GAP_MIN);
+  const [sort, setSort] = useState<CandidateSort>('chain');
   const [search, setSearch] = useState('');
-  const [filmId, setFilmId] = useState<string | null>(null);
-  const [anchorId, setAnchorId] = useState<string | null>(null);
-  const [sort, setSort] = useState<CandidateSort>('gap');
 
   const isToday = selectedDate === today;
   // Aujourd'hui, une séance déjà commencée n'est plus planifiable : le plancher
   // d'heure suit l'horloge, sinon la page propose encore la séance de 17h à 21h.
   const effectiveMinStart = isToday && now > minStart ? now : minStart;
 
-  // Un jour est obligatoire ici : dès que la date choisie sort de la semaine
-  // affichée, on se recale sur son premier jour sélectionnable et on repart
-  // d'une feuille blanche, comme le fait le clic sur une puce de jour.
+  // Dès que la date choisie sort de la semaine affichée, on se recale sur son
+  // premier jour sélectionnable. Rien à réinitialiser : la soirée vit dans le
+  // store, indexée par date.
   useEffect(() => {
     if (weekDates.length === 0) return;
     if (weekDates.includes(selectedDate)) return;
     setSelectedDate(firstSelectableDate(weekDates, today));
-    setFilmId(null);
-    setAnchorId(null);
   }, [weekDates, today, selectedDate]);
 
   // Les villes hors zone (Troyes) restent masquées ici comme sur l'affiche, sauf
@@ -124,6 +105,32 @@ export function SoireePage() {
     if (cities.length > 0 && !cities.includes(city)) setCity(cities[0]);
   }, [cities, city]);
 
+  const cityCinemas = useMemo(
+    () => cinemas.filter((c) => c.city === city).sort((a, b) => a.name.localeCompare(b.name, 'fr')),
+    [cinemas, city],
+  );
+
+  // Une sélection de salles héritée d'une autre ville produirait un filtre
+  // invisible qui vide la page : mieux vaut alors ne rien filtrer.
+  useEffect(() => {
+    setSelectedCinemas((prev) => {
+      const kept = prev.filter((id) => cityCinemas.some((c) => c.id === id));
+      return kept.length === prev.length ? prev : kept;
+    });
+  }, [cityCinemas]);
+
+  const toggleCinema = useCallback((cinemaId: string) => {
+    setSelectedCinemas((prev) =>
+      prev.includes(cinemaId) ? prev.filter((id) => id !== cinemaId) : [...prev, cinemaId],
+    );
+  }, []);
+
+  const relaxFilters = useCallback(() => {
+    setVersion('all');
+    setSelectedCinemas([]);
+    setSameCinemaOnly(false);
+  }, []);
+
   const cityByCinemaId = useMemo(() => {
     const map = new Map<string, string>();
     for (const c of cinemas) map.set(c.id, c.city);
@@ -131,26 +138,31 @@ export function SoireePage() {
   }, [cinemas]);
   const cityOf = useCallback((cinemaId: string) => cityByCinemaId.get(cinemaId), [cityByCinemaId]);
 
-  /** Séances éligibles d'un film : jour + ville + heure de début choisis. */
+  const items = useMemo(() => soirees[selectedDate] ?? [], [soirees, selectedDate]);
+  const plannedShowtimeIds = useMemo(() => new Set(items.map((i) => i.showtimeId)), [items]);
+  const plannedFilmIds = useMemo(() => new Set(items.map((i) => i.filmId)), [items]);
+
+  /** Séances éligibles d'un film : jour, ville, heure, version et cinéma choisis. */
   const eligibleShowtimes = useCallback(
     (film: FilmListItem): ShowtimeEntry[] =>
       film.showtimes
         .filter(
           (st) =>
             st.datetime.slice(0, 10) === selectedDate &&
-            cityOf(st.cinemaId) === city &&
-            (!effectiveMinStart || st.time >= effectiveMinStart),
+            cityByCinemaId.get(st.cinemaId) === city &&
+            (!effectiveMinStart || st.time >= effectiveMinStart) &&
+            matchesVersion(st.version, version) &&
+            matchesCinemas(st.cinemaId, selectedCinemas),
         )
         .sort((a, b) => a.time.localeCompare(b.time)),
-    [selectedDate, city, effectiveMinStart, cityOf],
+    [selectedDate, city, effectiveMinStart, cityByCinemaId, version, selectedCinemas],
   );
 
-  /** Étape 1 : films ayant au moins une séance éligible, tri Letterboxd, filtre recherche. */
-  const pickableFilms = useMemo(() => {
+  const pickableFilms = useMemo<PickableFilm[]>(() => {
     return weekFilms
-      .map((film) => ({ film, count: eligibleShowtimes(film).length }))
-      .filter(({ film, count }) => {
-        if (count === 0) return false;
+      .map((film) => ({ film, showtimes: eligibleShowtimes(film) }))
+      .filter(({ film, showtimes }) => {
+        if (showtimes.length === 0) return false;
         if (search && !normalizeText(film.title).includes(normalizeText(search))) return false;
         return true;
       })
@@ -162,57 +174,78 @@ export function SoireePage() {
       });
   }, [weekFilms, eligibleShowtimes, search]);
 
-  const selectedFilmItem = useMemo(
-    () => (filmId ? weekFilms.find((f) => f.id === filmId) ?? null : null),
-    [filmId, weekFilms],
-  );
-
-  const anchorShowtimes = useMemo(() => {
-    if (!selectedFilmItem) return [];
-    const eligible = eligibleShowtimes(selectedFilmItem);
-    // Une séance atteinte par ré-ancrage peut commencer avant le plancher
-    // d'heure ; la garder dans les puces évite que le clic perde sa cible.
-    if (anchorId && !eligible.some((st) => st.id === anchorId)) {
-      const chosen = selectedFilmItem.showtimes.find((st) => st.id === anchorId);
-      if (chosen) return [...eligible, chosen].sort((a, b) => a.time.localeCompare(b.time));
-    }
-    return eligible;
-  }, [selectedFilmItem, eligibleShowtimes, anchorId]);
-
-  const anchor =
-    anchorShowtimes.find((st) => st.id === anchorId) ?? anchorShowtimes[0] ?? null;
-
   const notBefore = isToday ? now : undefined;
 
-  const before = useMemo(() => {
-    if (!selectedFilmItem || !anchor) return [];
-    return sortCandidates(
-      findChainable({ films: weekFilms, anchorFilm: selectedFilmItem, anchor, direction: 'before', cityOf, maxGapMin: maxGap, notBefore }),
-      sort,
-    );
-  }, [weekFilms, selectedFilmItem, anchor, cityOf, sort, maxGap, notBefore]);
+  /**
+   * La soirée est l'ancre : « avant » part de son premier film, « après » de son
+   * dernier. Deux exclusions s'ajoutent à celles de findChainable — les séances
+   * déjà au plan, et tout film déjà au plan, qu'on ne veut pas revoir à une
+   * autre heure.
+   */
+  const rawCandidates = useCallback(
+    (direction: 'before' | 'after') => {
+      if (items.length === 0 || !weekDates.includes(selectedDate)) return [];
+      const anchorItem = direction === 'before' ? items[0] : items[items.length - 1];
+      const anchor: ShowtimeEntry = {
+        id: anchorItem.showtimeId,
+        filmId: anchorItem.filmId,
+        cinemaId: anchorItem.cinemaId,
+        cinemaName: anchorItem.cinemaName,
+        datetime: `${anchorItem.date}T${anchorItem.time}:00`,
+        time: anchorItem.time,
+        version: (anchorItem.version ?? 'VF') as ShowtimeEntry['version'],
+        bookingUrl: anchorItem.bookingUrl,
+      };
+      return findChainable({
+        films: weekFilms,
+        anchorFilm: { id: anchorItem.filmId, runtime: anchorItem.runtime },
+        anchor,
+        direction,
+        cityOf,
+        maxGapMin: maxGap,
+        notBefore,
+        travelMinutesBetween: travelOf,
+      }).filter((c) => !plannedShowtimeIds.has(c.showtime.id) && !plannedFilmIds.has(c.film.id));
+    },
+    [
+      items,
+      weekDates,
+      selectedDate,
+      weekFilms,
+      cityOf,
+      maxGap,
+      notBefore,
+      travelOf,
+      plannedShowtimeIds,
+      plannedFilmIds,
+    ],
+  );
 
-  const after = useMemo(() => {
-    if (!selectedFilmItem || !anchor) return [];
-    return sortCandidates(
-      findChainable({ films: weekFilms, anchorFilm: selectedFilmItem, anchor, direction: 'after', cityOf, maxGapMin: maxGap, notBefore }),
-      sort,
-    );
-  }, [weekFilms, selectedFilmItem, anchor, cityOf, sort, maxGap, notBefore]);
+  const beforeRaw = useMemo(() => rawCandidates('before'), [rawCandidates]);
+  const afterRaw = useMemo(() => rawCandidates('after'), [rawCandidates]);
 
-  /** Repart de la séance candidate : c'est ce qui rend les soirées à 3 films possibles. */
-  const chainFrom = useCallback((candidate: ChainCandidate) => {
-    setFilmId(candidate.film.id);
-    setAnchorId(candidate.showtime.id);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  const candidateFilters = useMemo(
+    () => ({ version, cinemas: selectedCinemas, sameCinemaOnly }),
+    [version, selectedCinemas, sameCinemaOnly],
+  );
 
-  const selectClass =
-    'font-crimson px-2 py-2 bg-creme-ecran border-2 border-sepia-chaud rounded-lg text-noir-velours text-xs focus:outline-none focus:border-rouge-cinema focus:ring-2 focus:ring-rouge-cinema/20';
+  const before = useMemo(
+    () => sortCandidates(filterCandidates(beforeRaw, candidateFilters), sort),
+    [beforeRaw, candidateFilters, sort],
+  );
+  const after = useMemo(
+    () => sortCandidates(filterCandidates(afterRaw, candidateFilters), sort),
+    [afterRaw, candidateFilters, sort],
+  );
 
-  const endStr = anchor && selectedFilmItem
-    ? `${selectedFilmItem.runtime == null ? '~' : ''}${formatClock(estimatedEnd(toMinutes(anchor.time), selectedFilmItem.runtime))}`
-    : '';
+  const pick = useCallback(
+    (film: FilmListItem, showtime: ShowtimeEntry) => {
+      addToSoiree(makeSoireeItem(film, showtime, cityOf(showtime.cinemaId)));
+    },
+    [cityOf],
+  );
+
+  const hasPlan = items.length > 0;
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-4xl">
@@ -221,7 +254,8 @@ export function SoireePage() {
           🍿 Planifier ma soirée
         </h1>
         <p className="font-crimson text-sm text-sepia-chaud italic mb-4">
-          Choisis ton film, puis construis ta soirée autour : ce qui s'enchaîne avant et après.
+          Choisis une séance : elle rejoint ta soirée, et ce qui s'enchaîne avant et après apparaît
+          aussitôt.
         </p>
 
         <div className="space-y-3">
@@ -236,43 +270,25 @@ export function SoireePage() {
           <DayStrip
             dates={weekDates}
             value={selectedDate}
-            onChange={(d) => {
-              setSelectedDate(d ?? today);
-              setFilmId(null);
-              setAnchorId(null);
-            }}
+            onChange={(d) => setSelectedDate(d ?? today)}
             hideAllChip
           />
 
-          <div className="grid grid-cols-2 gap-2 sm:gap-3 max-w-md">
-            <select
-              value={city}
-              onChange={(e) => {
-                setCity(e.target.value);
-                setFilmId(null);
-                setAnchorId(null);
-              }}
-              className={selectClass}
-              aria-label="Ville"
-            >
-              {cities.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-            <select
-              value={minStart}
-              onChange={(e) => {
-                setMinStart(e.target.value);
-                setAnchorId(null);
-              }}
-              className={selectClass}
-              aria-label="Heure de début"
-            >
-              {START_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </div>
+          <SoireeFilters
+            cities={cities}
+            city={city}
+            onCityChange={setCity}
+            minStart={minStart}
+            onMinStartChange={setMinStart}
+            version={version}
+            onVersionChange={setVersion}
+            cinemas={cityCinemas}
+            selectedCinemas={selectedCinemas}
+            onToggleCinema={toggleCinema}
+            sameCinemaOnly={sameCinemaOnly}
+            onSameCinemaOnlyChange={setSameCinemaOnly}
+            showSameCinemaToggle={hasPlan}
+          />
 
           {/* Le plancher effectif diffère alors de l'option affichée : le dire. */}
           {isToday && now > minStart && (
@@ -292,213 +308,102 @@ export function SoireePage() {
         />
       )}
 
-      {!isLoading && !isError && !selectedFilmItem && (
+      {!isLoading && !isError && (
         <>
-          {/* Étape 1 : choisir le film */}
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher un film..."
-            aria-label="Rechercher un film"
-            className="font-crimson w-full px-3 py-2 mb-3 bg-creme-ecran border-2 border-sepia-chaud rounded-lg text-noir-velours text-sm placeholder-sepia-chaud/60 focus:outline-none focus:ring-2 focus:ring-rouge-cinema focus:border-rouge-cinema shadow-sm"
+          <SoireePlan
+            date={selectedDate}
+            items={items}
+            today={today}
+            now={now}
+            travelOf={travelOf}
+            onRemove={(showtimeId) => removeFromSoiree(selectedDate, showtimeId)}
+            onClear={() => clearDate(selectedDate)}
           />
 
-          {pickableFilms.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-2xl mb-2">🎬</p>
-              <p className="font-crimson text-noir-velours">
-                {isToday && now > minStart
-                  ? `Plus aucune séance après ${now} aujourd'hui. Essaie un autre jour ou une autre ville.`
-                  : 'Aucun film ce jour-là avec ces critères. Essaie un autre jour, une autre ville ou une heure plus tôt.'}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {pickableFilms.map(({ film, count }) => (
-                <button
-                  key={film.id}
-                  type="button"
-                  onClick={() => {
-                    setFilmId(film.id);
-                    setAnchorId(null);
-                  }}
-                  className="w-full text-left bg-creme-ecran border-2 border-sepia-chaud rounded-lg p-2 flex gap-3 items-center hover:border-rouge-cinema transition-colors"
-                >
-                  <img
-                    src={film.posterUrl ?? NO_POSTER}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    className="w-10 h-[60px] object-cover rounded shadow flex-shrink-0 border border-sepia-chaud/50 bg-beige-papier"
-                    onError={(e) => { e.currentTarget.src = NO_POSTER; }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-playfair font-bold text-noir-velours text-sm leading-tight truncate">
-                      {film.title}
-                    </p>
-                    <p className="font-bebas text-xs text-sepia-chaud tracking-wide">
-                      {film.letterboxdRating != null && (
-                        <span className="text-or-antique">★ {film.letterboxdRating.toFixed(1)} · </span>
-                      )}
-                      {count} séance{count > 1 ? 's' : ''}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </>
-      )}
+          {hasPlan && (
+            <>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-3">
+                <div className="flex items-center gap-2">
+                  <label
+                    className="font-bebas text-xs text-sepia-chaud uppercase tracking-wide"
+                    htmlFor="candidate-sort"
+                  >
+                    Tri
+                  </label>
+                  <select
+                    id="candidate-sort"
+                    value={sort}
+                    onChange={(e) => setSort(e.target.value as CandidateSort)}
+                    className={SOIREE_SELECT_CLASS}
+                  >
+                    {CANDIDATE_SORT_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label
+                    className="font-bebas text-xs text-sepia-chaud uppercase tracking-wide"
+                    htmlFor="candidate-gap"
+                  >
+                    Battement max
+                  </label>
+                  <select
+                    id="candidate-gap"
+                    value={maxGap}
+                    onChange={(e) => setMaxGap(Number(e.target.value))}
+                    className={SOIREE_SELECT_CLASS}
+                  >
+                    {GAP_OPTIONS.map((g) => (
+                      <option key={g} value={g}>{formatDuration(g)}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-      {!isLoading && !isError && selectedFilmItem && (
-        <>
-          {/* Étape 2 : construire autour du film */}
-          <button
-            type="button"
-            onClick={() => {
-              setFilmId(null);
-              setAnchorId(null);
-            }}
-            className="font-bebas mb-3 flex items-center gap-1.5 text-sm text-rouge-cinema uppercase tracking-wide hover:text-bordeaux-profond transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-            </svg>
-            Changer de film
-          </button>
+              <CandidateList
+                title="Après ta soirée"
+                candidates={after}
+                unfilteredCount={afterRaw.length}
+                cityOf={cityOf}
+                onOpenFilm={(c) => openDrawer(c.film)}
+                maxGap={maxGap}
+                emptyMessage="Aucune séance enchaînable après"
+                onRelaxFilters={relaxFilters}
+              />
 
-          <div className="flex gap-3 items-center mb-3">
-            <img
-              src={selectedFilmItem.posterUrl ?? NO_POSTER}
-              alt=""
-              className="w-12 h-[72px] object-cover rounded shadow flex-shrink-0 border border-sepia-chaud/50 bg-beige-papier"
-              onError={(e) => { e.currentTarget.src = NO_POSTER; }}
-            />
-            <div className="min-w-0">
-              <h2 className="font-playfair font-bold text-noir-velours text-lg leading-tight">
-                {selectedFilmItem.title}
-              </h2>
-              {anchor && (
-                <p className="font-crimson text-sm text-sepia-chaud italic">
-                  {anchor.time} ({getCinemaShortName(anchor.cinemaName)}), fin estimée {endStr}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Chips de séances (ancre) */}
-          <div className="flex flex-wrap gap-1.5 mb-3" role="group" aria-label="Choisir une séance">
-            {anchorShowtimes.map((st) => (
-              <button
-                key={st.id}
-                type="button"
-                onClick={() => setAnchorId(st.id)}
-                aria-pressed={anchor?.id === st.id}
-                className={`font-bebas px-3 py-1.5 rounded-full border-2 text-xs uppercase tracking-wide transition-colors ${
-                  anchor?.id === st.id
-                    ? 'bg-rouge-cinema border-bordeaux-profond text-creme-ecran shadow-md'
-                    : 'bg-creme-ecran border-sepia-chaud text-noir-velours hover:border-rouge-cinema'
-                }`}
-              >
-                {st.time} · {getCinemaShortName(st.cinemaName)}
-                {st.version && st.version !== 'VF' ? ` · ${st.version}` : ''}
-              </button>
-            ))}
-          </div>
-
-          {anchor && (
-            <AddToSoireeButton
-              film={selectedFilmItem}
-              showtime={anchor}
-              city={cityOf(anchor.cinemaId)}
-              label="Ajouter cette séance"
-              className="px-3 py-1.5 mb-4 font-bebas text-xs uppercase tracking-wide"
-            />
+              <CandidateList
+                title="Avant ta soirée"
+                candidates={before}
+                unfilteredCount={beforeRaw.length}
+                cityOf={cityOf}
+                onOpenFilm={(c) => openDrawer(c.film)}
+                maxGap={maxGap}
+                emptyMessage={`Aucune séance se terminant juste avant${isToday ? ', séances déjà commencées exclues' : ''}`}
+                onRelaxFilters={relaxFilters}
+              />
+            </>
           )}
 
-          {/* Tri et tolérance de battement */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-3">
-            <div className="flex items-center gap-2">
-              <label className="font-bebas text-xs text-sepia-chaud uppercase tracking-wide" htmlFor="candidate-sort">
-                Tri
-              </label>
-              <select
-                id="candidate-sort"
-                value={sort}
-                onChange={(e) => setSort(e.target.value as CandidateSort)}
-                className={selectClass}
-              >
-                {SORT_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="font-bebas text-xs text-sepia-chaud uppercase tracking-wide" htmlFor="candidate-gap">
-                Battement max
-              </label>
-              <select
-                id="candidate-gap"
-                value={maxGap}
-                onChange={(e) => setMaxGap(Number(e.target.value))}
-                className={selectClass}
-              >
-                {GAP_OPTIONS.map((g) => (
-                  <option key={g} value={g}>{formatDuration(g)}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <h3 className="font-bebas text-noir-velours text-base uppercase tracking-wider mb-2 flex items-center gap-2">
-            <span className="w-1 h-4 bg-rouge-cinema rounded-full" />
-            Après cette séance
-          </h3>
-          {after.length > 0 ? (
-            <div className="space-y-2 mb-5">
-              {after.map((c) => (
-                <CandidateRow
-                  key={c.showtime.id}
-                  candidate={c}
-                  city={cityOf(c.showtime.cinemaId)}
-                  onClick={() => openDrawer(c.film)}
-                  onChain={() => chainFrom(c)}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="font-crimson text-sm text-sepia-chaud italic mb-5">
-              Aucune séance enchaînable après (battement max {formatDuration(maxGap)}, même ville).
-            </p>
-          )}
-
-          <h3 className="font-bebas text-noir-velours text-base uppercase tracking-wider mb-2 flex items-center gap-2">
-            <span className="w-1 h-4 bg-rouge-cinema rounded-full" />
-            Avant cette séance
-          </h3>
-          {before.length > 0 ? (
-            <div className="space-y-2">
-              {before.map((c) => (
-                <CandidateRow
-                  key={c.showtime.id}
-                  candidate={c}
-                  city={cityOf(c.showtime.cinemaId)}
-                  onClick={() => openDrawer(c.film)}
-                  onChain={() => chainFrom(c)}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="font-crimson text-sm text-sepia-chaud italic">
-              Aucune séance se terminant juste avant (même ville)
-              {isToday ? ", séances déjà commencées exclues" : ''}.
-            </p>
-          )}
+          <FilmPicker
+            entries={pickableFilms}
+            search={search}
+            onSearchChange={setSearch}
+            plannedShowtimeIds={plannedShowtimeIds}
+            onPick={pick}
+            defaultOpen={!hasPlan}
+            emptyMessage={
+              isToday && now > minStart
+                ? `Plus aucune séance après ${now} aujourd'hui. Essaie un autre jour, une autre ville ou des filtres plus larges.`
+                : 'Aucun film ce jour-là avec ces critères. Essaie un autre jour, une autre ville, une heure plus tôt ou des filtres plus larges.'
+            }
+          />
 
           <p className="font-crimson text-[11px] text-sepia-chaud/70 italic mt-4">
-            Fins de séances estimées : durée du film + 15 min de publicités. Battement max {formatDuration(maxGap)},
-            chevauchement toléré 10 min. Le bouton » enchaîne la recherche à partir d'une séance candidate.
+            Fins de séances estimées : durée du film + 15 min de publicités. Battement max{' '}
+            {formatDuration(maxGap)}, chevauchement toléré 10 min. Les trajets sont estimés à pied
+            entre les salles et déduits du battement. « Meilleur enchaînement » remonte d'abord les
+            séances du même cinéma, puis celles qui laissent le moins de temps mort.
           </p>
         </>
       )}

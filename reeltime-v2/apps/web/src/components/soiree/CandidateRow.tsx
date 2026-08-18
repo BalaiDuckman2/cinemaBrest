@@ -9,15 +9,12 @@ export function CandidateRow({
   candidate,
   city,
   onClick,
-  onChain,
 }: {
   candidate: ChainCandidate;
   city: string | undefined;
   onClick: () => void;
-  /** Re-centre la recherche d'enchaînement sur cette séance. Absent = bouton masqué. */
-  onChain?: () => void;
 }) {
-  const { film, showtime, gapMin, sameCinema, approx } = candidate;
+  const { film, showtime, slackMin, travelMin, sameCinema, approx } = candidate;
   return (
     <div className="flex items-stretch gap-1.5">
       <button
@@ -40,31 +37,19 @@ export function CandidateRow({
           <p className="font-bebas text-xs text-noir-velours mt-0.5 tracking-wide">
             {showtime.time}
             <span className="text-sepia-chaud"> · {getCinemaShortName(showtime.cinemaName)}</span>
-            {showtime.version && showtime.version !== 'VF' && (
-              <span className="text-sepia-chaud"> · {showtime.version}</span>
-            )}
+            {/* La VF est une information comme une autre : la taire rendait les
+                lignes sans mention ambiguës. */}
+            {showtime.version && <span className="text-sepia-chaud"> · {showtime.version}</span>}
           </p>
           <p className="font-crimson text-xs italic text-sepia-chaud">
-            {formatGap(gapMin)}
+            {formatGap(slackMin)}
+            {travelMin > 0 ? ` · ~${travelMin} min de trajet` : ''}
             {approx ? ' (durée estimée)' : ''}
             {sameCinema ? ' · même cinéma' : ''}
           </p>
         </div>
       </button>
       <AddToSoireeButton film={film} showtime={showtime} city={city} className="px-2" />
-      {onChain && (
-        <button
-          type="button"
-          onClick={onChain}
-          title="Enchaîner à partir de cette séance"
-          aria-label={`Chercher les séances enchaînables autour de ${film.title} à ${showtime.time}`}
-          className="flex items-center justify-center rounded-md border-2 border-sepia-chaud bg-beige-papier px-2 text-sepia-chaud transition-colors hover:border-rouge-cinema hover:text-rouge-cinema"
-        >
-          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5-5 5M6 7l5 5-5 5" />
-          </svg>
-        </button>
-      )}
     </div>
   );
 }

@@ -213,3 +213,102 @@ describe('findChainable — options', () => {
     expect(found.map((c) => c.showtime.id)).toEqual(['k1', 'l1']);
   });
 });
+
+describe('findChainable — temps de trajet', () => {
+  /** Salles éloignées : une demi-heure de marche entre deux cinémas distincts. */
+  const travelOf = (a: string, b: string) => (a === b ? 0 : 30);
+
+  it('laisse gapMin brut et met slackMin à sa valeur quand aucun trajet n est injecté', () => {
+    const next = showtime('n1', '20:15');
+    const [candidate] = findChainable({
+      films: [ANCHOR_FILM, film('f1', 90, [next])],
+      anchorFilm: ANCHOR_FILM,
+      anchor: ANCHOR,
+      direction: 'after',
+      cityOf,
+    });
+    expect(candidate.gapMin).toBe(20);
+    expect(candidate.travelMin).toBe(0);
+    expect(candidate.slackMin).toBe(20);
+  });
+
+  it('ne compte aucun trajet entre deux séances du même cinéma', () => {
+    const next = showtime('n2', '20:15', 'celtic');
+    const [candidate] = findChainable({
+      films: [ANCHOR_FILM, film('f2', 90, [next])],
+      anchorFilm: ANCHOR_FILM,
+      anchor: ANCHOR,
+      direction: 'after',
+      cityOf,
+      travelMinutesBetween: travelOf,
+    });
+    expect(candidate.travelMin).toBe(0);
+    expect(candidate.slackMin).toBe(20);
+  });
+
+  // 20:05 laisse 10 min brutes : jouable dans la même salle, infaisable après
+  // une demi-heure de marche.
+  it('écarte un candidat que le trajet rend infaisable', () => {
+    const next = showtime('n3', '20:05', 'studios');
+    const options = {
+      films: [ANCHOR_FILM, film('f3', 90, [next])],
+      anchorFilm: ANCHOR_FILM,
+      anchor: ANCHOR,
+      direction: 'after' as const,
+      cityOf,
+    };
+    expect(findChainable(options)).toHaveLength(1);
+    expect(findChainable({ ...options, travelMinutesBetween: travelOf })).toHaveLength(0);
+  });
+
+  // Le plafond de battement borne le temps mort, pas le temps total : 1h10
+  // brutes dont 30 min de marche, c'est 40 min d'attente, donc acceptable.
+  it('accepte un battement brut supérieur au plafond quand le trajet en absorbe une part', () => {
+    const next = showtime('n4', '21:05', 'studios');
+    const options = {
+      films: [ANCHOR_FILM, film('f4', 90, [next])],
+      anchorFilm: ANCHOR_FILM,
+      anchor: ANCHOR,
+      direction: 'after' as const,
+      cityOf,
+      maxGapMin: 60,
+    };
+    expect(findChainable(options)).toHaveLength(0);
+    const [candidate] = findChainable({ ...options, travelMinutesBetween: travelOf });
+    expect(candidate.gapMin).toBe(70);
+    expect(candidate.travelMin).toBe(30);
+    expect(candidate.slackMin).toBe(40);
+  });
+
+  it('déduit aussi le trajet dans la direction « avant »', () => {
+    // Film de 90 min commençant à 16:00 → fin estimée 17:45, soit 15 min avant
+    // l'ancre de 18:00 ; la marche de 30 min rend l'enchaînement impossible.
+    const prev = showtime('p1', '16:00', 'studios');
+    const options = {
+      films: [ANCHOR_FILM, film('f5', 90, [prev])],
+      anchorFilm: ANCHOR_FILM,
+      anchor: ANCHOR,
+      direction: 'before' as const,
+      cityOf,
+    };
+    expect(findChainable(options)).toHaveLength(1);
+    expect(findChainable({ ...options, travelMinutesBetween: travelOf })).toHaveLength(0);
+  });
+
+  it('ordonne à cinéma égal sur le temps libre, pas sur le battement brut', () => {
+    // Même cinéma, 20 min libres. Autre cinéma, 35 min brutes → 5 min libres.
+    const proche = showtime('s1', '20:15', 'celtic');
+    const loin = showtime('s2', '20:30', 'studios');
+    const candidates = findChainable({
+      films: [ANCHOR_FILM, film('f6', 90, [proche]), film('f7', 90, [loin])],
+      anchorFilm: ANCHOR_FILM,
+      anchor: ANCHOR,
+      direction: 'after',
+      cityOf,
+      travelMinutesBetween: travelOf,
+    });
+    // Le même cinéma passe devant quoi qu'il arrive, mais les deux valeurs
+    // doivent être calculées sur le temps libre.
+    expect(candidates.map((c) => c.slackMin)).toEqual([20, 5]);
+  });
+});

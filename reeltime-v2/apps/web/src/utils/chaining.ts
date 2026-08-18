@@ -31,6 +31,10 @@ export interface ChainCandidate {
   showtime: ShowtimeEntry;
   /** Minutes between the end of the first film and the start of the next (negative = overlap). */
   gapMin: number;
+  /** Trajet estimé entre les deux salles. 0 pour la même salle ou sans coordonnées. */
+  travelMin: number;
+  /** `gapMin - travelMin` : le temps réellement libre. C'est lui qui décide de la faisabilité. */
+  slackMin: number;
   sameCinema: boolean;
   /** True when at least one runtime was unknown and estimated. */
   approx: boolean;
@@ -47,6 +51,8 @@ interface FindChainableOptions {
   maxGapMin?: number;
   /** Heure "HH:MM" avant laquelle une séance est déjà commencée (jour courant uniquement). */
   notBefore?: string;
+  /** Trajet entre deux salles, en minutes. Absent = aucun trajet compté. */
+  travelMinutesBetween?: (fromCinemaId: string, toCinemaId: string) => number;
 }
 
 /** Showtimes of other films, same day and same city, watchable before/after the anchor showtime. */
@@ -58,6 +64,7 @@ export function findChainable({
   cityOf,
   maxGapMin = MAX_GAP_MIN,
   notBefore,
+  travelMinutesBetween,
 }: FindChainableOptions): ChainCandidate[] {
   const anchorDate = anchor.datetime.slice(0, 10);
   const anchorCity = cityOf(anchor.cinemaId);
@@ -91,12 +98,21 @@ export function findChainable({
         approx = film.runtime == null;
       }
 
-      if (gapMin < -OVERLAP_TOLERANCE_MIN || gapMin > maxGapMin) continue;
+      // Symétrique : l'ordre des salles n'influe pas sur la distance, la
+      // direction n'a donc pas à être répercutée ici.
+      const travelMin = travelMinutesBetween
+        ? travelMinutesBetween(anchor.cinemaId, st.cinemaId)
+        : 0;
+      const slackMin = gapMin - travelMin;
+
+      if (slackMin < -OVERLAP_TOLERANCE_MIN || slackMin > maxGapMin) continue;
 
       candidates.push({
         film,
         showtime: st,
         gapMin,
+        travelMin,
+        slackMin,
         sameCinema: st.cinemaId === anchor.cinemaId,
         approx,
       });
@@ -105,7 +121,7 @@ export function findChainable({
 
   candidates.sort((a, b) => {
     if (a.sameCinema !== b.sameCinema) return a.sameCinema ? -1 : 1;
-    return Math.abs(a.gapMin) - Math.abs(b.gapMin);
+    return Math.abs(a.slackMin) - Math.abs(b.slackMin);
   });
 
   return candidates;
