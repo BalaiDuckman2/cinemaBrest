@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useSoireeStore } from '../stores/soireeStore';
+import { useTravelMinutes } from '../hooks/useTravelMinutes';
 import { SoireeItemRow, SoireeGapRow, timeLabel, endLabel } from '../components/soiree/SoireeTimeline';
 import { formatDayLong, localISODate, nowHHMM } from '../utils/dates';
 
@@ -8,6 +9,7 @@ export function MesSoireesPage() {
   const soirees = useSoireeStore((s) => s.soirees);
   const remove = useSoireeStore((s) => s.remove);
   const clearDate = useSoireeStore((s) => s.clearDate);
+  const travelOf = useTravelMinutes();
 
   const dates = useMemo(() => Object.keys(soirees).sort(), [soirees]);
   const today = localISODate();
@@ -75,7 +77,13 @@ export function MesSoireesPage() {
                 <div className="space-y-1.5">
                   {items.map((item, idx) => (
                     <div key={item.showtimeId}>
-                      {idx > 0 && <SoireeGapRow prev={items[idx - 1]} next={item} />}
+                      {idx > 0 && (
+                        <SoireeGapRow
+                          prev={items[idx - 1]}
+                          next={item}
+                          travelMin={travelOf(items[idx - 1].cinemaId, item.cinemaId)}
+                        />
+                      )}
                       <SoireeItemRow
                         item={item}
                         past={item.date === today && item.time < now}

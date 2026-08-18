@@ -21,16 +21,29 @@ export function endLabel(item: SoireeItem): string {
   return `${item.runtime == null ? '~' : ''}${formatClock(end)}`;
 }
 
-export function SoireeGapRow({ prev, next }: { prev: SoireeItem; next: SoireeItem }) {
+export function SoireeGapRow({
+  prev,
+  next,
+  travelMin = 0,
+}: {
+  prev: SoireeItem;
+  next: SoireeItem;
+  /** Trajet estimé entre les deux salles. Absent = aucun trajet compté. */
+  travelMin?: number;
+}) {
   const gap = toMinutes(next.time) - estimatedEnd(toMinutes(prev.time), prev.runtime);
-  const overlap = gap < -OVERLAP_TOLERANCE_MIN;
+  // Le libellé qualifie le temps LIBRE : annoncer « enchaînement direct » pour
+  // cinq minutes de battement et un quart d'heure de marche serait faux.
+  const slack = gap - travelMin;
+  const overlap = slack < -OVERLAP_TOLERANCE_MIN;
   return (
     <p
       className={`font-crimson text-xs italic pl-12 py-0.5 ${
         overlap ? 'text-rouge-cinema font-semibold' : 'text-sepia-chaud'
       }`}
     >
-      ↓ {formatGap(gap)}
+      ↓ {formatGap(slack)}
+      {travelMin > 0 ? ` · ~${travelMin} min de trajet` : ''}
       {prev.runtime == null ? ' (durée estimée)' : ''}
     </p>
   );
@@ -58,9 +71,9 @@ export function SoireeItemRow({ item, past, onRemove }: { item: SoireeItem; past
         <p className="font-bebas text-xs text-noir-velours tracking-wide">
           {timeLabel(item.time)} <span className="text-sepia-chaud">→ {endLabel(item)}</span>
           <span className="text-sepia-chaud"> · {getCinemaShortName(item.cinemaName)}</span>
-          {item.version && item.version !== 'VF' && (
-            <span className="text-sepia-chaud"> · {item.version}</span>
-          )}
+          {/* La VF est une information comme une autre : la taire rendait les
+              lignes sans mention ambiguës. */}
+          {item.version && <span className="text-sepia-chaud"> · {item.version}</span>}
         </p>
         {item.bookingUrl && (
           <a

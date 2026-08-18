@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useSoireeStore, addToSoiree, makeSoireeItem, nextSoireeDate, type SoireeItem } from '../../stores/soireeStore';
 import { useFilms } from '../../hooks/useFilms';
 import { useCinemas } from '../../hooks/useCinemas';
+import { useTravelMinutes } from '../../hooks/useTravelMinutes';
 import { findChainable, formatGap, type ChainCandidate } from '../../utils/chaining';
 import { formatDayShort, localISODate, nowHHMM, weekDatesFrom } from '../../utils/dates';
 import { getCinemaShortName } from '../../utils/cinemaNames';
@@ -26,7 +27,7 @@ function toShowtimeEntry(item: SoireeItem): ShowtimeEntry {
 }
 
 function SuggestionRow({ candidate, city }: { candidate: ChainCandidate; city: string | undefined }) {
-  const { film, showtime, gapMin, sameCinema } = candidate;
+  const { film, showtime, slackMin, travelMin, sameCinema } = candidate;
   return (
     <button
       type="button"
@@ -46,7 +47,8 @@ function SuggestionRow({ candidate, city }: { candidate: ChainCandidate; city: s
           {film.title}
         </p>
         <p className="font-crimson text-[11px] italic text-sepia-chaud truncate">
-          {timeLabel(showtime.time)} · {getCinemaShortName(showtime.cinemaName)} · {formatGap(gapMin)}
+          {timeLabel(showtime.time)} · {getCinemaShortName(showtime.cinemaName)} · {formatGap(slackMin)}
+          {travelMin > 0 ? ` · ~${travelMin} min de trajet` : ''}
           {sameCinema ? ' · même ciné' : ''}
         </p>
       </div>
@@ -68,6 +70,7 @@ export function SoireeBar() {
   // La barre lit useFilms(0) + useCinemas elle-même (React Query déduplique avec les pages).
   const { data } = useFilms(0);
   const { data: cinemas = [] } = useCinemas();
+  const travelOf = useTravelMinutes();
 
   const cityByCinemaId = useMemo(() => {
     const map = new Map<string, string>();
@@ -100,10 +103,11 @@ export function SoireeBar() {
       anchor: toShowtimeEntry(anchor),
       direction: 'before',
       cityOf: (id) => cityByCinemaId.get(id),
+      travelMinutesBetween: travelOf,
     })
       .filter((c) => !inPlan.has(c.showtime.id))
       .slice(0, 5);
-  }, [data, displayDate, weekDates, items, cityByCinemaId, inPlan]);
+  }, [data, displayDate, weekDates, items, cityByCinemaId, inPlan, travelOf]);
 
   const after = useMemo(() => {
     if (!data || !displayDate || !weekDates.includes(displayDate) || items.length === 0) return [];
@@ -114,10 +118,11 @@ export function SoireeBar() {
       anchor: toShowtimeEntry(anchor),
       direction: 'after',
       cityOf: (id) => cityByCinemaId.get(id),
+      travelMinutesBetween: travelOf,
     })
       .filter((c) => !inPlan.has(c.showtime.id))
       .slice(0, 5);
-  }, [data, displayDate, weekDates, items, cityByCinemaId, inPlan]);
+  }, [data, displayDate, weekDates, items, cityByCinemaId, inPlan, travelOf]);
 
   if (!nextDate || !displayDate || items.length === 0) return null;
 
@@ -184,7 +189,13 @@ export function SoireeBar() {
             {/* Films choisis en premier (spec §2) */}
             {items.map((item, idx) => (
               <div key={item.showtimeId}>
-                {idx > 0 && <SoireeGapRow prev={items[idx - 1]} next={item} />}
+                {idx > 0 && (
+                  <SoireeGapRow
+                    prev={items[idx - 1]}
+                    next={item}
+                    travelMin={travelOf(items[idx - 1].cinemaId, item.cinemaId)}
+                  />
+                )}
                 <SoireeItemRow
                   item={item}
                   past={item.date === today && item.time < now}
