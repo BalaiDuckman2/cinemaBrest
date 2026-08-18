@@ -200,9 +200,12 @@ Les filtres de faisabilité portent sur `slackMin`, pas sur `gapMin` :
 `slackMin >= -OVERLAP_TOLERANCE_MIN && slackMin <= maxGapMin`. Le tri
 `chain` ordonne sur `Math.abs(slackMin)`.
 
-L'affichage reste honnête sur les deux : « 25 min de battement, dont ~10 min de
-trajet ». Quand `travelMin` vaut 0, rien n'est mentionné — pas de « 0 min de
-trajet ».
+L'affichage qualifie le **temps libre** et mentionne le trajet à part :
+« 10 min de battement · ~15 min de trajet ». Formuler l'inverse — qualifier
+`gapMin` puis annoncer le trajet — produirait des libellés faux : un battement
+brut de 5 minutes demandant un quart d'heure de marche s'annoncerait
+« enchaînement direct ». Quand `travelMin` vaut 0, rien n'est mentionné : pas de
+« 0 min de trajet ».
 
 `SoireeGapRow` gagne une prop optionnelle `travelMin`, câblée par `SoireePage`,
 `SoireeBar` et `MesSoireesPage` via `useTravelMinutes`. Absente, le composant se
