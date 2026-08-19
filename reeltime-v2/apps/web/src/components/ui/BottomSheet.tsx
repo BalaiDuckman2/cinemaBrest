@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useScrollLock } from '../../hooks/useScrollLock';
-import { shouldDismiss, type DragSample } from '../../utils/gestures';
+import {
+  isVerticalDrag,
+  ownsDragGesture,
+  shouldDismiss,
+  type DragSample,
+} from '../../utils/gestures';
 
 interface BottomSheetProps {
   open: boolean;
@@ -75,19 +80,26 @@ export function BottomSheet({
     const sheet = sheetRef.current;
     if (!sheet || !mounted) return;
 
+    let startX = 0;
     let startY = 0;
     let delta = 0;
     let dragging = false;
+    // Vrai quand le geste a commencé sur un contrôle qui le possède déjà : la
+    // feuille se tient alors à l'écart jusqu'au prochain touchstart.
+    let handedOver = false;
     let samples: DragSample[] = [];
 
     const onStart = (e: TouchEvent) => {
+      startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
       delta = 0;
       dragging = false;
+      handedOver = ownsDragGesture(e.target);
       samples = [{ y: startY, t: e.timeStamp }];
     };
 
     const onMove = (e: TouchEvent) => {
+      if (handedOver) return;
       const y = e.touches[0].clientY;
       const dy = y - startY;
 
@@ -95,7 +107,8 @@ export function BottomSheet({
         // On ne prend la main que si le contenu est déjà en haut : sinon le
         // geste appartient au scroll interne.
         const atTop = (contentRef.current?.scrollTop ?? 0) <= 0;
-        if (dy > DRAG_START_PX && atTop) {
+        const dx = e.touches[0].clientX - startX;
+        if (dy > DRAG_START_PX && atTop && isVerticalDrag(dx, dy)) {
           dragging = true;
           sheet.style.willChange = 'transform';
           sheet.style.transition = 'none';
@@ -117,6 +130,7 @@ export function BottomSheet({
     };
 
     const onEnd = () => {
+      handedOver = false;
       if (!dragging) return;
       sheet.style.willChange = '';
       sheet.style.transition = '';

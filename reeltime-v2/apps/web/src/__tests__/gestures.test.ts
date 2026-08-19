@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { dragVelocity, shouldDismiss, type DragSample } from '../utils/gestures';
+import {
+  DRAG_OWNER_SELECTOR,
+  dragVelocity,
+  isVerticalDrag,
+  ownsDragGesture,
+  shouldDismiss,
+  type DragSample,
+} from '../utils/gestures';
 
 /** Échantillons régulièrement espacés de `step` px toutes les 16 ms. */
 function samples(step: number, count = 4): DragSample[] {
@@ -52,5 +59,77 @@ describe('shouldDismiss', () => {
   it('ne ferme jamais sur un geste vers le haut', () => {
     expect(shouldDismiss(-150, samples(-16))).toBe(false);
     expect(shouldDismiss(0, samples(16))).toBe(false);
+  });
+});
+
+describe('ownsDragGesture', () => {
+  /** Élément minimal : seul `closest` compte, ce qui permet de tester sans DOM. */
+  function target(match: boolean, spy?: (sel: string) => void) {
+    return {
+      closest(selector: string) {
+        spy?.(selector);
+        return match ? { tagName: 'DIV' } : null;
+      },
+    };
+  }
+
+  it('rend false pour une cible absente', () => {
+    expect(ownsDragGesture(null)).toBe(false);
+    expect(ownsDragGesture(undefined)).toBe(false);
+  });
+
+  // `document` et `window` remontent dans les événements tactiles sans porter
+  // `closest` : les traiter comme des cibles ordinaires plutôt que planter.
+  it('rend false pour une cible sans closest', () => {
+    expect(ownsDragGesture({})).toBe(false);
+  });
+
+  it('rend true quand la cible est dans un contrôle propriétaire du geste', () => {
+    expect(ownsDragGesture(target(true))).toBe(true);
+  });
+
+  it('rend false quand la cible n est dans aucun contrôle propriétaire', () => {
+    expect(ownsDragGesture(target(false))).toBe(false);
+  });
+
+  it('interroge le sélecteur des contrôles propriétaires', () => {
+    let asked = '';
+    ownsDragGesture(target(false, (sel) => { asked = sel; }));
+    expect(asked).toBe(DRAG_OWNER_SELECTOR);
+  });
+
+  // Ce sont les trois cas qui ont motivé le correctif : le slider Radix expose
+  // role="slider", et data-drag-owner sert d'échappatoire pour le reste.
+  it('couvre les sliders Radix, les input range et l échappatoire explicite', () => {
+    expect(DRAG_OWNER_SELECTOR).toContain('[role="slider"]');
+    expect(DRAG_OWNER_SELECTOR).toContain('input[type="range"]');
+    expect(DRAG_OWNER_SELECTOR).toContain('[data-drag-owner]');
+  });
+});
+
+describe('isVerticalDrag', () => {
+  it('reconnaît un geste franchement vertical', () => {
+    expect(isVerticalDrag(0, 40)).toBe(true);
+    expect(isVerticalDrag(5, 40)).toBe(true);
+  });
+
+  it('rejette un geste franchement horizontal', () => {
+    expect(isVerticalDrag(40, 0)).toBe(false);
+    expect(isVerticalDrag(40, 5)).toBe(false);
+  });
+
+  // La diagonale exacte reste au controle sous-jacent : en cas d'égalité, la
+  // feuille s'abstient plutôt que de trancher à pile ou face.
+  it('rejette la diagonale exacte', () => {
+    expect(isVerticalDrag(30, 30)).toBe(false);
+  });
+
+  it('ignore le sens du mouvement horizontal', () => {
+    expect(isVerticalDrag(-40, 5)).toBe(false);
+    expect(isVerticalDrag(-5, 40)).toBe(true);
+  });
+
+  it('rejette un geste immobile', () => {
+    expect(isVerticalDrag(0, 0)).toBe(false);
   });
 });
