@@ -56,10 +56,19 @@ export function SoireePage() {
   const removeFromSoiree = useSoireeStore((s) => s.remove);
   const clearDate = useSoireeStore((s) => s.clearDate);
 
+  // Une séance choisie depuis l'affiche arrive par l'URL : elle prime sur les
+  // filtres, sinon on atterrirait sur un autre jour que celui qu'on vient de
+  // cliquer. `?week=` est lu par useWeekNavigation.
+  const seed = useMemo(() => new URLSearchParams(window.location.search), []);
+
   // Les filtres de l'affiche servent de point de départ, jamais de destination :
   // on les recopie au montage et on n'y réécrit rien.
-  const [selectedDate, setSelectedDate] = useState<string>(today);
-  const [city, setCity] = useState(() => useFiltersStore.getState().selectedCity ?? 'Brest');
+  const [selectedDate, setSelectedDate] = useState<string>(
+    () => seed.get('date') ?? today,
+  );
+  const [city, setCity] = useState(
+    () => seed.get('city') ?? useFiltersStore.getState().selectedCity ?? 'Brest',
+  );
   const [minStart, setMinStart] = useState('17:00');
   const [version, setVersion] = useState<VersionFilter>(() => {
     const persisted = useFiltersStore.getState().version;
@@ -412,9 +421,7 @@ export function SoireePage() {
         film={selectedFilm}
         isOpen={isOpen}
         onClose={closeDrawer}
-        films={weekFilms}
         cityOf={cityOf}
-        onFilmSelect={openDrawer}
       />
     </div>
   );

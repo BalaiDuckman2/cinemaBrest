@@ -55,12 +55,11 @@ interface FilmShowtimesProps {
   /** Le film parent (snapshot pour « Ma soirée »). */
   film: Pick<FilmListItem, 'id' | 'title' | 'posterUrl' | 'runtime'>;
   /** When provided, each showtime gets a "chain with another film" button. */
-  onChain?: (st: ShowtimeEntry) => void;
   /** When provided, each showtime gets a "+ Ma soirée" button. */
   cityOf?: (cinemaId: string) => string | undefined;
 }
 
-export function FilmShowtimes({ showtimes, film, onChain, cityOf }: FilmShowtimesProps) {
+export function FilmShowtimes({ showtimes, film, cityOf }: FilmShowtimesProps) {
   const grouped = groupShowtimes(showtimes);
   const sortedDates = Object.keys(grouped).sort();
   const selectedDate = useFiltersStore((s) => s.selectedDate);
@@ -149,7 +148,6 @@ export function FilmShowtimes({ showtimes, film, onChain, cityOf }: FilmShowtime
                           showtime={st}
                           film={film}
                           city={cityOf?.(st.cinemaId)}
-                          onChain={onChain}
                           showCinema={false}
                         />
                       ))}

@@ -323,9 +323,7 @@ export function HomePage() {
         film={selectedFilm}
         isOpen={isOpen}
         onClose={closeDrawer}
-        films={films}
         cityOf={cityOf}
-        onFilmSelect={openDrawer}
       />
     </div>
   );
