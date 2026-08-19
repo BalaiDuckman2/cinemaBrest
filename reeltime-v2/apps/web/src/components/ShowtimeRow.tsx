@@ -1,13 +1,11 @@
 import type { FilmListItem, ShowtimeEntry } from '../types/components';
 import { getCinemaShortName } from '../utils/cinemaNames';
-import { AddToSoireeButton } from './soiree/AddToSoireeButton';
+import { PlanSoireeButton } from './soiree/PlanSoireeButton';
 
 interface ShowtimeRowProps {
   showtime: ShowtimeEntry;
   film: Pick<FilmListItem, 'id' | 'title' | 'posterUrl' | 'runtime'>;
   city: string | undefined;
-  /** Affiche le bouton d'enchaînement (desktop uniquement). */
-  onChain?: (st: ShowtimeEntry) => void;
   /** Nom du cinéma, masqué quand il est déjà porté par un en-tête de groupe. */
   showCinema?: boolean;
 }
@@ -16,7 +14,6 @@ export function ShowtimeRow({
   showtime,
   film,
   city,
-  onChain,
   showCinema = true,
 }: ShowtimeRowProps) {
   const bookable = showtime.bookingUrl != null;
@@ -62,22 +59,7 @@ export function ShowtimeRow({
         </div>
       )}
 
-      {onChain && (
-        <button
-          type="button"
-          onClick={() => onChain(showtime)}
-          title="Que voir avant ou après cette séance ?"
-          aria-label={`Enchaîner avec une autre séance autour de ${showtime.time}`}
-          className="hidden md:flex w-11 h-11 shrink-0 items-center justify-center rounded-md border-2 border-sepia-chaud bg-beige-papier text-sepia-chaud hover:text-rouge-cinema hover:border-rouge-cinema transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 015.656 5.656l-1.5 1.5" />
-          </svg>
-        </button>
-      )}
-
-      <AddToSoireeButton film={film} showtime={showtime} city={city} className="w-11 h-11 shrink-0" />
+      <PlanSoireeButton film={film} showtime={showtime} city={city} className="w-11 h-11" />
     </div>
   );
 }

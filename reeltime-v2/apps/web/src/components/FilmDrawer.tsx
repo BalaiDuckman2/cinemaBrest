@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import type { FilmListItem, ShowtimeEntry } from '../types/components';
+import { useEffect, useRef } from 'react';
+import type { FilmListItem } from '../types/components';
 import { FilmShowtimes } from './FilmShowtimes';
-import { SequencePanel } from './SequencePanel';
 import { BottomSheet } from './ui/BottomSheet';
 
 const NO_POSTER = '/images/no-poster.svg';
@@ -10,11 +9,7 @@ interface FilmDrawerProps {
   film: FilmListItem | null;
   isOpen: boolean;
   onClose: () => void;
-  /** Catalogue complet, active l'enchaînement de séances. */
-  films?: FilmListItem[];
   cityOf?: (cinemaId: string) => string | undefined;
-  /** Appelé quand l'utilisateur choisit un autre film dans les suggestions. */
-  onFilmSelect?: (film: FilmListItem) => void;
 }
 
 function formatRuntime(minutes: number | null): string {
@@ -24,20 +19,17 @@ function formatRuntime(minutes: number | null): string {
   return h > 0 ? `${h}h${m.toString().padStart(2, '0')}` : `${m}min`;
 }
 
-export function FilmDrawer({ film, isOpen, onClose, films, cityOf, onFilmSelect }: FilmDrawerProps) {
-  const [chainAnchor, setChainAnchor] = useState<ShowtimeEntry | null>(null);
+export function FilmDrawer({ film, isOpen, onClose, cityOf }: FilmDrawerProps) {
   const filmId = film?.id;
   const bodyRef = useRef<HTMLDivElement>(null);
 
-  // Changer de film réinitialise la vue enchaînement et remonte le contenu.
+  // Changer de film remonte le contenu du tiroir.
   useEffect(() => {
-    setChainAnchor(null);
     bodyRef.current?.scrollIntoView({ block: 'start' });
   }, [filmId]);
 
   if (!film) return null;
 
-  const chainEnabled = films != null && cityOf != null;
   const runtimeStr = formatRuntime(film.runtime);
 
   return (
@@ -93,51 +85,30 @@ export function FilmDrawer({ film, isOpen, onClose, films, cityOf, onFilmSelect 
           </svg>
         </div>
 
-        {chainAnchor && chainEnabled ? (
-          <SequencePanel
-            anchorFilm={film}
-            anchor={chainAnchor}
-            films={films}
-            cityOf={cityOf}
-            onBack={() => setChainAnchor(null)}
-            onFilmClick={(f) => {
-              setChainAnchor(null);
-              onFilmSelect?.(f);
-            }}
-          />
-        ) : (
-          <>
-            <FilmShowtimes
-              showtimes={film.showtimes}
-              film={film}
-              onChain={chainEnabled ? setChainAnchor : undefined}
-              cityOf={cityOf}
-            />
+        <FilmShowtimes showtimes={film.showtimes} film={film} cityOf={cityOf} />
 
-            <div className="border-t-2 border-sepia-chaud/30 pt-6 space-y-3 text-sm">
-              {film.director && (
-                <p className="font-crimson text-noir-velours">
-                  <span className="font-bold text-rouge-cinema">Réalisateur:</span> {film.director}
-                </p>
-              )}
-              {film.genres.length > 0 && (
-                <p className="font-crimson text-noir-velours">
-                  <span className="font-bold text-rouge-cinema">Genre:</span> {film.genres.join(', ')}
-                </p>
-              )}
-              {film.cast.length > 0 && (
-                <p className="font-crimson text-noir-velours">
-                  <span className="font-bold text-rouge-cinema">Casting:</span> {film.cast.join(', ')}
-                </p>
-              )}
-              {film.synopsis && (
-                <p className="font-crimson text-sepia-chaud text-xs mt-4 leading-relaxed italic">
-                  {film.synopsis}
-                </p>
-              )}
-            </div>
-          </>
-        )}
+        <div className="border-t-2 border-sepia-chaud/30 pt-6 space-y-3 text-sm">
+          {film.director && (
+            <p className="font-crimson text-noir-velours">
+              <span className="font-bold text-rouge-cinema">Réalisateur:</span> {film.director}
+            </p>
+          )}
+          {film.genres.length > 0 && (
+            <p className="font-crimson text-noir-velours">
+              <span className="font-bold text-rouge-cinema">Genre:</span> {film.genres.join(', ')}
+            </p>
+          )}
+          {film.cast.length > 0 && (
+            <p className="font-crimson text-noir-velours">
+              <span className="font-bold text-rouge-cinema">Casting:</span> {film.cast.join(', ')}
+            </p>
+          )}
+          {film.synopsis && (
+            <p className="font-crimson text-sepia-chaud text-xs mt-4 leading-relaxed italic">
+              {film.synopsis}
+            </p>
+          )}
+        </div>
       </div>
     </BottomSheet>
   );
