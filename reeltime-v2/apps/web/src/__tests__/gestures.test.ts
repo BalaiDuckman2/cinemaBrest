@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   DRAG_OWNER_SELECTOR,
   dragVelocity,
+  isVerticalDrag,
   ownsDragGesture,
   shouldDismiss,
   type DragSample,
@@ -103,5 +104,32 @@ describe('ownsDragGesture', () => {
     expect(DRAG_OWNER_SELECTOR).toContain('[role="slider"]');
     expect(DRAG_OWNER_SELECTOR).toContain('input[type="range"]');
     expect(DRAG_OWNER_SELECTOR).toContain('[data-drag-owner]');
+  });
+});
+
+describe('isVerticalDrag', () => {
+  it('reconnaît un geste franchement vertical', () => {
+    expect(isVerticalDrag(0, 40)).toBe(true);
+    expect(isVerticalDrag(5, 40)).toBe(true);
+  });
+
+  it('rejette un geste franchement horizontal', () => {
+    expect(isVerticalDrag(40, 0)).toBe(false);
+    expect(isVerticalDrag(40, 5)).toBe(false);
+  });
+
+  // La diagonale exacte reste au controle sous-jacent : en cas d'égalité, la
+  // feuille s'abstient plutôt que de trancher à pile ou face.
+  it('rejette la diagonale exacte', () => {
+    expect(isVerticalDrag(30, 30)).toBe(false);
+  });
+
+  it('ignore le sens du mouvement horizontal', () => {
+    expect(isVerticalDrag(-40, 5)).toBe(false);
+    expect(isVerticalDrag(-5, 40)).toBe(true);
+  });
+
+  it('rejette un geste immobile', () => {
+    expect(isVerticalDrag(0, 0)).toBe(false);
   });
 });

@@ -59,3 +59,14 @@ export function ownsDragGesture(target: unknown): boolean {
   if (el == null || typeof el.closest !== 'function') return false;
   return el.closest(DRAG_OWNER_SELECTOR) != null;
 }
+
+/**
+ * Le geste est-il assez vertical pour qu'une feuille s'en saisisse ?
+ * Garde-fou générique derrière `ownsDragGesture` : il protège les contrôles
+ * horizontaux qui n'annoncent pas leur nature, un carrousel maison par exemple.
+ * L'égalité stricte compte comme non verticale — dans le doute, la feuille
+ * laisse le geste au contenu.
+ */
+export function isVerticalDrag(dx: number, dy: number): boolean {
+  return Math.abs(dy) > Math.abs(dx);
+}
