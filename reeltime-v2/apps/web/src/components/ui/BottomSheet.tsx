@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useScrollLock } from '../../hooks/useScrollLock';
-import { shouldDismiss, type DragSample } from '../../utils/gestures';
+import { ownsDragGesture, shouldDismiss, type DragSample } from '../../utils/gestures';
 
 interface BottomSheetProps {
   open: boolean;
@@ -78,16 +78,21 @@ export function BottomSheet({
     let startY = 0;
     let delta = 0;
     let dragging = false;
+    // Vrai quand le geste a commencé sur un contrôle qui le possède déjà : la
+    // feuille se tient alors à l'écart jusqu'au prochain touchstart.
+    let handedOver = false;
     let samples: DragSample[] = [];
 
     const onStart = (e: TouchEvent) => {
       startY = e.touches[0].clientY;
       delta = 0;
       dragging = false;
+      handedOver = ownsDragGesture(e.target);
       samples = [{ y: startY, t: e.timeStamp }];
     };
 
     const onMove = (e: TouchEvent) => {
+      if (handedOver) return;
       const y = e.touches[0].clientY;
       const dy = y - startY;
 
@@ -117,6 +122,7 @@ export function BottomSheet({
     };
 
     const onEnd = () => {
+      handedOver = false;
       if (!dragging) return;
       sheet.style.willChange = '';
       sheet.style.transition = '';

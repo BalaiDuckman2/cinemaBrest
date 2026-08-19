@@ -32,3 +32,30 @@ export function shouldDismiss(deltaY: number, samples: DragSample[]): boolean {
   if (deltaY <= 0) return false;
   return deltaY > DISMISS_DISTANCE_PX || dragVelocity(samples) > DISMISS_VELOCITY_PX_PER_MS;
 }
+
+/**
+ * Contrôles qui gèrent eux-mêmes le glissement du doigt. Une feuille qui écoute
+ * les touches sur toute sa surface doit leur laisser le geste : sans ça, régler
+ * un slider la fait glisser sous le doigt, puis la ferme au relâchement, dont
+ * la petite impulsion vers le bas franchit le seuil de vélocité.
+ *
+ * `data-drag-owner` est l'échappatoire pour un contrôle maison qui n'expose ni
+ * `role="slider"` ni `input[type="range"]`.
+ */
+export const DRAG_OWNER_SELECTOR = '[role="slider"], input[type="range"], [data-drag-owner]';
+
+/** Forme minimale attendue d'une cible d'événement, pour rester testable sans DOM. */
+interface ClosestTarget {
+  closest(selector: string): unknown;
+}
+
+/**
+ * La cible appartient-elle à un contrôle qui possède déjà le geste ?
+ * `document` et `window` remontent dans les événements tactiles sans porter
+ * `closest` : ils comptent comme des cibles ordinaires.
+ */
+export function ownsDragGesture(target: unknown): boolean {
+  const el = target as ClosestTarget | null | undefined;
+  if (el == null || typeof el.closest !== 'function') return false;
+  return el.closest(DRAG_OWNER_SELECTOR) != null;
+}
