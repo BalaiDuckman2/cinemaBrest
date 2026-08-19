@@ -71,3 +71,25 @@ export function formatWeekLabel(weekStart?: string, weekEnd?: string): string {
   if (!weekStart || !weekEnd) return '';
   return `${formatDayMonth(weekStart)} - ${formatDayMonth(weekEnd)}`;
 }
+
+/** Lundi de la semaine contenant `dateStr`, en ms UTC. */
+function mondayOf(dateStr: string): number {
+  // Midi UTC : le calcul reste juste de part et d'autre des changements d'heure.
+  const d = new Date(dateStr + 'T12:00:00Z');
+  // getUTCDay rend 0 le dimanche, qui appartient à la semaine du lundi d'avant.
+  const shift = (d.getUTCDay() + 6) % 7;
+  d.setUTCDate(d.getUTCDate() - shift);
+  return d.getTime();
+}
+
+/** Millisecondes dans une semaine. */
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Écart en semaines calendaires entre `target` et `today`, semaines commençant
+ * le lundi comme partout ailleurs. 0 pour la semaine courante, 1 pour la
+ * suivante, -1 pour la précédente. C'est la valeur attendue par `?week=`.
+ */
+export function weekOffsetForDate(target: string, today: string): number {
+  return Math.round((mondayOf(target) - mondayOf(today)) / WEEK_MS);
+}

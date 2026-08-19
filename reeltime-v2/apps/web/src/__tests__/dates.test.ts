@@ -3,6 +3,7 @@ import {
   firstSelectableDate,
   formatWeekLabel,
   weekDatesFrom,
+  weekOffsetForDate,
 } from '../utils/dates';
 
 // Repères : 2026-07-20 et 2026-07-27 lundis, 2026-07-26 et 2026-08-02 dimanches,
@@ -70,5 +71,48 @@ describe('formatWeekLabel', () => {
   it('renvoie une chaine vide tant que la meta n est pas chargee', () => {
     expect(formatWeekLabel(undefined, undefined)).toBe('');
     expect(formatWeekLabel('2026-07-27', undefined)).toBe('');
+  });
+});
+
+describe('weekOffsetForDate', () => {
+  // 2026-08-17 est un lundi, 2026-08-23 le dimanche qui le suit.
+  const LUNDI = '2026-08-17';
+  const DIMANCHE = '2026-08-23';
+
+  it('rend 0 pour aujourd hui', () => {
+    expect(weekOffsetForDate(LUNDI, LUNDI)).toBe(0);
+  });
+
+  it('rend 0 partout dans la semaine courante', () => {
+    expect(weekOffsetForDate(LUNDI, '2026-08-19')).toBe(0);
+    expect(weekOffsetForDate(DIMANCHE, '2026-08-19')).toBe(0);
+    expect(weekOffsetForDate('2026-08-19', LUNDI)).toBe(0);
+    expect(weekOffsetForDate('2026-08-19', DIMANCHE)).toBe(0);
+  });
+
+  it('rend 1 pour la semaine suivante', () => {
+    expect(weekOffsetForDate('2026-08-24', '2026-08-19')).toBe(1);
+    expect(weekOffsetForDate('2026-08-30', '2026-08-19')).toBe(1);
+  });
+
+  it('rend -1 pour la semaine precedente', () => {
+    expect(weekOffsetForDate('2026-08-10', '2026-08-19')).toBe(-1);
+    expect(weekOffsetForDate('2026-08-16', '2026-08-19')).toBe(-1);
+  });
+
+  // Le bord ou ce calcul casse : deux jours consecutifs a cheval sur le lundi.
+  it('separe le dimanche et le lundi qui le suit', () => {
+    expect(weekOffsetForDate('2026-08-24', DIMANCHE)).toBe(1);
+    expect(weekOffsetForDate(DIMANCHE, '2026-08-24')).toBe(-1);
+  });
+
+  it('compte plusieurs semaines dans les deux sens', () => {
+    expect(weekOffsetForDate('2026-09-14', '2026-08-19')).toBe(4);
+    expect(weekOffsetForDate('2026-07-20', '2026-08-19')).toBe(-4);
+  });
+
+  // Changement d heure fin octobre : le calcul ne doit pas deriver d une heure.
+  it('traverse le changement d heure sans deriver', () => {
+    expect(weekOffsetForDate('2026-11-02', '2026-10-19')).toBe(2);
   });
 });
